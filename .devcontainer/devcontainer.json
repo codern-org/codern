@@ -1,0 +1,24 @@
+{
+	"name": "Codern API Server",
+	"dockerComposeFile": "docker-compose.yaml",
+	"service": "app",
+	"workspaceFolder": "/workspace",
+
+	// Use 'forwardPorts' to make a list of ports inside the container available locally.
+	"forwardPorts": [3000, 8086],
+
+	// Configure tool-specific properties.
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				// Improve highlighting of errors, warnings and other language diagnostics.
+				"usernamehw.errorlens",
+				// Improve your code commenting by annotating with alert, informational, TODOs, and more!
+				"aaron-bond.better-comments"
+			]
+		}
+	},
+
+	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
+	"remoteUser": "root"
+}
