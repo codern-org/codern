@@ -6,9 +6,10 @@
 
 **Codern** is an open-source coding platform that focuses on providing a seamless setup for coding event organizers and end-users, enabling them to enhance their programming skills through interactive coding experiences.
 
-> [!NOTE] This project also serves as an experimental playground for the founders of Codern, allowing them to learn and develop a robust microservice architecture as part of their Computer Engineering senior project.
+> [!NOTE]
+> This repository contains the API Server of Codern only. If you are interested in exploring how the Codern user interface was created, please visit the link [here](https://github.com/codern-org/ui).
 
-> [!NOTE] This repository contains the API Server of Codern only. If you are interested in exploring how the Codern user interface was created, please visit the link [here](https://github.com/codern-org/ui).
+> This project also serves as an experimental playground for the founders of Codern, allowing them to learn and develop a robust system as part of their Computer Engineering senior project.
 
 ## Proposal
 
