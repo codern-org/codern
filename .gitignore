@@ -18,5 +18,8 @@
 tmp
 dist
 
+# Docker volumes
+.docker
+
 # Configuration file
 config.yaml
