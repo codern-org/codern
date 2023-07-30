@@ -1,0 +1,22 @@
+# IDE project-specific settings
+.idea
+
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary, built with `go test -c`
+*.test
+
+# MISC
+.DS_STORE
+
+# Output
+tmp
+dist
+
+# Configuration file
+config.yaml
