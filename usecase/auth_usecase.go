@@ -25,13 +25,13 @@ func NewAuthUsecase(
 	}
 }
 
-func (usecase *authUsecase) Authenticate(header string) (*domain.User, error) {
-	session, err := usecase.sessionUsecase.Validate(header)
+func (u *authUsecase) Authenticate(header string) (*domain.User, error) {
+	session, err := u.sessionUsecase.Validate(header)
 	if err != nil {
 		return nil, err
 	}
 
-	user, err := usecase.userUsecase.GetBySessionId(session.Id)
+	user, err := u.userUsecase.GetBySessionId(session.Id)
 	if err != nil {
 		return nil, err
 	}
@@ -39,10 +39,10 @@ func (usecase *authUsecase) Authenticate(header string) (*domain.User, error) {
 	return user, nil
 }
 
-func (usecase *authUsecase) SignIn(
+func (u *authUsecase) SignIn(
 	email string, password string, ipAddress string, userAgent string,
 ) (string, error) {
-	user, err := usecase.userUsecase.GetSelfProviderUser(email)
+	user, err := u.userUsecase.GetSelfProviderUser(email)
 	if err != nil {
 		return "", err
 	}
@@ -55,44 +55,44 @@ func (usecase *authUsecase) SignIn(
 		return "", errors.New("password is incorrect")
 	}
 
-	return usecase.sessionUsecase.Create(user.Id, ipAddress, userAgent)
+	return u.sessionUsecase.Create(user.Id, ipAddress, userAgent)
 }
 
-func (usecase *authUsecase) SignInWithGoogle(
+func (u *authUsecase) SignInWithGoogle(
 	code string, ipAddress string, userAgent string,
 ) (string, error) {
-	token, err := usecase.googleUsecase.GetToken(code)
+	token, err := u.googleUsecase.GetToken(code)
 	if err != nil {
 		return "", err
 	}
-	googleUser, err := usecase.googleUsecase.GetUser(token)
+	googleUser, err := u.googleUsecase.GetUser(token)
 	if err != nil {
 		return "", err
 	}
 
-	userId := usecase.userUsecase.HashId(googleUser.Id, domain.GOOGLE)
-	user, err := usecase.userUsecase.Get(userId)
+	userId := u.userUsecase.HashId(googleUser.Id, domain.GOOGLE)
+	user, err := u.userUsecase.Get(userId)
 	if err != nil {
 		return "", err
 	}
 
 	if user == nil {
-		user, err = usecase.userUsecase.CreateFromGoogle(googleUser.Id, googleUser.Email)
+		user, err = u.userUsecase.CreateFromGoogle(googleUser.Id, googleUser.Email)
 		if err != nil {
 			return "", err
 		}
 	}
 
-	return usecase.sessionUsecase.Create(user.Id, ipAddress, userAgent)
+	return u.sessionUsecase.Create(user.Id, ipAddress, userAgent)
 }
 
-func (usecase *authUsecase) SignOut(header string) error {
-	session, err := usecase.sessionUsecase.Validate(header)
+func (u *authUsecase) SignOut(header string) error {
+	session, err := u.sessionUsecase.Validate(header)
 	if err != nil {
 		return err
 	}
 
-	if err = usecase.sessionUsecase.Destroy(session.Id); err != nil {
+	if err = u.sessionUsecase.Destroy(session.Id); err != nil {
 		return err
 	}
 
