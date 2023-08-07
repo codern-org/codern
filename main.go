@@ -10,6 +10,13 @@ import (
 	"go.uber.org/zap"
 )
 
+// @title Codern API Server
+// @version 0.0.0
+// @description The API Server of Codern
+//
+// @securityDefinitions.apikey 	ApiKeyAuth
+// @in 													header
+// @name												Authorization
 func main() {
 	// Initialize logger
 	logger := logger.NewLogger()
