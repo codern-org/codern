@@ -7,6 +7,9 @@ clean:
 	go clean
 	rm -rf dist/${BINARY_NAME}
 
+migrate-db:
+	go run ./internal/cmd/mysql_migration.go
+
 deps:
 	go mod download
 
