@@ -17,6 +17,89 @@
 
 <details><summary>Click to expand!</summary>
 
+```mermaid
+flowchart TB
+    subgraph route[Route]
+        swaggerRoute[Swagger route]
+        apiRoute[Public API route]
+        fallbackRoute[Fallback route]
+
+        apiRoute -.->|Not match any routes| fallbackRoute
+        swaggerRoute
+    end
+
+    subgraph middleware[Middleware]
+        loggerMiddleware[Logger middleware]
+    end
+
+    subgraph controller[Controller]
+        authController[Auth Controller]
+    end
+
+    subgraph usecase[Usecase]
+        authUsecase[Auth usecase]
+        googleUsecase[Google usecase]
+        sessionUsecase[Session usecase]
+        userUsecase[User usecase]
+    end
+
+    subgraph repository[Repository]
+        sessionRepository[Session Repository]
+        userRepository[User Repository]
+    end
+
+    subgraph fiber[Fiber]
+        route
+        middleware
+        controller
+        usecase
+        repository
+
+        apiRoute --> loggerMiddleware
+        loggerMiddleware --> controller
+
+        authController --> authUsecase
+        authController --> googleUsecase
+
+        authUsecase --> googleUsecase
+        authUsecase --> sessionUsecase
+        authUsecase --> userUsecase
+
+        %% For alignment
+        authController --> userUsecase
+
+        sessionUsecase --> sessionRepository
+        userUsecase --> userRepository
+    end
+
+    style fiber fill:#dfe6e9
+    style route fill:#b2bec3
+    style controller fill:#b2bec3
+    style usecase fill:#b2bec3
+    style repository fill:#b2bec3
+
+    style platform fill:#dfe6e9
+    style database fill:#b2bec3
+
+    loggerMiddleware -->|Measurement executation time| influxdb
+    grafana -.->|Visualization| influxdb
+    repository ---> mysql
+
+    config[YAML file]
+    fiber -->|Load configuration| config
+    vault -->|Render template| config
+
+    subgraph platform[Other platform]
+        grafana[Grafana]
+        vault[Vault]
+
+        subgraph database[Database]
+            mysql[(MySQL)]
+            influxdb[(InfluxDB)]
+        end
+    end
+```
+
 #### We don't need Microservice
 
 Behind the scenes, the Codern API server was built using lighting-fast web framework, [Fiber](https://docs.gofiber.io/). Our codebase was designed with a monolithic architecture. Previosuly, we adopted a Microservice architecture for building everything (see [legacy version](https://github.com/codern-org/legacy)), but we eventually made the decision to switch back to a monolith. We found that the Microservice architecture didn't provide us any significant advantages, only introducing development difficulties. As the result, **we opted for the more streamlined monolithic approach.**
