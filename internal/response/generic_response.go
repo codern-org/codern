@@ -6,10 +6,22 @@ type GenericResponse struct {
 }
 
 type GenericErrorResponse struct {
-	Code    int    `json:"code"`
-	Message string `json:"message"`
+	Code    int         `json:"code"`
+	Message string      `json:"message"`
+	Details interface{} `json:"details"`
+}
+
+type GenericValidationError struct {
+	FailedField string
+	Tag         string
+	Value       interface{}
 }
 
 const (
-	ErrRouteNotFound = 1000
+	ErrRouteNotFound    = 1000
+	ErrPayloadParser    = 1001
+	ErrPayloadValidator = 1002
+
+	ErrAuthHeaderNotFound = 2000
+	ErrUnauthorized       = 2001
 )
