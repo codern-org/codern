@@ -45,6 +45,8 @@ func (s *fiberServer) Start() {
 		ErrorHandler:          errorHandler,
 	})
 
+	route.ApplySwaggerRoutes(app)
+
 	// Apply middlewares
 	app.Use(requestid.New())
 	app.Use(middleware.NewLogger(s.logger, s.influxdb))

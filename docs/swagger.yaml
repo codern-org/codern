@@ -1,0 +1,105 @@
+definitions:
+  domain.AuthProvider:
+    enum:
+    - SELF
+    - GOOGLE
+    type: string
+    x-enum-varnames:
+    - SELF
+    - GOOGLE
+  domain.User:
+    properties:
+      createdAt:
+        type: string
+      displayName:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      profilePath:
+        type: string
+      provider:
+        $ref: '#/definitions/domain.AuthProvider'
+    type: object
+  payload.AuthSignIn:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  response.GenericErrorResponse:
+    properties:
+      code:
+        type: integer
+      details: {}
+      message:
+        type: string
+    type: object
+info:
+  contact: {}
+  description: The API Server of Codern
+  title: Codern API Server
+  version: 0.0.0
+paths:
+  /api/auth/me:
+    get:
+      consumes:
+      - application/json
+      description: Get an authenticated user data
+      parameters:
+      - description: Session ID
+        in: header
+        name: sid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.User'
+        "400":
+          description: If `sid` header is missing
+          schema:
+            $ref: '#/definitions/response.GenericErrorResponse'
+        "401":
+          description: If something wrong on authentication
+          schema:
+            $ref: '#/definitions/response.GenericErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get an user data
+      tags:
+      - auth
+  /api/auth/signin:
+    post:
+      consumes:
+      - application/json
+      description: Sign in with email & password provided by the user
+      parameters:
+      - description: Email and password for authentication
+        in: body
+        name: credentials
+        required: true
+        schema:
+          $ref: '#/definitions/payload.AuthSignIn'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: Sign in with self provider
+      tags:
+      - auth
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
