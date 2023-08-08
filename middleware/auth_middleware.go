@@ -20,13 +20,10 @@ func NewAuthMiddleware(
 
 		user, err := authUsecase.Authenticate(sid)
 		if err != nil {
-			logger.Error(
+			logger.Warn(
 				"Unauthorized incomming request",
-				zap.Any("error", map[string]interface{}{
-					"path":   ctx.Path(),
-					"status": fiber.StatusUnauthorized,
-					"error":  err.Error(),
-				}),
+				zap.String("path", ctx.Path()),
+				zap.String("message", err.Error()),
 			)
 			return ctx.Status(fiber.StatusUnauthorized).JSON(response.GenericErrorResponse{
 				Code:    response.ErrUnauthorized,
