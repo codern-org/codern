@@ -31,6 +31,12 @@ func NewPayloadValidator(
 func (v payloadValidator) ValidateAuth(ctx *fiber.Ctx) (string, error) {
 	sid := ctx.Get(payload.AuthCookieKey)
 	if sid == "" {
+		v.logger.Warn(
+			"Missing auth header",
+			zap.String("path", ctx.Path()),
+			zap.String("ip_address", ctx.IP()),
+			zap.String("user_agent", string(ctx.Context().UserAgent())),
+		)
 		return "", ctx.
 			Status(fiber.StatusBadRequest).
 			JSON(response.GenericErrorResponse{
@@ -57,6 +63,7 @@ func (v payloadValidator) ValidateBody(payload interface{}, ctx *fiber.Ctx) (boo
 	}
 
 	if errs := v.validateStruct(payload); errs != nil {
+		v.logger.Warn("Payload validation failed", zap.Any("details", errs))
 		return false, ctx.
 			Status(fiber.StatusBadRequest).
 			JSON(response.GenericResponse{
@@ -80,8 +87,8 @@ func (v payloadValidator) validateStruct(payload interface{}) []response.Generic
 	if errs := v.validator.Struct(payload); errs != nil {
 		for _, err := range errs.(validator.ValidationErrors) {
 			var element response.GenericValidationError
-			element.FailedField = err.StructNamespace()
-			element.Tag = err.Tag()
+			element.Namespace = err.StructNamespace()
+			element.Field = err.Tag()
 			element.Value = err.Value()
 			errors = append(errors, element)
 		}
