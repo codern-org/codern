@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/codern-org/codern/domain"
+	"github.com/codern-org/codern/internal/response"
 	"github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
 )
@@ -37,7 +38,10 @@ func NewLogger(logger *zap.Logger, influxdb domain.InfluxDb) fiber.Handler {
 		)
 		if influxDbErr != nil {
 			logger.Error("HTTP Request Measurement", zap.Error(influxDbErr))
-			return fiber.NewError(fiber.StatusInternalServerError, "Internal logging error")
+			return ctx.Status(fiber.StatusInternalServerError).JSON(response.GenericErrorResponse{
+				Code:    response.ErrLoggingError,
+				Message: "Internal logging error",
+			})
 		}
 
 		logger.Info(
