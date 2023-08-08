@@ -21,6 +21,7 @@ const (
 	ErrRouteNotFound    = 1000
 	ErrPayloadParser    = 1001
 	ErrPayloadValidator = 1002
+	ErrLoggingError     = 1003
 
 	ErrAuthHeaderNotFound = 2000
 	ErrUnauthorized       = 2001
