@@ -4,6 +4,7 @@ import (
 	"github.com/codern-org/codern/controller"
 	"github.com/codern-org/codern/domain"
 	"github.com/codern-org/codern/internal/validator"
+	"github.com/codern-org/codern/middleware"
 	"github.com/codern-org/codern/repository"
 	"github.com/codern-org/codern/usecase"
 	"github.com/gofiber/fiber/v2"
@@ -18,6 +19,7 @@ func ApplyApiRoutes(
 	influxdb domain.InfluxDb,
 	mysql *sqlx.DB,
 ) {
+	// Initialize Dependencies
 	validator := validator.NewPayloadValidator(logger, influxdb)
 
 	// Initialize Repositories
@@ -35,8 +37,11 @@ func ApplyApiRoutes(
 		logger, validator, authUsecase, googleUsecase, userUsecase,
 	)
 
+	// Initialize Middlewares
+	authMiddleware := middleware.NewAuthMiddleware(logger, validator, authUsecase)
+
 	// Initialize Routes
-	auth := app.Group("/api/auth")
+	auth := app.Group("/api/auth", authMiddleware)
 	auth.Get("/me", authController.Me)
 	auth.Post("/signin", authController.SignIn)
 	auth.Get("/signout", authController.SignOut)

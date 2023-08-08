@@ -47,30 +47,7 @@ func NewAuthContoller(
 // @Failure			401 {object}	response.GenericErrorResponse "If something wrong on authentication"
 // @Router 			/api/auth/me [get]
 func (c *AuthController) Me(ctx *fiber.Ctx) error {
-	sid := ctx.Get("sid")
-	if sid == "" {
-		return ctx.Status(400).JSON(response.GenericErrorResponse{
-			Code:    response.ErrAuthHeaderNotFound,
-			Message: "Missing `sid` header for authentication",
-		})
-	}
-
-	user, err := c.authUsecase.Authenticate(sid)
-	if err != nil {
-		c.logger.Error(
-			"Unauthorized incomming request",
-			zap.Any("error", map[string]interface{}{
-				"path":   ctx.Path(),
-				"status": 401,
-				"error":  err.Error(),
-			}),
-		)
-		return ctx.Status(401).JSON(response.GenericErrorResponse{
-			Code:    response.ErrUnauthorized,
-			Message: "Unauthorized with this auth header",
-		})
-	}
-
+	user := ctx.Locals("user").(domain.User)
 	return ctx.JSON(user)
 }
 
@@ -86,7 +63,7 @@ func (c *AuthController) Me(ctx *fiber.Ctx) error {
 // @Router 			/api/auth/signin [post]
 func (c *AuthController) SignIn(ctx *fiber.Ctx) error {
 	var payload payload.AuthSignIn
-	if ok, err := c.validator.Validate(&payload, ctx); !ok {
+	if ok, err := c.validator.ValidateBody(&payload, ctx); !ok {
 		return err
 	}
 
@@ -95,7 +72,26 @@ func (c *AuthController) SignIn(ctx *fiber.Ctx) error {
 	})
 }
 
+// SignOut godoc
+//
+// @Summary 		Sign out
+// @Description Sign out and remove a sid cookie header
+// @Tags 				auth
+// @Produce 		json
+// @Security 		ApiKeyAuths
+// @param 			sid header string true "Session ID"
+// @Success			200
+// @Router 			/api/auth/signout [post]
 func (c *AuthController) SignOut(ctx *fiber.Ctx) error {
+	sid := ctx.Get("sid")
+
+	if err := c.authUsecase.SignOut(sid); err != nil {
+		return ctx.Status(fiber.StatusUnauthorized).JSON(response.GenericErrorResponse{
+			Code:    response.ErrUnauthorized,
+			Message: err.Error(),
+		})
+	}
+
 	return ctx.JSON(fiber.Map{
 		"message": "signout",
 	})
