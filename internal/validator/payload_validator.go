@@ -1,7 +1,10 @@
 package validator
 
 import (
+	"fmt"
+
 	"github.com/codern-org/codern/domain"
+	"github.com/codern-org/codern/internal/payload"
 	"github.com/codern-org/codern/internal/response"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
@@ -25,7 +28,20 @@ func NewPayloadValidator(
 	}
 }
 
-func (v payloadValidator) Validate(payload interface{}, ctx *fiber.Ctx) (bool, error) {
+func (v payloadValidator) ValidateAuth(ctx *fiber.Ctx) (string, error) {
+	sid := ctx.Get(payload.AuthCookieKey)
+	if sid == "" {
+		return "", ctx.
+			Status(fiber.StatusBadRequest).
+			JSON(response.GenericErrorResponse{
+				Code:    response.ErrAuthHeaderNotFound,
+				Message: fmt.Sprintf("Missing `%s` header for authentication", payload.AuthCookieKey),
+			})
+	}
+	return sid, nil
+}
+
+func (v payloadValidator) ValidateBody(payload interface{}, ctx *fiber.Ctx) (bool, error) {
 	if err := ctx.BodyParser(&payload); err != nil {
 		return false, ctx.
 			Status(fiber.StatusUnprocessableEntity).
