@@ -12,9 +12,9 @@ type GenericErrorResponse struct {
 }
 
 type GenericValidationError struct {
-	FailedField string
-	Tag         string
-	Value       interface{}
+	Namespace string
+	Field     string
+	Value     interface{}
 }
 
 const (
