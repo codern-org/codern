@@ -6,4 +6,7 @@ RUN curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/i
 # Install golang-migrate for database migration
 RUN go install github.com/golang-migrate/migrate/v4/cmd/migrate@latest
 
+# Install swagger doc generator from Go annotations
+RUN go install github.com/swaggo/swag/cmd/swag@latest
+
 CMD ["sleep", "infinity"]
