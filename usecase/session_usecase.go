@@ -5,12 +5,12 @@ import (
 	"crypto/sha256"
 	"crypto/subtle"
 	"encoding/base64"
-	"errors"
 	"regexp"
 	"strings"
 	"time"
 
 	"github.com/codern-org/codern/domain"
+	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 )
 
@@ -39,7 +39,7 @@ func (u *sessionUsecase) Sign(id string) string {
 
 func (u *sessionUsecase) Unsign(header string) (string, error) {
 	if !strings.HasPrefix(header, u.cfgAuthSession.Prefix+":") {
-		return "", errors.New("prefix mismatch")
+		return "", domain.NewGenericError(domain.ErrSessionPrefix, "Prefix mismatch")
 	}
 
 	id := header[len(u.cfgAuthSession.Prefix)+1 : strings.LastIndex(header, ".")]
@@ -49,15 +49,17 @@ func (u *sessionUsecase) Unsign(header string) (string, error) {
 	isInputMatch := subtle.ConstantTimeCompare([]byte(header), []byte(expectation)) == 1
 
 	if !isLengthMatch || !isInputMatch {
-		return "", errors.New("signature mismatch")
+		return "", domain.NewGenericError(domain.ErrSignatureMismatch, "Signature mismatch")
 	}
 	return id, nil
 }
 
-func (u *sessionUsecase) Create(userId string, ipAddress string, userAgent string) (string, error) {
+func (u *sessionUsecase) Create(
+	userId string, ipAddress string, userAgent string,
+) (*fiber.Cookie, error) {
 	err := u.sessionRepository.DeleteDuplicates(userId, userAgent, ipAddress)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	id := u.Sign(uuid.NewString())
@@ -73,10 +75,16 @@ func (u *sessionUsecase) Create(userId string, ipAddress string, userAgent strin
 		CreatedAt: createdAt,
 	})
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return id, nil
+	cookie := &fiber.Cookie{
+		Name:     "sid",
+		Value:    id,
+		HTTPOnly: true,
+		Expires:  expiredAt,
+	}
+	return cookie, nil
 }
 
 func (u *sessionUsecase) Get(header string) (*domain.Session, error) {
@@ -103,14 +111,14 @@ func (u *sessionUsecase) Validate(header string) (*domain.Session, error) {
 		return nil, err
 	}
 	if session == nil {
-		return nil, errors.New("invalid sesion")
+		return nil, domain.NewGenericError(domain.ErrInvalidSession, "Invalid session")
 	}
 
 	if !time.Now().Before(session.ExpiredAt) {
 		if err := u.Destroy(session.Id); err != nil {
 			return nil, err
 		}
-		return nil, errors.New("session expired")
+		return nil, domain.NewGenericError(domain.ErrSessionExpired, "Session expired")
 	}
 
 	return session, nil

@@ -27,7 +27,8 @@ func (u *userUsecase) HashId(id string, provider domain.AuthProvider) string {
 
 func (u *userUsecase) Create(email string, password string) (*domain.User, error) {
 	if _, err := mail.ParseAddress(email); err != nil {
-		return nil, fmt.Errorf("email %s is invalid", email)
+		errMessage := fmt.Sprintf("email %s is invalid", email)
+		return nil, domain.NewGenericError(domain.ErrInvalidEmail, errMessage)
 	}
 
 	user, err := u.GetSelfProviderUser(email)
@@ -35,7 +36,8 @@ func (u *userUsecase) Create(email string, password string) (*domain.User, error
 		return nil, err
 	}
 	if user != nil {
-		return nil, fmt.Errorf("email %s already registered", email)
+		errMessage := fmt.Sprintf("email %s is already registered", email)
+		return nil, domain.NewGenericError(domain.ErrDupEmail, errMessage)
 	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), 10)

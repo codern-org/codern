@@ -1,9 +1,8 @@
 package usecase
 
 import (
-	"errors"
-
 	"github.com/codern-org/codern/domain"
+	"github.com/gofiber/fiber/v2"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -41,18 +40,18 @@ func (u *authUsecase) Authenticate(header string) (*domain.User, error) {
 
 func (u *authUsecase) SignIn(
 	email string, password string, ipAddress string, userAgent string,
-) (string, error) {
+) (*fiber.Cookie, error) {
 	user, err := u.userUsecase.GetSelfProviderUser(email)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	if user == nil {
-		return "", errors.New("cannot retrieve self provider user data")
+		return nil, domain.NewGenericError(domain.ErrUserData, "Cannot retrieve user data")
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil {
-		return "", errors.New("password is incorrect")
+		return nil, domain.NewGenericError(domain.ErrUserPassword, "Password is incorrect")
 	}
 
 	return u.sessionUsecase.Create(user.Id, ipAddress, userAgent)
@@ -60,26 +59,26 @@ func (u *authUsecase) SignIn(
 
 func (u *authUsecase) SignInWithGoogle(
 	code string, ipAddress string, userAgent string,
-) (string, error) {
+) (*fiber.Cookie, error) {
 	token, err := u.googleUsecase.GetToken(code)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	googleUser, err := u.googleUsecase.GetUser(token)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	userId := u.userUsecase.HashId(googleUser.Id, domain.GOOGLE)
 	user, err := u.userUsecase.Get(userId)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	if user == nil {
 		user, err = u.userUsecase.CreateFromGoogle(googleUser.Id, googleUser.Email)
 		if err != nil {
-			return "", err
+			return nil, err
 		}
 	}
 

@@ -39,7 +39,7 @@ func NewLogger(logger *zap.Logger, influxdb domain.InfluxDb) fiber.Handler {
 		if influxDbErr != nil {
 			logger.Error("HTTP Request Measurement", zap.Error(influxDbErr))
 			return ctx.Status(fiber.StatusInternalServerError).JSON(response.GenericErrorResponse{
-				Code:    response.ErrLoggingError,
+				Code:    domain.ErrLoggingError,
 				Message: "Internal logging error",
 			})
 		}

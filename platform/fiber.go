@@ -87,13 +87,5 @@ func errorHandler(ctx *fiber.Ctx, err error) error {
 		code = e.Code
 	}
 
-	return ctx.Status(code).JSON(response.GenericResponse{
-		Sucess: false,
-		Errors: []response.GenericErrorResponse{
-			{
-				Code:    code,
-				Message: err.Error(),
-			},
-		},
-	})
+	return response.NewErrorResponse(ctx, code, err)
 }
