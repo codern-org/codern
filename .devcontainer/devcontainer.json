@@ -16,7 +16,9 @@
 				// Improve highlighting of errors, warnings and other language diagnostics.
 				"usernamehw.errorlens",
 				// Improve your code commenting by annotating with alert, informational, TODOs, and more!
-				"aaron-bond.better-comments"
+				"aaron-bond.better-comments",
+				// Editor configuration file
+				"EditorConfig.EditorConfig"
 			]
 		}
 	},
