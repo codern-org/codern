@@ -44,6 +44,10 @@ func (s *fiberServer) Start() {
 		DisableStartupMessage: true,
 		ErrorHandler:          errorHandler,
 	})
+	app.Hooks().OnListen(func(ld fiber.ListenData) error {
+		s.logger.Sugar().Infof("Server is listening on %s:%s", ld.Host, ld.Port)
+		return nil
+	})
 
 	route.ApplySwaggerRoutes(app)
 
@@ -57,7 +61,6 @@ func (s *fiberServer) Start() {
 
 	// Open fiber http server with gracefully shutdown
 	go func() {
-		s.logger.Info("Server is starting")
 		if err := app.Listen(s.cfg.Client.Fiber.Address); err != nil {
 			s.logger.Panic("Server is not running", zap.Error(err))
 		}
