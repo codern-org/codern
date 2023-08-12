@@ -8,9 +8,9 @@ import (
 )
 
 type GenericResponse struct {
-	Success bool                 `json:"success"`
-	Data    interface{}          `json:"data"`
-	Error   GenericErrorResponse `json:"error"`
+	Success bool                  `json:"success"`
+	Data    interface{}           `json:"data,omitempty"`
+	Error   *GenericErrorResponse `json:"error,omitempty"`
 }
 
 type GenericErrorResponse struct {
@@ -28,10 +28,13 @@ func NewErrorResponse(ctx *fiber.Ctx, status int, err error, data ...interface{}
 		outputErr = GenericErrorResponse{
 			Code:    genericError.Code(),
 			Message: genericError.Error(),
-			Data:    data,
+		}
+		if data != nil {
+			outputErr.Data = data
 		}
 		outputStatus = status
 	} else {
+		ctx.Locals("internal_error", err)
 		outputErr = GenericErrorResponse{
 			Code:    domain.ErrInternal,
 			Message: err.Error(),
@@ -40,7 +43,7 @@ func NewErrorResponse(ctx *fiber.Ctx, status int, err error, data ...interface{}
 	}
 	return ctx.Status(outputStatus).JSON(GenericResponse{
 		Success: false,
-		Error:   outputErr,
+		Error:   &outputErr,
 	})
 }
 

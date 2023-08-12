@@ -13,6 +13,6 @@ func ApplyFallbackRoute(app *fiber.App) {
 		return response.NewErrorResponse(
 			ctx,
 			fiber.StatusNotFound,
-			domain.NewGenericError(domain.ErrRoute, fmt.Sprintf("No route for %s", ctx.Path())))
+			domain.NewGenericError(domain.ErrRoute, fmt.Sprintf("No route for %s %s", ctx.Method(), ctx.Path())))
 	})
 }

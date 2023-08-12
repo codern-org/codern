@@ -30,7 +30,6 @@ func NewLogger(logger *zap.Logger, influxdb domain.InfluxDb) fiber.Handler {
 				"method":     method,
 				"path":       path,
 				"statusCode": strconv.Itoa(statusCode),
-				"ipAddress":  ip,
 			},
 			map[string]interface{}{
 				"executionTime": executionTime.Nanoseconds(),
@@ -51,6 +50,15 @@ func NewLogger(logger *zap.Logger, influxdb domain.InfluxDb) fiber.Handler {
 			zap.String("user_agent", string(userAgent)),
 			zap.String("execution_time", executionTime.String()),
 		)
+
+		if err != nil {
+			logger.Error("Internal server error", zap.Error(err))
+		}
+
+		internalError := ctx.Locals("internal_error")
+		if internalError != nil {
+			logger.Error("Internal server error", zap.Error(internalError.(error)))
+		}
 
 		return err
 	}
