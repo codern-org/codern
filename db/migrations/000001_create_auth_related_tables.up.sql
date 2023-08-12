@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS `session` (
   `id` VARCHAR(128) PRIMARY KEY,
   `user_id` VARCHAR(64) NOT NULL,
   `ip_address` VARCHAR(15) NOT NULL,
-  `user_agent` VARCHAR(128) NOT NULL,
+  `user_agent` VARCHAR(256) NOT NULL,
   `created_at` DATETIME NOT NULL,
   `expired_at` DATETIME NOT NULL,
   FOREIGN KEY (`user_id`) REFERENCES `user`(`id`)

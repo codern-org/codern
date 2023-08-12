@@ -17,7 +17,7 @@ func NewSessionRepository(db *sqlx.DB) domain.SessionRepository {
 
 func (repository *sessionRepository) Create(session *domain.Session) error {
 	_, err := repository.db.NamedExec(
-		"INSERT INTO session VALUES (:id, :user_id, :ip_address, :user_agent, :expired_at, :created_at)",
+		"INSERT INTO session VALUES (:id, :user_id, :ip_address, :user_agent, :created_at, :expired_at)",
 		session,
 	)
 	if err != nil {
@@ -28,7 +28,7 @@ func (repository *sessionRepository) Create(session *domain.Session) error {
 
 func (repository *sessionRepository) Get(id string) (*domain.Session, error) {
 	session := domain.Session{}
-	err := repository.db.Get(&session, "SELECT * FROM session WHERE id = ?", id)
+	err := repository.db.Get(&session, "SELECT * FROM session WHERE id = ? LIMIT 1", id)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	} else if err != nil {
