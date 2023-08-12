@@ -1,6 +1,8 @@
 package controller
 
 import (
+	"time"
+
 	"github.com/codern-org/codern/domain"
 	"github.com/codern-org/codern/internal/payload"
 	"github.com/codern-org/codern/internal/response"
@@ -42,13 +44,9 @@ func NewAuthContoller(
 // @Produce 		json
 // @Security 		ApiKeyAuth
 // @param 			sid header string true "Session ID"
-// @Success 		200	{object}	domain.User
-// @Failure			400 {object}	response.GenericErrorResponse "If `sid` header is missing"
-// @Failure			401 {object}	response.GenericErrorResponse "If something wrong on authentication"
 // @Router 			/api/auth/me [get]
 func (c *AuthController) Me(ctx *fiber.Ctx) error {
-	user := ctx.Locals("user").(domain.User)
-	return ctx.JSON(user)
+	return response.NewSuccessResponse(ctx, fiber.StatusOK, ctx.Locals("user"))
 }
 
 // SignIn godoc
@@ -59,7 +57,6 @@ func (c *AuthController) Me(ctx *fiber.Ctx) error {
 // @Accept 			json
 // @Produce 		json
 // @Param				credentials	body	payload.AuthSignIn true "Email and password for authentication"
-// @Success			200
 // @Router 			/api/auth/signin [post]
 func (c *AuthController) SignIn(ctx *fiber.Ctx) error {
 	var payload payload.AuthSignIn
@@ -67,8 +64,52 @@ func (c *AuthController) SignIn(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	return ctx.JSON(fiber.Map{
-		"message": "signin",
+	ipAddress := ctx.IP()
+	userAgent := ctx.Context().UserAgent()
+	cookie, err := c.authUsecase.SignIn(payload.Email, payload.Password, ipAddress, string(userAgent))
+	if err != nil {
+		return response.NewErrorResponse(ctx, fiber.StatusBadRequest, err)
+	}
+	ctx.Cookie(cookie)
+
+	return response.NewSuccessResponse(ctx, fiber.StatusOK, fiber.Map{
+		"expired_at": cookie.Expires,
+	})
+}
+
+// GetGoogleAuthUrl godoc
+//
+// @Summary 		Get Google auth URL
+// @Description Get an url to signin with the Google account
+// @Tags 				auth
+// @Produce 		json
+// @Router 			/api/auth/google [get]
+func (c *AuthController) GetGoogleAuthUrl(ctx *fiber.Ctx) error {
+	return response.NewSuccessResponse(ctx, fiber.StatusOK, fiber.Map{
+		"url": c.googleUsecase.GetOAuthUrl(),
+	})
+}
+
+// SignInWithGoogle godoc
+//
+// @Summary 		Sign in with Google
+// @Description A callback route for Google OAuth to redirect to after signing in
+// @Tags 				auth
+// @Produce 		json
+// @Router 			/api/auth/google/callback [get]
+func (c *AuthController) SignInWithGoogle(ctx *fiber.Ctx) error {
+	code := ctx.Query("code")
+	ipAddress := ctx.IP()
+	userAgent := ctx.Context().UserAgent()
+
+	cookie, err := c.authUsecase.SignInWithGoogle(code, ipAddress, string(userAgent))
+	if err != nil {
+		return response.NewErrorResponse(ctx, fiber.StatusBadRequest, err)
+	}
+	ctx.Cookie(cookie)
+
+	return response.NewSuccessResponse(ctx, fiber.StatusOK, fiber.Map{
+		"expired_at": cookie.Expires,
 	})
 }
 
@@ -80,31 +121,14 @@ func (c *AuthController) SignIn(ctx *fiber.Ctx) error {
 // @Produce 		json
 // @Security 		ApiKeyAuths
 // @param 			sid header string true "Session ID"
-// @Success			200
-// @Router 			/api/auth/signout [post]
+// @Router 			/api/auth/signout [get]
 func (c *AuthController) SignOut(ctx *fiber.Ctx) error {
 	sid := ctx.Get("sid")
-
 	if err := c.authUsecase.SignOut(sid); err != nil {
-		return ctx.Status(fiber.StatusUnauthorized).JSON(response.GenericErrorResponse{
-			Code:    response.ErrUnauthorized,
-			Message: err.Error(),
-		})
+		return response.NewErrorResponse(ctx, fiber.StatusUnauthorized, err)
 	}
-
-	return ctx.JSON(fiber.Map{
-		"message": "signout",
-	})
-}
-
-func (c *AuthController) GetGoogleAuthUrl(ctx *fiber.Ctx) error {
-	return ctx.JSON(fiber.Map{
-		"url": c.googleUsecase.GetOAuthUrl(),
-	})
-}
-
-func (c *AuthController) SignInWithGoogle(ctx *fiber.Ctx) error {
-	return ctx.JSON(fiber.Map{
-		"message": "google",
+	ctx.ClearCookie() // Clear all client cookies
+	return response.NewSuccessResponse(ctx, fiber.StatusOK, fiber.Map{
+		"signout_at": time.Now(),
 	})
 }

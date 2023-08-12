@@ -76,7 +76,7 @@ func (u *authUsecase) SignInWithGoogle(
 	}
 
 	if user == nil {
-		user, err = u.userUsecase.CreateFromGoogle(googleUser.Id, googleUser.Email)
+		user, err = u.userUsecase.CreateFromGoogle(googleUser.Id, googleUser.Email, googleUser.Name)
 		if err != nil {
 			return nil, err
 		}

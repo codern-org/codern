@@ -1,27 +1,4 @@
 definitions:
-  domain.AuthProvider:
-    enum:
-    - SELF
-    - GOOGLE
-    type: string
-    x-enum-varnames:
-    - SELF
-    - GOOGLE
-  domain.User:
-    properties:
-      createdAt:
-        type: string
-      displayName:
-        type: string
-      email:
-        type: string
-      id:
-        type: string
-      profilePath:
-        type: string
-      provider:
-        $ref: '#/definitions/domain.AuthProvider'
-    type: object
   payload.AuthSignIn:
     properties:
       email:
@@ -32,20 +9,31 @@ definitions:
     - email
     - password
     type: object
-  response.GenericErrorResponse:
-    properties:
-      code:
-        type: integer
-      details: {}
-      message:
-        type: string
-    type: object
 info:
   contact: {}
   description: The API Server of Codern
   title: Codern API Server
   version: 0.0.0
 paths:
+  /api/auth/google:
+    get:
+      description: Get an url to signin with the Google account
+      produces:
+      - application/json
+      responses: {}
+      summary: Get Google auth URL
+      tags:
+      - auth
+  /api/auth/google/callback:
+    get:
+      description: A callback route for Google OAuth to redirect to after signing
+        in
+      produces:
+      - application/json
+      responses: {}
+      summary: Sign in with Google
+      tags:
+      - auth
   /api/auth/me:
     get:
       consumes:
@@ -59,19 +47,7 @@ paths:
         type: string
       produces:
       - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/domain.User'
-        "400":
-          description: If `sid` header is missing
-          schema:
-            $ref: '#/definitions/response.GenericErrorResponse'
-        "401":
-          description: If something wrong on authentication
-          schema:
-            $ref: '#/definitions/response.GenericErrorResponse'
+      responses: {}
       security:
       - ApiKeyAuth: []
       summary: Get an user data
@@ -91,10 +67,25 @@ paths:
           $ref: '#/definitions/payload.AuthSignIn'
       produces:
       - application/json
-      responses:
-        "200":
-          description: OK
+      responses: {}
       summary: Sign in with self provider
+      tags:
+      - auth
+  /api/auth/signout:
+    get:
+      description: Sign out and remove a sid cookie header
+      parameters:
+      - description: Session ID
+        in: header
+        name: sid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - ApiKeyAuths: []
+      summary: Sign out
       tags:
       - auth
 securityDefinitions:

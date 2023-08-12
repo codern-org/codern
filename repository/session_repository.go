@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"database/sql"
+
 	"github.com/codern-org/codern/domain"
 	"github.com/jmoiron/sqlx"
 )
@@ -9,7 +11,7 @@ type sessionRepository struct {
 	db *sqlx.DB
 }
 
-func NewSessionRepository(db *sqlx.DB) *sessionRepository {
+func NewSessionRepository(db *sqlx.DB) domain.SessionRepository {
 	return &sessionRepository{db: db}
 }
 
@@ -27,7 +29,9 @@ func (repository *sessionRepository) Create(session *domain.Session) error {
 func (repository *sessionRepository) Get(id string) (*domain.Session, error) {
 	session := domain.Session{}
 	err := repository.db.Get(&session, "SELECT * FROM session WHERE id = ?", id)
-	if err != nil {
+	if err == sql.ErrNoRows {
+		return nil, nil
+	} else if err != nil {
 		return nil, err
 	}
 	return &session, nil

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -81,7 +82,12 @@ func (u *googleUsecase) GetToken(code string) (string, error) {
 }
 
 func (u *googleUsecase) GetUser(accessToken string) (*domain.GoogleUserResponse, error) {
-	request, err := http.NewRequest("GET", "https://www.googleapis.com/oauth2/v3/userinfo", nil)
+	query := url.Values{}
+	query.Add("alt", "json")
+	query.Add("access_token", accessToken)
+	url := fmt.Sprintf("https://www.googleapis.com/oauth2/v1/userinfo?%s", query.Encode())
+
+	request, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return nil, err
 	}
