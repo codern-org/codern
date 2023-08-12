@@ -5,6 +5,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    ports:
+      - 3000:3000
     volumes:
       - ../:/workspace:cached
   influxdb:
@@ -12,7 +14,8 @@ services:
     volumes:
       - ../.docker/influxdb/data/:/var/lib/influxdb2/
       - ../.docker/influxdb/config/:/etc/influxdb2/
-    network_mode: service:app
+    ports:
+      - 8086:8086
     environment:
       DOCKER_INFLUXDB_INIT_MODE: setup
       DOCKER_INFLUXDB_INIT_USERNAME: root
@@ -22,8 +25,9 @@ services:
       DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: this_is_token
   mysql:
     image: mysql:8
+    ports:
+      - 3306:3306
     volumes:
       - ../.docker/mysql/:/var/lib/mysql/
-    network_mode: service:app
     environment:
       MYSQL_ROOT_PASSWORD: password
