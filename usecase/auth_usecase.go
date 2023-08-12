@@ -46,7 +46,7 @@ func (u *authUsecase) SignIn(
 		return nil, err
 	}
 	if user == nil {
-		return nil, domain.NewGenericError(domain.ErrUserData, "Cannot retrieve user data")
+		return nil, domain.NewGenericError(domain.ErrUserData, "Cannot get user data")
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
@@ -69,7 +69,7 @@ func (u *authUsecase) SignInWithGoogle(
 		return nil, err
 	}
 
-	userId := u.userUsecase.HashId(googleUser.Id, domain.GOOGLE)
+	userId := u.userUsecase.HashId(googleUser.Id, domain.GoogleAuth)
 	user, err := u.userUsecase.Get(userId)
 	if err != nil {
 		return nil, err
