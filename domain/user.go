@@ -14,7 +14,7 @@ type User struct {
 	Email       string       `json:"email" db:"email"`
 	Password    string       `json:"-" db:"password"`
 	DisplayName string       `json:"displayName" db:"display_name"`
-	ProfilePath string       `json:"profilePath" db:"profile_path"`
+	ProfileUrl  string       `json:"profileUrl" db:"profile_url"`
 	Provider    AuthProvider `json:"provider" db:"provider"`
 	CreatedAt   time.Time    `json:"createdAt" db:"created_at"`
 }
@@ -29,7 +29,7 @@ type UserRepository interface {
 type UserUsecase interface {
 	HashId(id string, provider AuthProvider) string
 	Create(email string, password string) (*User, error)
-	CreateFromGoogle(id string, email string) (*User, error)
+	CreateFromGoogle(id string, email string, name string) (*User, error)
 	Get(id string) (*User, error)
 	GetBySessionId(id string) (*User, error)
 	GetSelfProviderUser(email string) (*User, error)

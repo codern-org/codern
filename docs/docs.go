@@ -16,6 +16,32 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/api/auth/google": {
+            "get": {
+                "description": "Get an url to signin with the Google account",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Get Google auth URL",
+                "responses": {}
+            }
+        },
+        "/api/auth/google/callback": {
+            "get": {
+                "description": "A callback route for Google OAuth to redirect to after signing in",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Sign in with Google",
+                "responses": {}
+            }
+        },
         "/api/auth/me": {
             "get": {
                 "security": [
@@ -43,26 +69,7 @@ const docTemplate = `{
                         "required": true
                     }
                 ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/domain.User"
-                        }
-                    },
-                    "400": {
-                        "description": "If ` + "`" + `sid` + "`" + ` header is missing",
-                        "schema": {
-                            "$ref": "#/definitions/response.GenericErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "If something wrong on authentication",
-                        "schema": {
-                            "$ref": "#/definitions/response.GenericErrorResponse"
-                        }
-                    }
-                }
+                "responses": {}
             }
         },
         "/api/auth/signin": {
@@ -89,49 +96,38 @@ const docTemplate = `{
                         }
                     }
                 ],
-                "responses": {
-                    "200": {
-                        "description": "OK"
+                "responses": {}
+            }
+        },
+        "/api/auth/signout": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuths": []
                     }
-                }
+                ],
+                "description": "Sign out and remove a sid cookie header",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Sign out",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Session ID",
+                        "name": "sid",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {}
             }
         }
     },
     "definitions": {
-        "domain.AuthProvider": {
-            "type": "string",
-            "enum": [
-                "SELF",
-                "GOOGLE"
-            ],
-            "x-enum-varnames": [
-                "SELF",
-                "GOOGLE"
-            ]
-        },
-        "domain.User": {
-            "type": "object",
-            "properties": {
-                "createdAt": {
-                    "type": "string"
-                },
-                "displayName": {
-                    "type": "string"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "profilePath": {
-                    "type": "string"
-                },
-                "provider": {
-                    "$ref": "#/definitions/domain.AuthProvider"
-                }
-            }
-        },
         "payload.AuthSignIn": {
             "type": "object",
             "required": [
@@ -143,18 +139,6 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "password": {
-                    "type": "string"
-                }
-            }
-        },
-        "response.GenericErrorResponse": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "integer"
-                },
-                "details": {},
-                "message": {
                     "type": "string"
                 }
             }

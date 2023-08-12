@@ -62,7 +62,8 @@ func (u *sessionUsecase) Create(
 		return nil, err
 	}
 
-	id := u.Sign(uuid.NewString())
+	id := uuid.NewString()
+	signedId := u.Sign(id)
 	createdAt := time.Now()
 	expiredAt := createdAt.Add(time.Duration(u.cfgAuthSession.MaxAge) * time.Second)
 
@@ -80,7 +81,7 @@ func (u *sessionUsecase) Create(
 
 	cookie := &fiber.Cookie{
 		Name:     "sid",
-		Value:    id,
+		Value:    signedId,
 		HTTPOnly: true,
 		Expires:  expiredAt,
 	}

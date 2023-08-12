@@ -41,10 +41,10 @@ func ApplyApiRoutes(
 	authMiddleware := middleware.NewAuthMiddleware(logger, validator, authUsecase)
 
 	// Initialize Routes
-	auth := app.Group("/api/auth", authMiddleware)
-	auth.Get("/me", authController.Me)
+	auth := app.Group("/api/auth")
+	auth.Get("/me", authMiddleware, authController.Me)
 	auth.Post("/signin", authController.SignIn)
-	auth.Get("/signout", authController.SignOut)
+	auth.Get("/signout", authMiddleware, authController.SignOut)
 
 	auth.Get("/google", authController.GetGoogleAuthUrl)
 	auth.Get("/google/callback", authController.SignInWithGoogle)

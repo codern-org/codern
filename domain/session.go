@@ -1,6 +1,10 @@
 package domain
 
-import "time"
+import (
+	"time"
+
+	"github.com/gofiber/fiber/v2"
+)
 
 type Session struct {
 	Id        string    `json:"id" db:"id"`
@@ -21,7 +25,7 @@ type SessionRepository interface {
 type SessionUsecase interface {
 	Sign(id string) string
 	Unsign(header string) (string, error)
-	Create(userId string, ipAddress string, userAgent string) (string, error)
+	Create(userId string, ipAddress string, userAgent string) (*fiber.Cookie, error)
 	Get(header string) (*Session, error)
 	Destroy(id string) error
 	Validate(header string) (*Session, error)
