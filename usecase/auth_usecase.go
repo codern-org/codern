@@ -34,6 +34,9 @@ func (u *authUsecase) Authenticate(header string) (*domain.User, error) {
 	if err != nil {
 		return nil, err
 	}
+	if user == nil {
+		return nil, domain.NewGenericError(domain.ErrUserData, "Cannot get user data")
+	}
 
 	return user, nil
 }

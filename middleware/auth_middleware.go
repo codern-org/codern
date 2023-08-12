@@ -19,19 +19,17 @@ func NewAuthMiddleware(
 		}
 
 		user, err := authUsecase.Authenticate(sid)
-		if user != nil {
-			ctx.Locals("user", user)
-			return ctx.Next()
-		}
-
-		// TODO: Still logging if session is valid but cannot get user data
 		if err != nil {
 			logger.Warn(
 				"Unauthorized incomming request",
 				zap.String("path", ctx.Path()),
 				zap.String("error", err.Error()),
 			)
+			return response.NewErrorResponse(ctx, fiber.StatusUnauthorized, err)
 		}
-		return response.NewErrorResponse(ctx, fiber.StatusUnauthorized, err)
+
+		ctx.Locals("user", user)
+
+		return ctx.Next()
 	}
 }
