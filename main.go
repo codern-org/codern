@@ -20,6 +20,7 @@ import (
 func main() {
 	// Initialize logger
 	logger := logger.NewLogger()
+	defer logger.Sync()
 
 	// Load configuration file
 	var configPath string
@@ -56,8 +57,4 @@ func main() {
 	// Initialize HTTP server
 	fiber := platform.NewFiberServer(cfg, logger, influxdb, mysql)
 	fiber.Start()
-
-	if err := logger.Sync(); err != nil {
-		logger.Panic("Syncing logger", zap.Error(err))
-	}
 }
