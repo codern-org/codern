@@ -3,12 +3,6 @@
 	"dockerComposeFile": "docker-compose.yaml",
 	"service": "app",
 	"workspaceFolder": "/workspace",
-	// Use 'forwardPorts' to make a list of ports inside the container available locally.
-	"forwardPorts": [
-		3000,
-		8086,
-		3306
-	],
 	// Configure tool-specific properties.
 	"customizations": {
 		"vscode": {
