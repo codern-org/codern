@@ -21,8 +21,8 @@ services:
       DOCKER_INFLUXDB_INIT_USERNAME: root
       DOCKER_INFLUXDB_INIT_PASSWORD: password
       DOCKER_INFLUXDB_INIT_ORG: codern
-      DOCKER_INFLUXDB_INIT_BUCKET: gateway
-      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: this_is_token
+      DOCKER_INFLUXDB_INIT_BUCKET: api
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: token
   mysql:
     image: mysql:8
     ports:
@@ -31,6 +31,14 @@ services:
       - ../.docker/mysql/:/var/lib/mysql/
     environment:
       MYSQL_ROOT_PASSWORD: password
+  phpmyadmin:
+    image: phpmyadmin
+    ports:
+      - 81:80
+    environment:
+      PMA_HOST: mysql
+      PMA_USER: root
+      PMA_PASSWORD: password
 
   grafana:
     image: grafana/grafana-oss:10.0.3
