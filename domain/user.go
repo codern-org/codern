@@ -5,8 +5,8 @@ import "time"
 type AuthProvider string
 
 const (
-	SELF   AuthProvider = "SELF"
-	GOOGLE AuthProvider = "GOOGLE"
+	SelfAuth   AuthProvider = "SELF"
+	GoogleAuth AuthProvider = "GOOGLE"
 )
 
 type User struct {

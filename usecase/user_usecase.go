@@ -48,12 +48,12 @@ func (u *userUsecase) Create(email string, password string) (*domain.User, error
 	// TODO: profile generation
 
 	user = &domain.User{
-		Id:          u.HashId(email, domain.SELF),
+		Id:          u.HashId(email, domain.SelfAuth),
 		Email:       email,
 		Password:    string(hashedPassword),
 		DisplayName: "",
 		ProfileUrl:  "",
-		Provider:    domain.SELF,
+		Provider:    domain.SelfAuth,
 		CreatedAt:   time.Now(),
 	}
 
@@ -67,12 +67,12 @@ func (u *userUsecase) CreateFromGoogle(id string, email string, name string) (*d
 	// TODO: profile generation
 
 	user := &domain.User{
-		Id:          u.HashId(id, domain.GOOGLE),
+		Id:          u.HashId(id, domain.GoogleAuth),
 		Email:       email,
 		Password:    "",
 		DisplayName: name,
 		ProfileUrl:  "",
-		Provider:    domain.SELF,
+		Provider:    domain.GoogleAuth,
 		CreatedAt:   time.Now(),
 	}
 
