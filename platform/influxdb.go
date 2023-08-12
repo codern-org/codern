@@ -38,3 +38,7 @@ func (db *influxDb) WritePoint(
 	point := influxdb2.NewPoint(measurement, tags, fields, time.Now())
 	return db.writeApi.WritePoint(context.Background(), point)
 }
+
+func (db *influxDb) Close() {
+	db.client.Close()
+}

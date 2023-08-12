@@ -78,6 +78,8 @@ func (s *fiberServer) Start() {
 	s.logger.Info("Running cleanup tasks")
 
 	// Clean up
+	s.influxdb.Close()
+	s.mysql.Close()
 
 	s.logger.Info("Server was successful shutdown")
 }
