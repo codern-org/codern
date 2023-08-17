@@ -7,10 +7,12 @@ import (
 	"syscall"
 
 	"github.com/codern-org/codern/domain"
+	"github.com/codern-org/codern/internal/constant"
 	"github.com/codern-org/codern/internal/response"
 	"github.com/codern-org/codern/middleware"
 	"github.com/codern-org/codern/route"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
 	"github.com/jmoiron/sqlx"
 	"go.uber.org/zap"
@@ -52,6 +54,12 @@ func (s *fiberServer) Start() {
 	route.ApplySwaggerRoutes(app)
 
 	// Apply middlewares
+	app.Use(cors.New(cors.Config{
+		AllowCredentials: constant.IsDevelopment,
+		AllowOriginsFunc: func(origin string) bool {
+			return constant.IsDevelopment
+		},
+	}))
 	app.Use(requestid.New())
 	app.Use(middleware.NewLogger(s.logger, s.influxdb))
 
