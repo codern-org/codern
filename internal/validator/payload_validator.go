@@ -27,7 +27,7 @@ func NewPayloadValidator(
 }
 
 func (v payloadValidator) ValidateAuth(ctx *fiber.Ctx) (string, error) {
-	sid := ctx.Get(payload.AuthCookieKey)
+	sid := ctx.Cookies(payload.AuthCookieKey)
 	if sid == "" {
 		v.logger.Warn(
 			"Missing auth header",

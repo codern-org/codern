@@ -88,15 +88,10 @@ func (u *authUsecase) SignInWithGoogle(
 	return u.sessionUsecase.Create(user.Id, ipAddress, userAgent)
 }
 
-func (u *authUsecase) SignOut(header string) error {
+func (u *authUsecase) SignOut(header string) (*fiber.Cookie, error) {
 	session, err := u.sessionUsecase.Validate(header)
 	if err != nil {
-		return err
+		return nil, err
 	}
-
-	if err = u.sessionUsecase.Destroy(session.Id); err != nil {
-		return err
-	}
-
-	return nil
+	return u.sessionUsecase.Destroy(session.Id)
 }
