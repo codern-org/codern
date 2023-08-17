@@ -17,4 +17,4 @@ lint:
 	golangci-lint run
 
 run:
-	go run .
+	ENVIRONMENT=development go run .
