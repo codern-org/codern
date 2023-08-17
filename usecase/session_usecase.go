@@ -102,8 +102,12 @@ func (u *sessionUsecase) Get(header string) (*domain.Session, error) {
 	return session, nil
 }
 
-func (u *sessionUsecase) Destroy(id string) error {
-	return u.sessionRepository.Delete(id)
+func (u *sessionUsecase) Destroy(id string) (*fiber.Cookie, error) {
+	return &fiber.Cookie{
+		Name:     "sid",
+		HTTPOnly: true,
+		Expires:  time.Unix(0, 0),
+	}, u.sessionRepository.Delete(id)
 }
 
 func (u *sessionUsecase) Validate(header string) (*domain.Session, error) {
@@ -116,9 +120,6 @@ func (u *sessionUsecase) Validate(header string) (*domain.Session, error) {
 	}
 
 	if !time.Now().Before(session.ExpiredAt) {
-		if err := u.Destroy(session.Id); err != nil {
-			return nil, err
-		}
 		return nil, domain.NewGenericError(domain.ErrSessionExpired, "Session expired")
 	}
 

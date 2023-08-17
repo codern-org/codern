@@ -66,6 +66,7 @@ func (c *AuthController) SignIn(ctx *fiber.Ctx) error {
 
 	ipAddress := ctx.IP()
 	userAgent := ctx.Context().UserAgent()
+
 	cookie, err := c.authUsecase.SignIn(payload.Email, payload.Password, ipAddress, string(userAgent))
 	if err != nil {
 		return response.NewErrorResponse(ctx, fiber.StatusBadRequest, err)
@@ -123,11 +124,14 @@ func (c *AuthController) SignInWithGoogle(ctx *fiber.Ctx) error {
 // @param 			sid header string true "Session ID"
 // @Router 			/api/auth/signout [get]
 func (c *AuthController) SignOut(ctx *fiber.Ctx) error {
-	sid := ctx.Get("sid")
-	if err := c.authUsecase.SignOut(sid); err != nil {
+	sid := ctx.Cookies(payload.AuthCookieKey)
+
+	cookie, err := c.authUsecase.SignOut(sid)
+	if err != nil {
 		return response.NewErrorResponse(ctx, fiber.StatusUnauthorized, err)
 	}
-	ctx.ClearCookie() // Clear all client cookies
+	ctx.Cookie(cookie)
+
 	return response.NewSuccessResponse(ctx, fiber.StatusOK, fiber.Map{
 		"signout_at": time.Now(),
 	})

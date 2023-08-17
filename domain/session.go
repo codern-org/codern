@@ -27,6 +27,6 @@ type SessionUsecase interface {
 	Unsign(header string) (string, error)
 	Create(userId string, ipAddress string, userAgent string) (*fiber.Cookie, error)
 	Get(header string) (*Session, error)
-	Destroy(id string) error
+	Destroy(id string) (*fiber.Cookie, error)
 	Validate(header string) (*Session, error)
 }
