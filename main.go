@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/codern-org/codern/internal/config"
+	"github.com/codern-org/codern/internal/constant"
 	"github.com/codern-org/codern/internal/logger"
 	"github.com/codern-org/codern/platform"
 	"go.uber.org/zap"
@@ -21,6 +22,10 @@ func main() {
 	// Initialize logger
 	logger := logger.NewLogger()
 	defer logger.Sync()
+
+	if constant.IsDevelopment {
+		logger.Warn("Running in development mode")
+	}
 
 	// Load configuration file
 	var configPath string
