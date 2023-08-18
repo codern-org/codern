@@ -22,6 +22,7 @@ func NewAuthMiddleware(
 		if err != nil {
 			logger.Warn(
 				"Unauthorized incomming request",
+				zap.String("request_id", ctx.Locals("requestid").(string)),
 				zap.String("path", ctx.Path()),
 				zap.String("error", err.Error()),
 			)
