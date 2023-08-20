@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"net/url"
 	"time"
 
 	"github.com/codern-org/codern/domain"
@@ -11,16 +12,18 @@ import (
 )
 
 type AuthController struct {
-	logger    *zap.Logger
-	validator domain.PayloadValidator
+	logger      *zap.Logger
+	frontendCfg domain.ConfigFrontend
+	validator   domain.PayloadValidator
 
 	authUsecase   domain.AuthUsecase
 	googleUsecase domain.GoogleUsecase
 	userUsecase   domain.UserUsecase
 }
 
-func NewAuthContoller(
+func NewAuthController(
 	logger *zap.Logger,
+	frontendCfg domain.ConfigFrontend,
 	validator domain.PayloadValidator,
 	authUsecase domain.AuthUsecase,
 	googleUsecase domain.GoogleUsecase,
@@ -28,6 +31,7 @@ func NewAuthContoller(
 ) *AuthController {
 	return &AuthController{
 		logger:        logger,
+		frontendCfg:   frontendCfg,
 		validator:     validator,
 		authUsecase:   authUsecase,
 		googleUsecase: googleUsecase,
@@ -109,9 +113,12 @@ func (c *AuthController) SignInWithGoogle(ctx *fiber.Ctx) error {
 	}
 	ctx.Cookie(cookie)
 
-	return response.NewSuccessResponse(ctx, fiber.StatusOK, fiber.Map{
-		"expired_at": cookie.Expires,
-	})
+	url, err := url.JoinPath(c.frontendCfg.BaseUrl, c.frontendCfg.Path.SignIn)
+	if err != nil {
+		return err
+	}
+
+	return ctx.Redirect(url)
 }
 
 // SignOut godoc

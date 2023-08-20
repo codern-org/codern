@@ -29,14 +29,14 @@ func NewGoogleUsecase(cfgGoogle domain.ConfigGoogle) domain.GoogleUsecase {
 
 func (u *googleUsecase) GetOAuthUrl() string {
 	query := url.Values{}
-	query.Add("redirect_uri", u.cfgGoogle.RedirectUri)
 	query.Add("client_id", u.cfgGoogle.ClientId)
-	query.Add("access_type", "offline")
+	query.Add("redirect_uri", u.cfgGoogle.RedirectUri)
 	query.Add("response_type", "code")
 	query.Add("prompt", "consent")
 	query.Add("scope", strings.Join([]string{
-		"https://www.googleapis.com/auth/userinfo.profile",
-		"https://www.googleapis.com/auth/userinfo.email",
+		"openid",
+		"email",
+		"profile",
 	}, " "))
 	return "https://accounts.google.com/o/oauth2/v2/auth?" + query.Encode()
 }
