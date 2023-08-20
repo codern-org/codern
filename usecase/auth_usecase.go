@@ -49,7 +49,7 @@ func (u *authUsecase) SignIn(
 		return nil, err
 	}
 	if user == nil {
-		return nil, domain.NewGenericError(domain.ErrUserData, "Cannot get user data")
+		return nil, domain.NewGenericError(domain.ErrUserData, "This account is not registered")
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
