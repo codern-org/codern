@@ -15,6 +15,7 @@ type User struct {
 	Password    string       `json:"-" db:"password"`
 	DisplayName string       `json:"displayName" db:"display_name"`
 	ProfileUrl  string       `json:"profileUrl" db:"profile_url"`
+	AccountType string       `json:"accountType" db:"account_type"`
 	Provider    AuthProvider `json:"provider" db:"provider"`
 	CreatedAt   time.Time    `json:"createdAt" db:"created_at"`
 }
