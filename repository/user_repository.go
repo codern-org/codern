@@ -15,8 +15,8 @@ func NewUserRepository(db *sqlx.DB) domain.UserRepository {
 	return &userRepository{db: db}
 }
 
-func (repository *userRepository) Create(user *domain.User) error {
-	_, err := repository.db.NamedExec(
+func (r *userRepository) Create(user *domain.User) error {
+	_, err := r.db.NamedExec(
 		"INSERT INTO user (id, email, password, display_name, profile_url, provider, created_at)"+
 			"VALUES (:id, :email, :password, :display_name, :profile_url, :provider, :created_at)",
 		user,
@@ -27,9 +27,9 @@ func (repository *userRepository) Create(user *domain.User) error {
 	return nil
 }
 
-func (repository *userRepository) Get(id string) (*domain.User, error) {
+func (r *userRepository) Get(id string) (*domain.User, error) {
 	user := domain.User{}
-	err := repository.db.Get(&user, "SELECT * FROM user WHERE id = ? LIMIT 1", id)
+	err := r.db.Get(&user, "SELECT * FROM user WHERE id = ? LIMIT 1", id)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	} else if err != nil {
@@ -38,9 +38,9 @@ func (repository *userRepository) Get(id string) (*domain.User, error) {
 	return &user, nil
 }
 
-func (repository *userRepository) GetBySessionId(id string) (*domain.User, error) {
+func (r *userRepository) GetBySessionId(id string) (*domain.User, error) {
 	user := domain.User{}
-	err := repository.db.Get(
+	err := r.db.Get(
 		&user,
 		"SELECT user.* FROM user JOIN session ON user.id = session.user_id WHERE session.id = ? LIMIT 1",
 		id,
@@ -53,9 +53,9 @@ func (repository *userRepository) GetBySessionId(id string) (*domain.User, error
 	return &user, nil
 }
 
-func (repository *userRepository) GetSelfProviderUser(email string) (*domain.User, error) {
+func (r *userRepository) GetSelfProviderUser(email string) (*domain.User, error) {
 	user := domain.User{}
-	err := repository.db.Get(
+	err := r.db.Get(
 		&user,
 		"SELECT * FROM user WHERE email = ? AND provider = \"SELF\" LIMIT 1",
 		email,

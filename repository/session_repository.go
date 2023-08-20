@@ -15,8 +15,8 @@ func NewSessionRepository(db *sqlx.DB) domain.SessionRepository {
 	return &sessionRepository{db: db}
 }
 
-func (repository *sessionRepository) Create(session *domain.Session) error {
-	_, err := repository.db.NamedExec(
+func (r *sessionRepository) Create(session *domain.Session) error {
+	_, err := r.db.NamedExec(
 		"INSERT INTO session VALUES (:id, :user_id, :ip_address, :user_agent, :created_at, :expired_at)",
 		session,
 	)
@@ -26,9 +26,9 @@ func (repository *sessionRepository) Create(session *domain.Session) error {
 	return nil
 }
 
-func (repository *sessionRepository) Get(id string) (*domain.Session, error) {
+func (r *sessionRepository) Get(id string) (*domain.Session, error) {
 	session := domain.Session{}
-	err := repository.db.Get(&session, "SELECT * FROM session WHERE id = ? LIMIT 1", id)
+	err := r.db.Get(&session, "SELECT * FROM session WHERE id = ? LIMIT 1", id)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	} else if err != nil {
@@ -37,16 +37,16 @@ func (repository *sessionRepository) Get(id string) (*domain.Session, error) {
 	return &session, nil
 }
 
-func (repository *sessionRepository) Delete(id string) error {
-	_, err := repository.db.Exec("DELETE FROM session WHERE id = ?", id)
+func (r *sessionRepository) Delete(id string) error {
+	_, err := r.db.Exec("DELETE FROM session WHERE id = ?", id)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (repository *sessionRepository) DeleteDuplicates(userId string, ipAddress string, userAgent string) error {
-	_, err := repository.db.Exec(
+func (r *sessionRepository) DeleteDuplicates(userId string, ipAddress string, userAgent string) error {
+	_, err := r.db.Exec(
 		"DELETE FROM session WHERE user_id = ? AND user_agent = ? AND ip_address = ?",
 		userId, userAgent, ipAddress,
 	)
