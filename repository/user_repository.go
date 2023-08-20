@@ -55,7 +55,11 @@ func (repository *userRepository) GetBySessionId(id string) (*domain.User, error
 
 func (repository *userRepository) GetSelfProviderUser(email string) (*domain.User, error) {
 	user := domain.User{}
-	err := repository.db.Get("SELECT * FROM user WHERE email = ? AND provider = SELF LIMIT 1", email)
+	err := repository.db.Get(
+		&user,
+		"SELECT * FROM user WHERE email = ? AND provider = \"SELF\" LIMIT 1",
+		email,
+	)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	} else if err != nil {
