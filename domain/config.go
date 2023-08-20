@@ -17,6 +17,7 @@ type ConfigClient struct {
 	InfluxDb ConfigInfluxDb `yaml:"influxdb" validate:"required"`
 	MySql    ConfigMySql    `yaml:"mysql" validate:"required"`
 	Fiber    ConfigFiber    `yaml:"fiber" validate:"required"`
+	Frontend ConfigFrontend `yaml:"frontend" validate:"required"`
 }
 
 type ConfigInfluxDb struct {
@@ -32,6 +33,15 @@ type ConfigMySql struct {
 
 type ConfigFiber struct {
 	Address string `yaml:"address" validate:"required"`
+}
+
+type ConfigFrontend struct {
+	BaseUrl string             `yaml:"baseUrl" vallidate:"url,required"`
+	Path    ConfigFrontendPath `yaml:"path"`
+}
+
+type ConfigFrontendPath struct {
+	SignIn string `yaml:"signIn" validate:"required"`
 }
 
 type ConfigGoogle struct {

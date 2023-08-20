@@ -33,8 +33,8 @@ func ApplyApiRoutes(
 	authUsecase := usecase.NewAuthUsecase(googleUsecase, sessionUsecase, userUsecase)
 
 	// Initialize Controllers
-	authController := controller.NewAuthContoller(
-		logger, validator, authUsecase, googleUsecase, userUsecase,
+	authController := controller.NewAuthController(
+		logger, cfg.Client.Frontend, validator, authUsecase, googleUsecase, userUsecase,
 	)
 
 	// Initialize Middlewares
