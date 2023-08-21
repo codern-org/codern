@@ -65,7 +65,7 @@ func (u *googleUsecase) GetToken(code string) (string, error) {
 	defer response.Body.Close()
 
 	if response.StatusCode != 200 {
-		return "", errors.New("cannot get token from google api, status code: " + response.Status)
+		return "", errors.New("Cannot get token from Google API,  status: " + response.Status)
 	}
 
 	data, err := io.ReadAll(response.Body)
@@ -77,7 +77,6 @@ func (u *googleUsecase) GetToken(code string) (string, error) {
 	if err = json.Unmarshal(data, &result); err != nil {
 		return "", err
 	}
-
 	return result.AccessToken, nil
 }
 
@@ -99,7 +98,7 @@ func (u *googleUsecase) GetUser(accessToken string) (*domain.GoogleUserResponse,
 	defer response.Body.Close()
 
 	if response.StatusCode != 200 {
-		return nil, errors.New("cannot get user from google api, status code: " + response.Status)
+		return nil, errors.New("Cannot get user from Google API, code: " + response.Status)
 	}
 
 	data, err := io.ReadAll(response.Body)
@@ -111,6 +110,5 @@ func (u *googleUsecase) GetUser(accessToken string) (*domain.GoogleUserResponse,
 	if err = json.Unmarshal(data, &result); err != nil {
 		return nil, err
 	}
-
 	return &result, err
 }

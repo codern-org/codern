@@ -38,7 +38,7 @@ func (v payloadValidator) ValidateAuth(ctx *fiber.Ctx) (string, error) {
 		return "", response.NewErrorResponse(
 			ctx,
 			fiber.StatusBadRequest,
-			domain.NewGenericError(domain.ErrAuthHeader, "Missing auth header"),
+			domain.NewError(domain.ErrAuthHeader, "Missing auth header"),
 		)
 	}
 	return sid, nil
@@ -49,7 +49,7 @@ func (v payloadValidator) ValidateBody(payload interface{}, ctx *fiber.Ctx) (boo
 		return false, response.NewErrorResponse(
 			ctx,
 			fiber.StatusUnprocessableEntity,
-			domain.NewGenericError(domain.ErrPayloadParser, err.Error()),
+			domain.NewError(domain.ErrPayloadParser, err.Error()),
 		)
 	}
 
@@ -58,7 +58,7 @@ func (v payloadValidator) ValidateBody(payload interface{}, ctx *fiber.Ctx) (boo
 		return false, response.NewErrorResponse(
 			ctx,
 			fiber.StatusBadRequest,
-			domain.NewGenericError(domain.ErrPayloadValidator, "Payload validation failed"),
+			domain.NewError(domain.ErrPayloadValidator, "Payload validation failed"),
 			errs,
 		)
 	}

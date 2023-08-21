@@ -12,16 +12,14 @@ func NewWorkspaceUsecase(workspaceRepository domain.WorkspaceRepository) domain.
 
 func (u *workspaceUsecase) Get(id int, hasParticipant bool) (*domain.Workspace, error) {
 	workspace, err := u.workspaceRepository.Get(id, hasParticipant)
-	if err != nil {
-		return nil, err
-	}
 	if workspace == nil {
-		return nil, domain.NewGenericError(
+		return nil, domain.NewError(
 			domain.ErrWorkspaceNotFound,
 			"Requested workspace is not found",
 		)
+	} else if err != nil {
+		return nil, err
 	}
-
 	return workspace, nil
 }
 

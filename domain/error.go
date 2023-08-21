@@ -8,6 +8,7 @@ import (
 const (
 	ErrInternal = 1
 	ErrRoute    = 2
+	ErrParam    = 3
 
 	ErrLoggingError     = 1000
 	ErrAuthHeader       = 1010
@@ -26,39 +27,47 @@ const (
 	ErrWorkspaceNotFound = 3000
 )
 
-type GenericError interface {
+type DomainError interface {
 	Code() int
 	error
 }
 
-type genericError struct {
+type domainError struct {
 	code    int
 	message string
 	err     error
 }
 
-func NewGenericError(code int, message string) GenericError {
-	return &genericError{
+func NewError(code int, message string) DomainError {
+	return &domainError{
 		code:    code,
 		message: message,
 		err:     errors.New(message),
 	}
 }
 
-func (e *genericError) Code() int {
+func (e *domainError) Code() int {
 	return e.code
 }
 
-func (e *genericError) Error() string {
+func (e *domainError) Error() string {
 	return e.err.Error()
 }
 
-func (e *genericError) Unwrap() error {
+func (e *domainError) Unwrap() error {
 	return e.err
 }
 
+func HasErrorCode(err error, code int) bool {
+	var domainError DomainError
+	if errors.As(err, &domainError) {
+		return domainError.Code() == code
+	}
+	return false
+}
+
 type ValidationError interface {
-	GenericError
+	DomainError
 }
 
 type validationError struct {
