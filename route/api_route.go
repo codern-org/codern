@@ -25,27 +25,36 @@ func ApplyApiRoutes(
 	// Initialize Repositories
 	sessionRepository := repository.NewSessionRepository(mysql)
 	userRepository := repository.NewUserRepository(mysql)
+	workspaceRepository := repository.NewWorkspaceRepository(mysql)
 
 	// Initialize Usercases
 	googleUsecase := usecase.NewGoogleUsecase(cfg.Google)
 	sessionUsecase := usecase.NewSessionUsecase(cfg.Auth.Session, sessionRepository)
 	userUsecase := usecase.NewUserUsecase(userRepository)
 	authUsecase := usecase.NewAuthUsecase(googleUsecase, sessionUsecase, userUsecase)
+	workspaceUsecase := usecase.NewWorkspaceUsecase(workspaceRepository)
 
 	// Initialize Controllers
 	authController := controller.NewAuthController(
 		logger, cfg.Client.Frontend, validator, authUsecase, googleUsecase, userUsecase,
 	)
+	workspaceController := controller.NewWorkspaceController(logger, workspaceUsecase)
 
 	// Initialize Middlewares
 	authMiddleware := middleware.NewAuthMiddleware(logger, validator, authUsecase)
 
 	// Initialize Routes
-	auth := app.Group("/api/auth")
-	auth.Get("/me", authMiddleware, authController.Me)
-	auth.Post("/signin", authController.SignIn)
-	auth.Get("/signout", authMiddleware, authController.SignOut)
+	api := app.Group("/api")
 
+	auth := api.Group("/auth")
+	workspace := api.Group("/workspace", authMiddleware)
+
+	auth.Get("/me", authMiddleware, authController.Me)
+	auth.Get("/signout", authMiddleware, authController.SignOut)
+	auth.Post("/signin", authController.SignIn)
 	auth.Get("/google", authController.GetGoogleAuthUrl)
 	auth.Get("/google/callback", authController.SignInWithGoogle)
+
+	workspace.Get("/", workspaceController.GetAllFromUserId)
+	workspace.Get("/:id", workspaceController.Get)
 }
