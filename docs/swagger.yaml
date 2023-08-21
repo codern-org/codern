@@ -88,6 +88,57 @@ paths:
       summary: Sign out
       tags:
       - auth
+  /api/workspace:
+    get:
+      consumes:
+      - application/json
+      description: Get all workspaces of the authenticating user
+      parameters:
+      - description: To show all participants information
+        in: query
+        name: participant
+        type: string
+      - description: Session ID
+        in: header
+        name: sid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Get all workspaces of user
+      tags:
+      - workspace
+  /api/workspace/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get a workspace from workspace id on path parameter
+      parameters:
+      - description: Workspace ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: To show all participants information
+        in: query
+        name: participant
+        type: string
+      - description: Session ID
+        in: header
+        name: sid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Get a workspace from workspace id
+      tags:
+      - workspace
 securityDefinitions:
   ApiKeyAuth:
     in: header
