@@ -29,34 +29,23 @@ func (u *authUsecase) Authenticate(header string) (*domain.User, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	user, err := u.userUsecase.GetBySessionId(session.Id)
-	if err != nil {
-		return nil, err
-	}
-	if user == nil {
-		return nil, domain.NewGenericError(domain.ErrUserData, "Cannot get user data")
-	}
-
-	return user, nil
+	return u.userUsecase.GetBySessionId(session.Id)
 }
 
 func (u *authUsecase) SignIn(
 	email string, password string, ipAddress string, userAgent string,
 ) (*fiber.Cookie, error) {
 	user, err := u.userUsecase.GetSelfProviderUser(email)
-	if err != nil {
+	if domain.HasErrorCode(err, domain.ErrUserData) {
+		// Override error message
+		return nil, domain.NewError(domain.ErrUserData, "This account is not registered")
+	} else if err != nil {
 		return nil, err
 	}
-	if user == nil {
-		return nil, domain.NewGenericError(domain.ErrUserData, "This account is not registered")
-	}
 
-	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
-	if err != nil {
-		return nil, domain.NewGenericError(domain.ErrUserPassword, "Password is incorrect")
+	if err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
+		return nil, domain.NewError(domain.ErrUserPassword, "Password is incorrect")
 	}
-
 	return u.sessionUsecase.Create(user.Id, ipAddress, userAgent)
 }
 
@@ -74,7 +63,7 @@ func (u *authUsecase) SignInWithGoogle(
 
 	userId := u.userUsecase.HashId(googleUser.Id, domain.GoogleAuth)
 	user, err := u.userUsecase.Get(userId)
-	if err != nil {
+	if err != nil && !domain.HasErrorCode(err, domain.ErrUserData) {
 		return nil, err
 	}
 
@@ -84,7 +73,6 @@ func (u *authUsecase) SignInWithGoogle(
 			return nil, err
 		}
 	}
-
 	return u.sessionUsecase.Create(user.Id, ipAddress, userAgent)
 }
 

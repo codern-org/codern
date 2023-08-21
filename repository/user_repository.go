@@ -21,14 +21,11 @@ func (r *userRepository) Create(user *domain.User) error {
 			"VALUES (:id, :email, :password, :display_name, :profile_url, :provider, :created_at)",
 		user,
 	)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 func (r *userRepository) Get(id string) (*domain.User, error) {
-	user := domain.User{}
+	var user domain.User
 	err := r.db.Get(&user, "SELECT * FROM user WHERE id = ? LIMIT 1", id)
 	if err == sql.ErrNoRows {
 		return nil, nil
@@ -39,7 +36,7 @@ func (r *userRepository) Get(id string) (*domain.User, error) {
 }
 
 func (r *userRepository) GetBySessionId(id string) (*domain.User, error) {
-	user := domain.User{}
+	var user domain.User
 	err := r.db.Get(
 		&user,
 		"SELECT user.* FROM user JOIN session ON user.id = session.user_id WHERE session.id = ? LIMIT 1",
@@ -54,7 +51,7 @@ func (r *userRepository) GetBySessionId(id string) (*domain.User, error) {
 }
 
 func (r *userRepository) GetSelfProviderUser(email string) (*domain.User, error) {
-	user := domain.User{}
+	var user domain.User
 	err := r.db.Get(
 		&user,
 		"SELECT * FROM user WHERE email = ? AND provider = \"SELF\" LIMIT 1",

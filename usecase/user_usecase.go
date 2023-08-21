@@ -27,17 +27,16 @@ func (u *userUsecase) HashId(id string, provider domain.AuthProvider) string {
 
 func (u *userUsecase) Create(email string, password string) (*domain.User, error) {
 	if _, err := mail.ParseAddress(email); err != nil {
-		errMessage := fmt.Sprintf("email %s is invalid", email)
-		return nil, domain.NewGenericError(domain.ErrInvalidEmail, errMessage)
+		errMessage := fmt.Sprintf("Email %s is invalid", email)
+		return nil, domain.NewError(domain.ErrInvalidEmail, errMessage)
 	}
 
 	user, err := u.GetSelfProviderUser(email)
-	if err != nil {
-		return nil, err
-	}
 	if user != nil {
-		errMessage := fmt.Sprintf("email %s is already registered", email)
-		return nil, domain.NewGenericError(domain.ErrDupEmail, errMessage)
+		errMessage := fmt.Sprintf("Email %s is already registered", email)
+		return nil, domain.NewError(domain.ErrDupEmail, errMessage)
+	} else if err != nil {
+		return nil, err
 	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), 10)
@@ -84,7 +83,9 @@ func (u *userUsecase) CreateFromGoogle(id string, email string, name string) (*d
 
 func (u *userUsecase) Get(id string) (*domain.User, error) {
 	user, err := u.userRepository.Get(id)
-	if err != nil {
+	if user == nil {
+		return nil, domain.NewError(domain.ErrUserData, "Cannot get user data by this user id")
+	} else if err != nil {
 		return nil, err
 	}
 	return user, nil
@@ -92,7 +93,9 @@ func (u *userUsecase) Get(id string) (*domain.User, error) {
 
 func (u *userUsecase) GetBySessionId(id string) (*domain.User, error) {
 	user, err := u.userRepository.GetBySessionId(id)
-	if err != nil {
+	if user == nil {
+		return nil, domain.NewError(domain.ErrUserData, "Cannot get user data by this session id")
+	} else if err != nil {
 		return nil, err
 	}
 	return user, nil
@@ -100,7 +103,9 @@ func (u *userUsecase) GetBySessionId(id string) (*domain.User, error) {
 
 func (u *userUsecase) GetSelfProviderUser(email string) (*domain.User, error) {
 	user, err := u.userRepository.GetSelfProviderUser(email)
-	if err != nil {
+	if user == nil {
+		return nil, domain.NewError(domain.ErrUserData, "Cannot get user data by this email")
+	} else if err != nil {
 		return nil, err
 	}
 	return user, nil

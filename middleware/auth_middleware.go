@@ -34,3 +34,7 @@ func NewAuthMiddleware(
 		return ctx.Next()
 	}
 }
+
+func GetUserFromCtx(ctx *fiber.Ctx) *domain.User {
+	return ctx.Locals("user").(*domain.User)
+}

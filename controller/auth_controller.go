@@ -7,6 +7,7 @@ import (
 	"github.com/codern-org/codern/domain"
 	"github.com/codern-org/codern/internal/payload"
 	"github.com/codern-org/codern/internal/response"
+	"github.com/codern-org/codern/middleware"
 	"github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
 )
@@ -50,7 +51,7 @@ func NewAuthController(
 // @param 			sid header string true "Session ID"
 // @Router 			/api/auth/me [get]
 func (c *AuthController) Me(ctx *fiber.Ctx) error {
-	return response.NewSuccessResponse(ctx, fiber.StatusOK, ctx.Locals("user"))
+	return response.NewSuccessResponse(ctx, fiber.StatusOK, middleware.GetUserFromCtx(ctx))
 }
 
 // SignIn godoc
