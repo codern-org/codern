@@ -22,6 +22,8 @@ const (
 	ErrDupEmail          = 2011
 	ErrUserData          = 2022
 	ErrUserPassword      = 2023
+
+	ErrWorkspaceNotFound = 3000
 )
 
 type GenericError interface {
