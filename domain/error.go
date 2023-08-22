@@ -24,7 +24,9 @@ const (
 	ErrUserData          = 2022
 	ErrUserPassword      = 2023
 
-	ErrWorkspaceNotFound = 3000
+	ErrWorkspaceNotFound   = 3000
+	ErrWorkspaceNoPerm     = 3001
+	ErrWorkspacePermFailed = 3002
 )
 
 type DomainError interface {

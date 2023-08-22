@@ -2,6 +2,7 @@ package controller
 
 import (
 	"github.com/codern-org/codern/domain"
+	"github.com/codern-org/codern/internal/payload"
 	"github.com/codern-org/codern/internal/response"
 	"github.com/codern-org/codern/middleware"
 	"github.com/gofiber/fiber/v2"
@@ -9,8 +10,7 @@ import (
 )
 
 type WorkspaceController struct {
-	logger    *zap.Logger
-	validator domain.PayloadValidator
+	logger *zap.Logger
 
 	workspaceUsecase domain.WorkspaceUsecase
 }
@@ -25,22 +25,34 @@ func NewWorkspaceController(
 	}
 }
 
-// List godoc
+// ListFromUserId godoc
 //
 // @Summary 		List workspaces of user
-// @Description	Get all workspaces of the authenticating user
+// @Description	Get all workspaces from the specific user id
 // @Tags 				workspace
 // @Accept 			json
 // @Produce 		json
-// @Param				participant	query	string	false	"To show all participants information"
+// @Param 			userId			path	string		true "User ID"
+// @Param				fields			query []string	false	"Specific fields to include in the response"	collectionFormat(csv)	Enums(ownerName,participants)
 // @Security 		ApiKeyAuth
-// @param 			sid header string true "Session ID"
-// @Router 			/api/workspace [get]
-func (c *WorkspaceController) List(ctx *fiber.Ctx) error {
-	user := middleware.GetUserFromCtx(ctx)
-	hasParticipant := ctx.QueryBool("participant")
+// @Param 			sid header string true "Session ID"
+// @Router 			/api/user/{userId}/workspace [get]
+func (c *WorkspaceController) ListFromUserId(ctx *fiber.Ctx) error {
+	userId, isMe := payload.GetUserIdParam(ctx)
+	selector := payload.GetFieldSelector(ctx)
 
-	workspaces, err := c.workspaceUsecase.ListFromUserId(user.Id, hasParticipant)
+	if !isMe {
+		return response.NewErrorResponse(
+			ctx,
+			fiber.StatusForbidden,
+			domain.NewError(domain.ErrWorkspaceNoPerm, "Do not have permission to get a list of workspace"),
+		)
+	}
+
+	workspaces, err := c.workspaceUsecase.ListFromUserId(userId, &domain.WorkspaceSelector{
+		OwnerName:    selector.Has("ownerName"),
+		Participants: selector.Has("participant"),
+	})
 	if err != nil {
 		return response.NewErrorResponse(ctx, fiber.StatusBadRequest, err)
 	}
@@ -55,19 +67,34 @@ func (c *WorkspaceController) List(ctx *fiber.Ctx) error {
 // @Tags 				workspace
 // @Accept 			json
 // @Produce 		json
-// @Param				id					path	int			true	"Workspace ID"
-// @Param				participant	query	string	false	"To show all participants information"
+// @Param				id					path	int				true	"Workspace ID"
+// @Param				fields			query []string	false	"Specific fields to include in the response"	collectionFormat(csv)	Enums(ownerName,participants)
 // @Security 		ApiKeyAuth
-// @param 			sid header string true "Session ID"
+// @Param 			sid header string true "Session ID"
 // @Router 			/api/workspace/{id} [get]
 func (c *WorkspaceController) Get(ctx *fiber.Ctx) error {
 	id, err := ctx.ParamsInt("id")
 	if err != nil {
 		return response.NewErrParamResponse(ctx, "id")
 	}
-	hasParticipant := ctx.QueryBool("participant")
+	selector := payload.GetFieldSelector(ctx)
+	user := middleware.GetUserFromCtx(ctx)
 
-	workspace, err := c.workspaceUsecase.Get(id, hasParticipant)
+	ok, err := c.workspaceUsecase.IsUserIn(user.Id, id)
+	if !ok {
+		return response.NewErrorResponse(
+			ctx,
+			fiber.StatusForbidden,
+			domain.NewError(domain.ErrWorkspaceNoPerm, "Do not have permission to get a workspace"),
+		)
+	} else if err != nil {
+		return response.NewErrorResponse(ctx, fiber.StatusInternalServerError, err)
+	}
+
+	workspace, err := c.workspaceUsecase.Get(id, &domain.WorkspaceSelector{
+		OwnerName:    selector.Has("ownerName"),
+		Participants: selector.Has("participants"),
+	})
 	if err != nil {
 		return response.NewErrorResponse(ctx, fiber.StatusBadRequest, err)
 	}
