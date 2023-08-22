@@ -23,6 +23,6 @@ func (u *workspaceUsecase) Get(id int, hasParticipant bool) (*domain.Workspace, 
 	return workspace, nil
 }
 
-func (u *workspaceUsecase) GetAllFromUserId(userId string, hasParticipant bool) (*[]domain.Workspace, error) {
-	return u.workspaceRepository.GetAllFromUserId(userId, hasParticipant)
+func (u *workspaceUsecase) ListFromUserId(userId string, hasParticipant bool) (*[]domain.Workspace, error) {
+	return u.workspaceRepository.ListFromUserId(userId, hasParticipant)
 }

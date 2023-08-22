@@ -101,7 +101,7 @@ func (r *workspaceRepository) List(ids []int, hasParticipant bool) (*[]domain.Wo
 	return &workspaces, nil
 }
 
-func (r *workspaceRepository) GetAllFromUserId(userId string, hasParticipant bool) (*[]domain.Workspace, error) {
+func (r *workspaceRepository) ListFromUserId(userId string, hasParticipant bool) (*[]domain.Workspace, error) {
 	var workspaceId []int
 	err := r.db.Select(&workspaceId, "SELECT workspace_id FROM workspace_participant WHERE user_id = ?", userId)
 	if err != nil {

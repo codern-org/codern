@@ -55,6 +55,6 @@ func ApplyApiRoutes(
 	auth.Get("/google", authController.GetGoogleAuthUrl)
 	auth.Get("/google/callback", authController.SignInWithGoogle)
 
-	workspace.Get("/", workspaceController.GetAllFromUserId)
+	workspace.Get("/", workspaceController.List)
 	workspace.Get("/:id", workspaceController.Get)
 }

@@ -25,6 +25,29 @@ func NewWorkspaceController(
 	}
 }
 
+// List godoc
+//
+// @Summary 		List workspaces of user
+// @Description	Get all workspaces of the authenticating user
+// @Tags 				workspace
+// @Accept 			json
+// @Produce 		json
+// @Param				participant	query	string	false	"To show all participants information"
+// @Security 		ApiKeyAuth
+// @param 			sid header string true "Session ID"
+// @Router 			/api/workspace [get]
+func (c *WorkspaceController) List(ctx *fiber.Ctx) error {
+	user := middleware.GetUserFromCtx(ctx)
+	hasParticipant := ctx.QueryBool("participant")
+
+	workspaces, err := c.workspaceUsecase.ListFromUserId(user.Id, hasParticipant)
+	if err != nil {
+		return response.NewErrorResponse(ctx, fiber.StatusBadRequest, err)
+	}
+
+	return response.NewSuccessResponse(ctx, fiber.StatusOK, workspaces)
+}
+
 // Get godoc
 //
 // @Summary 		Get a workspace from workspace id
@@ -50,27 +73,4 @@ func (c *WorkspaceController) Get(ctx *fiber.Ctx) error {
 	}
 
 	return response.NewSuccessResponse(ctx, fiber.StatusOK, workspace)
-}
-
-// GetAllFromUserId godoc
-//
-// @Summary 		Get all workspaces of user
-// @Description	Get all workspaces of the authenticating user
-// @Tags 				workspace
-// @Accept 			json
-// @Produce 		json
-// @Param				participant	query	string	false	"To show all participants information"
-// @Security 		ApiKeyAuth
-// @param 			sid header string true "Session ID"
-// @Router 			/api/workspace [get]
-func (c *WorkspaceController) GetAllFromUserId(ctx *fiber.Ctx) error {
-	user := middleware.GetUserFromCtx(ctx)
-	hasParticipant := ctx.QueryBool("participant")
-
-	workspaces, err := c.workspaceUsecase.GetAllFromUserId(user.Id, hasParticipant)
-	if err != nil {
-		return response.NewErrorResponse(ctx, fiber.StatusBadRequest, err)
-	}
-
-	return response.NewSuccessResponse(ctx, fiber.StatusOK, workspaces)
 }
