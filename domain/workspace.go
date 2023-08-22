@@ -22,10 +22,10 @@ type WorkspaceParticipant struct {
 
 type WorkspaceRepository interface {
 	Get(id int, hasParticipant bool) (*Workspace, error)
-	GetAllFromUserId(userId string, hasParticipant bool) (*[]Workspace, error)
+	ListFromUserId(userId string, hasParticipant bool) (*[]Workspace, error)
 }
 
 type WorkspaceUsecase interface {
 	Get(id int, hasParticipant bool) (*Workspace, error)
-	GetAllFromUserId(userId string, hasParticipant bool) (*[]Workspace, error)
+	ListFromUserId(userId string, hasParticipant bool) (*[]Workspace, error)
 }
