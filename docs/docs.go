@@ -126,14 +126,14 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/api/workspace": {
+        "/api/user/{userId}/workspace": {
             "get": {
                 "security": [
                     {
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Get all workspaces of the authenticating user",
+                "description": "Get all workspaces from the specific user id",
                 "consumes": [
                     "application/json"
                 ],
@@ -143,12 +143,27 @@ const docTemplate = `{
                 "tags": [
                     "workspace"
                 ],
-                "summary": "Get all workspaces of user",
+                "summary": "List workspaces of user",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "To show all participants information",
-                        "name": "participant",
+                        "description": "User ID",
+                        "name": "userId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "array",
+                        "items": {
+                            "enum": [
+                                "ownerName",
+                                "participants"
+                            ],
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "Specific fields to include in the response",
+                        "name": "fields",
                         "in": "query"
                     },
                     {
@@ -189,9 +204,17 @@ const docTemplate = `{
                         "required": true
                     },
                     {
-                        "type": "string",
-                        "description": "To show all participants information",
-                        "name": "participant",
+                        "type": "array",
+                        "items": {
+                            "enum": [
+                                "ownerName",
+                                "participants"
+                            ],
+                            "type": "string"
+                        },
+                        "collectionFormat": "csv",
+                        "description": "Specific fields to include in the response",
+                        "name": "fields",
                         "in": "query"
                     },
                     {

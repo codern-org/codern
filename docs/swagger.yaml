@@ -88,16 +88,27 @@ paths:
       summary: Sign out
       tags:
       - auth
-  /api/workspace:
+  /api/user/{userId}/workspace:
     get:
       consumes:
       - application/json
-      description: Get all workspaces of the authenticating user
+      description: Get all workspaces from the specific user id
       parameters:
-      - description: To show all participants information
-        in: query
-        name: participant
+      - description: User ID
+        in: path
+        name: userId
+        required: true
         type: string
+      - collectionFormat: csv
+        description: Specific fields to include in the response
+        in: query
+        items:
+          enum:
+          - ownerName
+          - participants
+          type: string
+        name: fields
+        type: array
       - description: Session ID
         in: header
         name: sid
@@ -108,7 +119,7 @@ paths:
       responses: {}
       security:
       - ApiKeyAuth: []
-      summary: Get all workspaces of user
+      summary: List workspaces of user
       tags:
       - workspace
   /api/workspace/{id}:
@@ -122,10 +133,16 @@ paths:
         name: id
         required: true
         type: integer
-      - description: To show all participants information
+      - collectionFormat: csv
+        description: Specific fields to include in the response
         in: query
-        name: participant
-        type: string
+        items:
+          enum:
+          - ownerName
+          - participants
+          type: string
+        name: fields
+        type: array
       - description: Session ID
         in: header
         name: sid

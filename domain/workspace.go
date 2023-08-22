@@ -10,8 +10,11 @@ type Workspace struct {
 	CreatedAt  time.Time `json:"createdAt" db:"created_at"`
 
 	// For aggregation
+	TotalAssignment  int                    `json:"totalAssignment"`
+	UserProgression  int                    `json:"progression"`
+	OwnerName        string                 `json:"ownerName,omitempty"`
 	Participants     []WorkspaceParticipant `json:"participants,omitempty"`
-	ParticipantCount int                    `json:"participantCount,omitempty"`
+	ParticipantCount int                    `json:"participantCount,omitempty" db:"participant_count"`
 }
 
 type WorkspaceParticipant struct {
@@ -20,12 +23,22 @@ type WorkspaceParticipant struct {
 	JoinedAt    time.Time `json:"joinedAt" db:"joined_at"`
 }
 
+type WorkspaceSelector struct {
+	Progression  bool
+	OwnerName    bool
+	Participants bool
+}
+
 type WorkspaceRepository interface {
-	Get(id int, hasParticipant bool) (*Workspace, error)
-	ListFromUserId(userId string, hasParticipant bool) (*[]Workspace, error)
+	IsUserIn(userId string, workspaceId int) (bool, error)
+	Get(id int, selector *WorkspaceSelector) (*Workspace, error)
+	List(ids []int, selector *WorkspaceSelector) (*[]Workspace, error)
+	ListFromUserId(userId string, selector *WorkspaceSelector) (*[]Workspace, error)
 }
 
 type WorkspaceUsecase interface {
-	Get(id int, hasParticipant bool) (*Workspace, error)
-	ListFromUserId(userId string, hasParticipant bool) (*[]Workspace, error)
+	CanUserView(userId string, workspaceIds []int) (bool, error)
+	IsUserIn(userId string, workspaceId int) (bool, error)
+	Get(id int, selector *WorkspaceSelector) (*Workspace, error)
+	ListFromUserId(userId string, selector *WorkspaceSelector) (*[]Workspace, error)
 }
