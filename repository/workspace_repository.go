@@ -44,7 +44,11 @@ func (r *workspaceRepository) Get(id int, hasParticipant bool) (*domain.Workspac
 }
 
 func (r *workspaceRepository) List(ids []int, hasParticipant bool) (*[]domain.Workspace, error) {
-	var workspaces []domain.Workspace
+	workspaces := make([]domain.Workspace, 0)
+	if len(ids) == 0 {
+		return &workspaces, nil
+	}
+
 	query, args, err := sqlx.In("SELECT * FROM workspace WHERE id IN (?)", ids)
 	if err != nil {
 		return nil, err
@@ -102,10 +106,10 @@ func (r *workspaceRepository) List(ids []int, hasParticipant bool) (*[]domain.Wo
 }
 
 func (r *workspaceRepository) ListFromUserId(userId string, hasParticipant bool) (*[]domain.Workspace, error) {
-	var workspaceId []int
-	err := r.db.Select(&workspaceId, "SELECT workspace_id FROM workspace_participant WHERE user_id = ?", userId)
+	var workspaceIds []int
+	err := r.db.Select(&workspaceIds, "SELECT workspace_id FROM workspace_participant WHERE user_id = ?", userId)
 	if err != nil {
 		return nil, err
 	}
-	return r.List(workspaceId, hasParticipant)
+	return r.List(workspaceIds, hasParticipant)
 }
