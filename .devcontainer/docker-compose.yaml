@@ -12,8 +12,8 @@ services:
   influxdb:
     image: influxdb:2.7-alpine
     volumes:
-      - ../.docker/influxdb/data/:/var/lib/influxdb2/
-      - ../.docker/influxdb/config/:/etc/influxdb2/
+      - ./.docker/influxdb/data/:/var/lib/influxdb2/
+      - ./.docker/influxdb/config/:/etc/influxdb2/
     ports:
       - 8086:8086
     environment:
@@ -28,7 +28,7 @@ services:
     ports:
       - 3306:3306
     volumes:
-      - ../.docker/mysql/:/var/lib/mysql/
+      - ./.docker/mysql/:/var/lib/mysql/
     environment:
       MYSQL_ROOT_PASSWORD: password
   phpmyadmin:
@@ -39,13 +39,18 @@ services:
       PMA_HOST: mysql
       PMA_USER: root
       PMA_PASSWORD: password
+  # rabbitmq:
+  #   image: rabbitmq:3.12-management-alpine
+  #   ports:
+  #     - 5672:5672
+  #     - 15672:15672
+  #   environment:
+  #     RABBITMQ_DEFAULT_USER: root
+  #     RABBITMQ_DEFAULT_PASS: password
 
   grafana:
     image: grafana/grafana-oss:10.0.3
     ports:
       - 4000:3000
     volumes:
-      - grafana_data:/var/lib/grafana/
-
-volumes:
-  grafana_data: {}
+      - ./.docker/grafana:/var/lib/grafana/

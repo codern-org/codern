@@ -1,5 +1,7 @@
 FROM mcr.microsoft.com/devcontainers/go:0-1.20
 
+ENV TZ=Asia/Bangkok
+
 # Install golangci-lint for linting
 RUN curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.53.3
 

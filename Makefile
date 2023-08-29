@@ -10,14 +10,14 @@ clean:
 deps:
 	go mod download
 
+dev:
+	ENVIRONMENT=development go run .
+
 lint:
 	golangci-lint run
 
 migrate-db:
 	go run ./internal/cmd/mysql_migration.go
-
-run:
-	ENVIRONMENT=development go run .
 
 swagger:
 	swag init
