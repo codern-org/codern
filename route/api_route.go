@@ -42,6 +42,7 @@ func ApplyApiRoutes(
 
 	// Initialize Middlewares
 	authMiddleware := middleware.NewAuthMiddleware(logger, validator, authUsecase)
+	workspaceMiddleware := middleware.NewWorkspaceMiddleware(logger, workspaceUsecase)
 
 	// Initialize Routes
 	api := app.Group("/api")
@@ -52,10 +53,8 @@ func ApplyApiRoutes(
 	api.Get("/auth/google", authController.GetGoogleAuthUrl)
 	api.Get("/auth/google/callback", authController.SignInWithGoogle)
 
-	api.Get("/user/:userId/workspace", authMiddleware, workspaceController.ListFromUserId)
-	// api.Get("/workspace")
-	// api.Post("/workspace")
-	// api.Delete("/workspace")
-	api.Get("/workspace/:id", authMiddleware, workspaceController.Get)
-	// api.Get("/workspace/:id/join")
+	api.Get("/workspaces", authMiddleware, workspaceController.List)
+	api.Get("/workspaces/:workspaceId", authMiddleware, workspaceMiddleware, workspaceController.Get)
+	api.Get("/workspaces/:workspaceId/assignments", authMiddleware, workspaceMiddleware, workspaceController.ListAssignment)
+	api.Get("/workspaces/:workspaceId/assignments/:assignmentId", authMiddleware, workspaceMiddleware, workspaceController.GetAssignment)
 }

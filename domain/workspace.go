@@ -9,12 +9,13 @@ type Workspace struct {
 	OwnerId    string    `json:"ownerId" db:"owner_id"`
 	CreatedAt  time.Time `json:"createdAt" db:"created_at"`
 
-	// For aggregation
-	TotalAssignment  int                    `json:"totalAssignment"`
-	UserProgression  int                    `json:"progression"`
-	OwnerName        string                 `json:"ownerName,omitempty"`
-	Participants     []WorkspaceParticipant `json:"participants,omitempty"`
-	ParticipantCount int                    `json:"participantCount,omitempty" db:"participant_count"`
+	// Always aggregation
+	OwnerName        string `json:"ownerName" db:"owner_name"`
+	ParticipantCount int    `json:"participantCount" db:"participant_count"`
+	TotalAssignment  int    `json:"totalAssignment" db:"total_assignment"`
+
+	// Optional aggregation
+	Participants []WorkspaceParticipant `json:"participants,omitempty"`
 }
 
 type WorkspaceParticipant struct {
@@ -24,9 +25,28 @@ type WorkspaceParticipant struct {
 }
 
 type WorkspaceSelector struct {
-	Progression  bool
-	OwnerName    bool
 	Participants bool
+}
+
+type AssignmentLevel string
+
+const (
+	AssignmentEasyLevel   AssignmentLevel = "EASY"
+	AssignmentNormalLevel AssignmentLevel = "NORMAL"
+	AssignmentHardLevel   AssignmentLevel = "HARD"
+)
+
+type Assignment struct {
+	Id          int             `json:"id" db:"id"`
+	WorkspaceId int             `json:"-" db:"workspace_id"`
+	Name        string          `json:"name" db:"name"`
+	Description string          `json:"description" db:"description"`
+	DetailUrl   string          `json:"detailUrl" db:"detail_url"`
+	MemoryLimit string          `json:"memoryLimit" db:"memory_limit"`
+	TimeLimit   string          `json:"timeLimit" db:"time_limit"`
+	Level       AssignmentLevel `json:"level" db:"level"`
+	CreatedAt   time.Time       `json:"createdAt" db:"created_at"`
+	UpdatedAt   time.Time       `json:"updatedAt" db:"updated_at"`
 }
 
 type WorkspaceRepository interface {
