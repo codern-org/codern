@@ -39,7 +39,7 @@ func (u *sessionUsecase) Sign(id string) string {
 
 func (u *sessionUsecase) Unsign(header string) (string, error) {
 	if !strings.HasPrefix(header, u.cfgAuthSession.Prefix+":") {
-		return "", domain.NewError(domain.ErrSessionPrefix, "Prefix mismatch")
+		return "", domain.NewError(domain.ErrSessionPrefix, "prefix mismatch")
 	}
 
 	id := header[len(u.cfgAuthSession.Prefix)+1 : strings.LastIndex(header, ".")]
@@ -49,7 +49,7 @@ func (u *sessionUsecase) Unsign(header string) (string, error) {
 	isInputMatch := subtle.ConstantTimeCompare([]byte(header), []byte(expectation)) == 1
 
 	if !isLengthMatch || !isInputMatch {
-		return "", domain.NewError(domain.ErrSignatureMismatch, "Signature mismatch")
+		return "", domain.NewError(domain.ErrSignatureMismatch, "signature mismatch")
 	}
 	return id, nil
 }
@@ -95,7 +95,7 @@ func (u *sessionUsecase) Get(header string) (*domain.Session, error) {
 
 	session, err := u.sessionRepository.Get(id)
 	if session == nil {
-		return nil, domain.NewError(domain.ErrInvalidSession, "Invalid session")
+		return nil, domain.NewError(domain.ErrInvalidSession, "invalid session")
 	} else if err != nil {
 		return nil, err
 	}
@@ -117,7 +117,7 @@ func (u *sessionUsecase) Validate(header string) (*domain.Session, error) {
 	}
 
 	if !time.Now().Before(session.ExpiredAt) {
-		return nil, domain.NewError(domain.ErrSessionExpired, "Session expired")
+		return nil, domain.NewError(domain.ErrSessionExpired, "session expired")
 	}
 
 	return session, nil

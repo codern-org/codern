@@ -3,7 +3,6 @@ package usecase
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -65,7 +64,7 @@ func (u *googleUsecase) GetToken(code string) (string, error) {
 	defer response.Body.Close()
 
 	if response.StatusCode != 200 {
-		return "", errors.New("Cannot get token from Google API,  status: " + response.Status)
+		return "", fmt.Errorf("cannot get token from Google API,  status: %s", response.Status)
 	}
 
 	data, err := io.ReadAll(response.Body)
@@ -98,7 +97,7 @@ func (u *googleUsecase) GetUser(accessToken string) (*domain.GoogleUserResponse,
 	defer response.Body.Close()
 
 	if response.StatusCode != 200 {
-		return nil, errors.New("Cannot get user from Google API, code: " + response.Status)
+		return nil, fmt.Errorf("cannot get user from Google API, code: %s", response.Status)
 	}
 
 	data, err := io.ReadAll(response.Body)
