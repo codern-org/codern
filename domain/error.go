@@ -8,12 +8,16 @@ import (
 const (
 	ErrInternal = 1
 	ErrRoute    = 2
-	ErrParam    = 3
 
-	ErrLoggingError     = 1000
-	ErrAuthHeader       = 1010
-	ErrPayloadParser    = 1011
-	ErrPayloadValidator = 1012
+	ErrLoggingError    = 1000
+	ErrAuthHeader      = 1010
+	ErrValidation      = 1011
+	ErrBodyParser      = 1012
+	ErrBodyValidator   = 1013
+	ErrQueryParser     = 1014
+	ErrQueryValidator  = 1015
+	ErrParamsParser    = 1016
+	ErrParamsValidator = 1017
 
 	ErrSessionPrefix     = 2000
 	ErrSignatureMismatch = 2001
@@ -29,67 +33,64 @@ const (
 	ErrWorkspacePermFailed = 3002
 )
 
-type DomainError interface {
-	Code() int
-	error
+type Error struct {
+	Code    int         `json:"code"`
+	Message string      `json:"message"`
+	Data    interface{} `json:"data,omitempty"`
 }
 
-type domainError struct {
-	code    int
-	message string
-	err     error
-}
-
-func NewError(code int, message string) DomainError {
-	return &domainError{
-		code:    code,
-		message: message,
-		err:     errors.New(message),
+func NewError(code int, message string) *Error {
+	return &Error{
+		Code:    code,
+		Message: message,
 	}
 }
 
-func (e *domainError) Code() int {
-	return e.code
+func NewErrorWithData(code int, message string, data interface{}) *Error {
+	return &Error{
+		Code:    code,
+		Message: message,
+		Data:    data,
+	}
 }
 
-func (e *domainError) Error() string {
-	return e.err.Error()
+func NewErrorf(code int, message string, args ...interface{}) *Error {
+	return &Error{
+		Code:    code,
+		Message: fmt.Sprintf(message, args...),
+	}
 }
 
-func (e *domainError) Unwrap() error {
-	return e.err
+func (e *Error) Error() string {
+	return fmt.Sprintf("(code %d) %s", e.Code, e.Message)
 }
 
 func HasErrorCode(err error, code int) bool {
-	var domainError DomainError
+	var domainError *Error
 	if errors.As(err, &domainError) {
-		return domainError.Code() == code
+		return domainError.Code == code
 	}
 	return false
 }
 
-type ValidationError interface {
-	DomainError
+type ValidationError struct {
+	Namespace string      `json:"namespace"`
+	Field     string      `json:"field"`
+	Value     interface{} `json:"value"`
 }
 
-type validationError struct {
-	namespace string
-	field     string
-	value     interface{}
-}
-
-func NewValidationError(namespace string, field string, value interface{}) ValidationError {
-	return &validationError{
-		namespace: namespace,
-		field:     field,
-		value:     value,
+func NewValidationError(namespace string, field string, value interface{}) *ValidationError {
+	return &ValidationError{
+		Namespace: namespace,
+		Field:     field,
+		Value:     value,
 	}
 }
 
-func (e *validationError) Code() int {
-	return ErrPayloadValidator
+func (e *ValidationError) Code() int {
+	return ErrValidation
 }
 
-func (e *validationError) Error() string {
-	return fmt.Sprintf("Payload validation failed: %s %s %s", e.namespace, e.field, e.value)
+func (e *ValidationError) Error() string {
+	return fmt.Sprintf("payload: %s %s %s", e.Namespace, e.Field, e.Value)
 }

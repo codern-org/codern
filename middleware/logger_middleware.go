@@ -40,7 +40,7 @@ func NewLogger(logger *zap.Logger, influxdb domain.InfluxDb) fiber.Handler {
 			return response.NewErrorResponse(
 				ctx,
 				fiber.StatusInternalServerError,
-				domain.NewError(domain.ErrLoggingError, "Internal logging error"),
+				domain.NewError(domain.ErrLoggingError, "internal logging error"),
 			)
 		}
 

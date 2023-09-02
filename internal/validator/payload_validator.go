@@ -1,6 +1,8 @@
 package validator
 
 import (
+	"log"
+
 	"github.com/codern-org/codern/domain"
 	"github.com/codern-org/codern/internal/payload"
 	"github.com/codern-org/codern/internal/response"
@@ -26,7 +28,7 @@ func NewPayloadValidator(
 	}
 }
 
-func (v payloadValidator) ValidateAuth(ctx *fiber.Ctx) (string, error) {
+func (v *payloadValidator) ValidateAuth(ctx *fiber.Ctx) (string, error) {
 	sid := ctx.Cookies(payload.AuthCookieKey)
 	if sid == "" {
 		v.logger.Warn(
@@ -38,36 +40,77 @@ func (v payloadValidator) ValidateAuth(ctx *fiber.Ctx) (string, error) {
 		return "", response.NewErrorResponse(
 			ctx,
 			fiber.StatusBadRequest,
-			domain.NewError(domain.ErrAuthHeader, "Missing auth header"),
+			domain.NewError(domain.ErrAuthHeader, "missing auth header"),
 		)
 	}
 	return sid, nil
 }
 
-func (v payloadValidator) ValidateBody(payload interface{}, ctx *fiber.Ctx) (bool, error) {
+func (v *payloadValidator) ValidateBody(payload interface{}, ctx *fiber.Ctx) (bool, error) {
 	if err := ctx.BodyParser(&payload); err != nil {
 		return false, response.NewErrorResponse(
 			ctx,
 			fiber.StatusUnprocessableEntity,
-			domain.NewError(domain.ErrPayloadParser, err.Error()),
+			domain.NewError(domain.ErrBodyParser, err.Error()),
 		)
 	}
 
 	if errs := v.validateStruct(payload); errs != nil {
-		v.logger.Warn("Payload validation failed", zap.Any("details", errs))
+		v.logger.Warn("Body payload validation failed", zap.Any("details", errs))
 		return false, response.NewErrorResponse(
 			ctx,
 			fiber.StatusBadRequest,
-			domain.NewError(domain.ErrPayloadValidator, "Payload validation failed"),
-			errs,
+			domain.NewErrorWithData(domain.ErrBodyValidator, "body payload is invalid", errs),
 		)
 	}
 
 	return true, nil
 }
 
-func (v payloadValidator) validateStruct(payload interface{}) []domain.ValidationError {
-	var errors []domain.ValidationError
+func (v *payloadValidator) ValidateQuery(payload interface{}, ctx *fiber.Ctx) (bool, error) {
+	if err := ctx.QueryParser(payload); err != nil {
+		return false, response.NewErrorResponse(
+			ctx,
+			fiber.StatusUnprocessableEntity,
+			domain.NewError(domain.ErrQueryParser, err.Error()),
+		)
+	}
+
+	if errs := v.validateStruct(payload); errs != nil {
+		v.logger.Warn("Query payload validation failed", zap.Any("details", errs))
+		return false, response.NewErrorResponse(
+			ctx,
+			fiber.StatusBadRequest,
+			domain.NewErrorWithData(domain.ErrQueryValidator, "query payload is invalid", errs),
+		)
+	}
+
+	return true, nil
+}
+
+func (v *payloadValidator) ValidateParams(payload interface{}, ctx *fiber.Ctx) (bool, error) {
+	if err := ctx.ParamsParser(payload); err != nil {
+		return false, response.NewErrorResponse(
+			ctx,
+			fiber.StatusUnprocessableEntity,
+			domain.NewError(domain.ErrParamsParser, err.Error()),
+		)
+	}
+
+	if errs := v.validateStruct(payload); errs != nil {
+		v.logger.Warn("Params payload validation failed", zap.Any("details", errs))
+		return false, response.NewErrorResponse(
+			ctx,
+			fiber.StatusBadRequest,
+			domain.NewErrorWithData(domain.ErrParamsValidator, "params payload is invalid", errs),
+		)
+	}
+
+	return true, nil
+}
+
+func (v *payloadValidator) validateStruct(payload interface{}) []*domain.ValidationError {
+	var errors []*domain.ValidationError
 
 	if errs := v.validator.Struct(payload); errs != nil {
 		for _, err := range errs.(validator.ValidationErrors) {
@@ -76,6 +119,7 @@ func (v payloadValidator) validateStruct(payload interface{}) []domain.Validatio
 				err.Tag(),
 				err.Value(),
 			)
+			log.Printf("%+v", validationErr)
 			errors = append(errors, validationErr)
 		}
 	}

@@ -38,13 +38,13 @@ func (u *authUsecase) SignIn(
 	user, err := u.userUsecase.GetByEmail(email, domain.SelfAuth)
 	if domain.HasErrorCode(err, domain.ErrUserData) {
 		// Override error message
-		return nil, domain.NewError(domain.ErrUserData, "This account is not registered")
+		return nil, domain.NewError(domain.ErrUserData, "this account is not registered")
 	} else if err != nil {
 		return nil, err
 	}
 
 	if err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
-		return nil, domain.NewError(domain.ErrUserPassword, "Password is incorrect")
+		return nil, domain.NewError(domain.ErrUserPassword, "password is incorrect")
 	}
 	return u.sessionUsecase.Create(user.Id, ipAddress, userAgent)
 }
