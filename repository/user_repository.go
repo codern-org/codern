@@ -17,8 +17,8 @@ func NewUserRepository(db *sqlx.DB) domain.UserRepository {
 
 func (r *userRepository) Create(user *domain.User) error {
 	_, err := r.db.NamedExec(
-		"INSERT INTO user (id, email, password, display_name, profile_url, provider, created_at)"+
-			"VALUES (:id, :email, :password, :display_name, :profile_url, :provider, :created_at)",
+		"INSERT INTO user (id, email, password, display_name, profile_url, account_type, provider, created_at)"+
+			"VALUES (:id, :email, :password, :display_name, :profile_url, :account_type, :provider, :created_at)",
 		user,
 	)
 	return err
@@ -50,12 +50,15 @@ func (r *userRepository) GetBySessionId(id string) (*domain.User, error) {
 	return &user, nil
 }
 
-func (r *userRepository) GetSelfProviderUser(email string) (*domain.User, error) {
+func (r *userRepository) GetByEmail(
+	email string,
+	provider domain.AuthProvider,
+) (*domain.User, error) {
 	var user domain.User
 	err := r.db.Get(
 		&user,
-		"SELECT * FROM user WHERE email = ? AND provider = \"SELF\" LIMIT 1",
-		email,
+		"SELECT * FROM user WHERE email = ? AND provider = ? LIMIT 1",
+		email, provider,
 	)
 	if err == sql.ErrNoRows {
 		return nil, nil
