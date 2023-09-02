@@ -1,13 +1,12 @@
 package usecase
 
 import (
-	"crypto/sha1"
-	"encoding/hex"
 	"fmt"
 	"net/mail"
 	"time"
 
 	"github.com/codern-org/codern/domain"
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -19,19 +18,13 @@ func NewUserUsecase(userRepository domain.UserRepository) domain.UserUsecase {
 	return &userUsecase{userRepository: userRepository}
 }
 
-func (u *userUsecase) HashId(id string, provider domain.AuthProvider) string {
-	sha1 := sha1.New()
-	sha1.Write([]byte(id + "." + string(provider)))
-	return hex.EncodeToString(sha1.Sum(nil))
-}
-
 func (u *userUsecase) Create(email string, password string) (*domain.User, error) {
 	if _, err := mail.ParseAddress(email); err != nil {
 		errMessage := fmt.Sprintf("Email %s is invalid", email)
 		return nil, domain.NewError(domain.ErrInvalidEmail, errMessage)
 	}
 
-	user, err := u.GetSelfProviderUser(email)
+	user, err := u.GetByEmail(email, domain.SelfAuth)
 	if user != nil {
 		errMessage := fmt.Sprintf("Email %s is already registered", email)
 		return nil, domain.NewError(domain.ErrDupEmail, errMessage)
@@ -47,11 +40,12 @@ func (u *userUsecase) Create(email string, password string) (*domain.User, error
 	// TODO: profile generation
 
 	user = &domain.User{
-		Id:          u.HashId(email, domain.SelfAuth),
+		Id:          uuid.NewString(),
 		Email:       email,
 		Password:    string(hashedPassword),
-		DisplayName: "",
+		DisplayName: email,
 		ProfileUrl:  "",
+		Type:        domain.FreeAccount,
 		Provider:    domain.SelfAuth,
 		CreatedAt:   time.Now(),
 	}
@@ -66,11 +60,12 @@ func (u *userUsecase) CreateFromGoogle(id string, email string, name string) (*d
 	// TODO: profile generation
 
 	user := &domain.User{
-		Id:          u.HashId(id, domain.GoogleAuth),
+		Id:          uuid.NewString(),
 		Email:       email,
 		Password:    "",
 		DisplayName: name,
 		ProfileUrl:  "",
+		Type:        domain.FreeAccount,
 		Provider:    domain.GoogleAuth,
 		CreatedAt:   time.Now(),
 	}
@@ -101,8 +96,8 @@ func (u *userUsecase) GetBySessionId(id string) (*domain.User, error) {
 	return user, nil
 }
 
-func (u *userUsecase) GetSelfProviderUser(email string) (*domain.User, error) {
-	user, err := u.userRepository.GetSelfProviderUser(email)
+func (u *userUsecase) GetByEmail(email string, provider domain.AuthProvider) (*domain.User, error) {
+	user, err := u.userRepository.GetByEmail(email, provider)
 	if user == nil {
 		return nil, domain.NewError(domain.ErrUserData, "Cannot get user data by this email")
 	} else if err != nil {

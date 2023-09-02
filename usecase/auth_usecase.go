@@ -35,7 +35,7 @@ func (u *authUsecase) Authenticate(header string) (*domain.User, error) {
 func (u *authUsecase) SignIn(
 	email string, password string, ipAddress string, userAgent string,
 ) (*fiber.Cookie, error) {
-	user, err := u.userUsecase.GetSelfProviderUser(email)
+	user, err := u.userUsecase.GetByEmail(email, domain.SelfAuth)
 	if domain.HasErrorCode(err, domain.ErrUserData) {
 		// Override error message
 		return nil, domain.NewError(domain.ErrUserData, "This account is not registered")
@@ -61,8 +61,7 @@ func (u *authUsecase) SignInWithGoogle(
 		return nil, err
 	}
 
-	userId := u.userUsecase.HashId(googleUser.Id, domain.GoogleAuth)
-	user, err := u.userUsecase.Get(userId)
+	user, err := u.userUsecase.GetByEmail(googleUser.Email, domain.GoogleAuth)
 	if err != nil && !domain.HasErrorCode(err, domain.ErrUserData) {
 		return nil, err
 	}
