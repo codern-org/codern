@@ -48,7 +48,7 @@ func NewAuthController(
 // @Accept 			json
 // @Produce 		json
 // @Security 		ApiKeyAuth
-// @param 			sid header string true "Session ID"
+// @Param 			sid header string true "Session ID"
 // @Router 			/api/auth/me [get]
 func (c *AuthController) Me(ctx *fiber.Ctx) error {
 	return response.NewSuccessResponse(ctx, fiber.StatusOK, middleware.GetUserFromCtx(ctx))
@@ -61,18 +61,17 @@ func (c *AuthController) Me(ctx *fiber.Ctx) error {
 // @Tags 				auth
 // @Accept 			json
 // @Produce 		json
-// @Param				credentials	body	payload.AuthSignIn true "Email and password for authentication"
+// @Param				credentials	body	payload.SignIn true "Email and password for authentication"
 // @Router 			/api/auth/signin [post]
 func (c *AuthController) SignIn(ctx *fiber.Ctx) error {
-	var payload payload.AuthSignIn
-	if ok, err := c.validator.ValidateBody(&payload, ctx); !ok {
+	var body payload.SignInBody
+	if ok, err := c.validator.ValidateBody(&body, ctx); !ok {
 		return err
 	}
-
 	ipAddress := ctx.IP()
 	userAgent := ctx.Context().UserAgent()
 
-	cookie, err := c.authUsecase.SignIn(payload.Email, payload.Password, ipAddress, string(userAgent))
+	cookie, err := c.authUsecase.SignIn(body.Email, body.Password, ipAddress, string(userAgent))
 	if err != nil {
 		return response.NewErrorResponse(ctx, fiber.StatusBadRequest, err)
 	}
