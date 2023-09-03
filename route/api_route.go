@@ -9,6 +9,7 @@ import (
 	"github.com/codern-org/codern/usecase"
 	"github.com/gofiber/fiber/v2"
 	"github.com/jmoiron/sqlx"
+	"github.com/sony/sonyflake"
 	"go.uber.org/zap"
 )
 
@@ -18,6 +19,7 @@ func ApplyApiRoutes(
 	logger *zap.Logger,
 	influxdb domain.InfluxDb,
 	mysql *sqlx.DB,
+	sonyflake *sonyflake.Sonyflake,
 ) {
 	// Initialize Dependencies
 	validator := validator.NewPayloadValidator(logger, influxdb)

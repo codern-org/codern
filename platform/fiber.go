@@ -15,14 +15,16 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
 	"github.com/jmoiron/sqlx"
+	"github.com/sony/sonyflake"
 	"go.uber.org/zap"
 )
 
 type fiberServer struct {
-	cfg      *domain.Config
-	logger   *zap.Logger
-	influxdb domain.InfluxDb
-	mysql    *sqlx.DB
+	cfg       *domain.Config
+	logger    *zap.Logger
+	influxdb  domain.InfluxDb
+	mysql     *sqlx.DB
+	sonyflake *sonyflake.Sonyflake
 }
 
 func NewFiberServer(
@@ -30,6 +32,7 @@ func NewFiberServer(
 	logger *zap.Logger,
 	influxdb domain.InfluxDb,
 	mysql *sqlx.DB,
+	sonyflake *sonyflake.Sonyflake,
 ) domain.FiberServer {
 	return &fiberServer{
 		cfg:      cfg,
@@ -64,7 +67,7 @@ func (s *fiberServer) Start() {
 	app.Use(middleware.NewLogger(s.logger, s.influxdb))
 
 	// Apply routes
-	route.ApplyApiRoutes(app, s.cfg, s.logger, s.influxdb, s.mysql)
+	route.ApplyApiRoutes(app, s.cfg, s.logger, s.influxdb, s.mysql, s.sonyflake)
 	route.ApplyFallbackRoute(app)
 
 	// Open fiber http server with gracefully shutdown
