@@ -74,16 +74,16 @@ func HasErrorCode(err error, code int) bool {
 }
 
 type ValidationError struct {
-	Namespace string      `json:"namespace"`
-	Field     string      `json:"field"`
-	Value     interface{} `json:"value"`
+	namespace string
+	Field     string `json:"field"`
+	Type      string `json:"type"`
 }
 
-func NewValidationError(namespace string, field string, value interface{}) *ValidationError {
+func NewValidationError(namespace string, field string, keyType string) *ValidationError {
 	return &ValidationError{
-		Namespace: namespace,
+		namespace: namespace,
 		Field:     field,
-		Value:     value,
+		Type:      keyType,
 	}
 }
 
@@ -92,5 +92,5 @@ func (e *ValidationError) Code() int {
 }
 
 func (e *ValidationError) Error() string {
-	return fmt.Sprintf("payload: %s %s %s", e.Namespace, e.Field, e.Value)
+	return fmt.Sprintf("payload: %s %s %s", e.namespace, e.Field, e.Type)
 }

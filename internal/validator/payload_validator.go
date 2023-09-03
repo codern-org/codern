@@ -2,6 +2,8 @@ package validator
 
 import (
 	"log"
+	"unicode"
+	"unicode/utf8"
 
 	"github.com/codern-org/codern/domain"
 	"github.com/codern-org/codern/internal/payload"
@@ -47,7 +49,7 @@ func (v *payloadValidator) ValidateAuth(ctx *fiber.Ctx) (string, error) {
 }
 
 func (v *payloadValidator) ValidateBody(payload interface{}, ctx *fiber.Ctx) (bool, error) {
-	if err := ctx.BodyParser(&payload); err != nil {
+	if err := ctx.BodyParser(payload); err != nil {
 		return false, response.NewErrorResponse(
 			ctx,
 			fiber.StatusUnprocessableEntity,
@@ -116,8 +118,8 @@ func (v *payloadValidator) validateStruct(payload interface{}) []*domain.Validat
 		for _, err := range errs.(validator.ValidationErrors) {
 			validationErr := domain.NewValidationError(
 				err.StructNamespace(),
+				firstToLower(err.Field()),
 				err.Tag(),
-				err.Value(),
 			)
 			log.Printf("%+v", validationErr)
 			errors = append(errors, validationErr)
@@ -125,4 +127,16 @@ func (v *payloadValidator) validateStruct(payload interface{}) []*domain.Validat
 	}
 
 	return errors
+}
+
+func firstToLower(s string) string {
+	r, size := utf8.DecodeRuneInString(s)
+	if r == utf8.RuneError && size <= 1 {
+		return s
+	}
+	lowerCase := unicode.ToLower(r)
+	if r == lowerCase {
+		return s
+	}
+	return string(lowerCase) + s[size:]
 }
