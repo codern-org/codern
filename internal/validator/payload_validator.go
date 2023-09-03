@@ -1,10 +1,6 @@
 package validator
 
 import (
-	"log"
-	"unicode"
-	"unicode/utf8"
-
 	"github.com/codern-org/codern/domain"
 	"github.com/codern-org/codern/internal/payload"
 	"github.com/codern-org/codern/internal/response"
@@ -118,25 +114,12 @@ func (v *payloadValidator) validateStruct(payload interface{}) []*domain.Validat
 		for _, err := range errs.(validator.ValidationErrors) {
 			validationErr := domain.NewValidationError(
 				err.StructNamespace(),
-				firstToLower(err.Field()),
+				err.Field(),
 				err.Tag(),
 			)
-			log.Printf("%+v", validationErr)
 			errors = append(errors, validationErr)
 		}
 	}
 
 	return errors
-}
-
-func firstToLower(s string) string {
-	r, size := utf8.DecodeRuneInString(s)
-	if r == utf8.RuneError && size <= 1 {
-		return s
-	}
-	lowerCase := unicode.ToLower(r)
-	if r == lowerCase {
-		return s
-	}
-	return string(lowerCase) + s[size:]
 }
