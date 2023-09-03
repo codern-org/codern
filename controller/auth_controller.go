@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/codern-org/codern/domain"
+	"github.com/codern-org/codern/internal/config"
 	"github.com/codern-org/codern/internal/payload"
 	"github.com/codern-org/codern/internal/response"
 	"github.com/codern-org/codern/middleware"
@@ -14,7 +15,7 @@ import (
 
 type AuthController struct {
 	logger      *zap.Logger
-	frontendCfg domain.ConfigFrontend
+	frontendCfg config.ConfigFrontend
 	validator   domain.PayloadValidator
 
 	authUsecase   domain.AuthUsecase
@@ -24,7 +25,7 @@ type AuthController struct {
 
 func NewAuthController(
 	logger *zap.Logger,
-	frontendCfg domain.ConfigFrontend,
+	frontendCfg config.ConfigFrontend,
 	validator domain.PayloadValidator,
 	authUsecase domain.AuthUsecase,
 	googleUsecase domain.GoogleUsecase,

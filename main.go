@@ -8,6 +8,7 @@ import (
 	"github.com/codern-org/codern/internal/constant"
 	"github.com/codern-org/codern/internal/logger"
 	"github.com/codern-org/codern/platform"
+	"github.com/codern-org/codern/platform/server"
 	"go.uber.org/zap"
 )
 
@@ -39,7 +40,7 @@ func main() {
 	}
 	logger.Info("Configuration file loaded successfully")
 
-	// Initialize databases
+	// Initialize dependencies
 	start := time.Now()
 	influxdb, err := platform.NewInfluxDb(
 		cfg.Client.InfluxDb.Url,
@@ -59,7 +60,24 @@ func main() {
 	}
 	logger.Info("Connected to MySQL", zap.String("connection_time", time.Since(start).String()))
 
+	start = time.Now()
+	seaweedfs, err := platform.NewSeaweedFs(
+		cfg.Client.SeaweedFs.MasterUrl,
+		cfg.Client.SeaweedFs.FilerUrls,
+	)
+	if err != nil {
+		logger.Fatal("Cannot open SeaweedFs connection", zap.Error(err))
+	}
+	logger.Info("Connected to SeaweedFs", zap.String("connection_time", time.Since(start).String()))
+
+	start = time.Now()
+	rabbitmq, err := platform.NewRabbitMq(cfg.Client.RabbitMq.Url)
+	if err != nil {
+		logger.Fatal("Cannot open RabbitMq connection", zap.Error(err))
+	}
+	logger.Info("Connected to RabbitMq", zap.String("connection_time", time.Since(start).String()))
+
 	// Initialize HTTP server
-	fiber := platform.NewFiberServer(cfg, logger, influxdb, mysql)
+	fiber := server.NewFiberServer(cfg, logger, influxdb, mysql, seaweedfs, rabbitmq)
 	fiber.Start()
 }

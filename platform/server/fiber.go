@@ -1,4 +1,4 @@
-package platform
+package server
 
 import (
 	"errors"
@@ -6,43 +6,47 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/codern-org/codern/domain"
+	"github.com/codern-org/codern/internal/config"
 	"github.com/codern-org/codern/internal/constant"
 	"github.com/codern-org/codern/internal/response"
 	"github.com/codern-org/codern/middleware"
+	"github.com/codern-org/codern/platform"
 	"github.com/codern-org/codern/route"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
 	"github.com/jmoiron/sqlx"
-	"github.com/sony/sonyflake"
 	"go.uber.org/zap"
 )
 
-type fiberServer struct {
-	cfg       *domain.Config
+type FiberServer struct {
+	cfg       *config.Config
 	logger    *zap.Logger
-	influxdb  domain.InfluxDb
+	influxdb  *platform.InfluxDb
 	mysql     *sqlx.DB
-	sonyflake *sonyflake.Sonyflake
+	seaweedfs *platform.SeaweedFs
+	rabbitMq  *platform.RabbitMq
 }
 
 func NewFiberServer(
-	cfg *domain.Config,
+	cfg *config.Config,
 	logger *zap.Logger,
-	influxdb domain.InfluxDb,
+	influxdb *platform.InfluxDb,
 	mysql *sqlx.DB,
-	sonyflake *sonyflake.Sonyflake,
-) domain.FiberServer {
-	return &fiberServer{
-		cfg:      cfg,
-		logger:   logger,
-		influxdb: influxdb,
-		mysql:    mysql,
+	seaweedfs *platform.SeaweedFs,
+	rabbitMq *platform.RabbitMq,
+) *FiberServer {
+	return &FiberServer{
+		cfg:       cfg,
+		logger:    logger,
+		influxdb:  influxdb,
+		mysql:     mysql,
+		seaweedfs: seaweedfs,
+		rabbitMq:  rabbitMq,
 	}
 }
 
-func (s *fiberServer) Start() {
+func (s *FiberServer) Start() {
 	// Initialize fiber
 	app := fiber.New(fiber.Config{
 		AppName:               s.cfg.Metadata.Name,
@@ -67,7 +71,7 @@ func (s *fiberServer) Start() {
 	app.Use(middleware.NewLogger(s.logger, s.influxdb))
 
 	// Apply routes
-	route.ApplyApiRoutes(app, s.cfg, s.logger, s.influxdb, s.mysql, s.sonyflake)
+	route.ApplyApiRoutes(app, s.cfg, s.logger, s.influxdb, s.mysql, s.seaweedfs, s.rabbitMq)
 	route.ApplyFallbackRoute(app)
 
 	// Open fiber http server with gracefully shutdown
@@ -91,6 +95,8 @@ func (s *fiberServer) Start() {
 	// Clean up
 	s.influxdb.Close()
 	s.mysql.Close()
+	s.seaweedfs.Close()
+	s.rabbitMq.Close()
 
 	s.logger.Info("Server was successful shutdown")
 }

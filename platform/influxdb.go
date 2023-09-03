@@ -4,18 +4,17 @@ import (
 	"context"
 	"time"
 
-	"github.com/codern-org/codern/domain"
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"github.com/influxdata/influxdb-client-go/v2/api"
 )
 
-type influxDb struct {
+type InfluxDb struct {
 	client   influxdb2.Client
 	writeApi api.WriteAPIBlocking
 	queryApi api.QueryAPI
 }
 
-func NewInfluxDb(url string, token string, org string, bucket string) (domain.InfluxDb, error) {
+func NewInfluxDb(url string, token string, org string, bucket string) (*InfluxDb, error) {
 	client := influxdb2.NewClient(url, token)
 	writeApi := client.WriteAPIBlocking(org, bucket)
 
@@ -23,14 +22,14 @@ func NewInfluxDb(url string, token string, org string, bucket string) (domain.In
 		return nil, err
 	}
 
-	return &influxDb{
+	return &InfluxDb{
 		client:   client,
 		writeApi: writeApi,
 		queryApi: client.QueryAPI(org),
 	}, nil
 }
 
-func (db *influxDb) WritePoint(
+func (db *InfluxDb) WritePoint(
 	measurement string,
 	tags map[string]string,
 	fields map[string]interface{},
@@ -39,6 +38,6 @@ func (db *influxDb) WritePoint(
 	return db.writeApi.WritePoint(context.Background(), point)
 }
 
-func (db *influxDb) Close() {
+func (db *InfluxDb) Close() {
 	db.client.Close()
 }
