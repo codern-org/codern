@@ -14,10 +14,11 @@ type ConfigMetadata struct {
 }
 
 type ConfigClient struct {
-	InfluxDb ConfigInfluxDb `yaml:"influxdb" validate:"required"`
-	MySql    ConfigMySql    `yaml:"mysql" validate:"required"`
-	Fiber    ConfigFiber    `yaml:"fiber" validate:"required"`
-	Frontend ConfigFrontend `yaml:"frontend" validate:"required"`
+	InfluxDb  ConfigInfluxDb  `yaml:"influxdb" validate:"required"`
+	MySql     ConfigMySql     `yaml:"mysql" validate:"required"`
+	SeaweedFs ConfigSeaweedFs `yaml:"seaweedfs" validate:"required"`
+	Fiber     ConfigFiber     `yaml:"fiber" validate:"required"`
+	Frontend  ConfigFrontend  `yaml:"frontend" validate:"required"`
 }
 
 type ConfigInfluxDb struct {
@@ -29,6 +30,11 @@ type ConfigInfluxDb struct {
 
 type ConfigMySql struct {
 	Uri string `yaml:"uri" validate:"required"`
+}
+
+type ConfigSeaweedFs struct {
+	MasterUrl string   `yaml:"masterUrl" validate:"url,required"`
+	FilerUrls []string `yaml:"filerUrls" validate:"dive,url,required"`
 }
 
 type ConfigFiber struct {
