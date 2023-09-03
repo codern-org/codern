@@ -39,6 +39,12 @@ func main() {
 	}
 	logger.Info("Configuration file loaded successfully")
 
+	// Initialize dependencies
+	sonyflake, err := platform.NewSonyFlake()
+	if err != nil {
+		logger.Fatal("Cannot intialize Sonyflake", zap.Error(err))
+	}
+
 	// Initialize databases
 	start := time.Now()
 	influxdb, err := platform.NewInfluxDb(
@@ -60,6 +66,6 @@ func main() {
 	logger.Info("Connected to MySQL", zap.String("connection_time", time.Since(start).String()))
 
 	// Initialize HTTP server
-	fiber := platform.NewFiberServer(cfg, logger, influxdb, mysql)
+	fiber := platform.NewFiberServer(cfg, logger, influxdb, mysql, sonyflake)
 	fiber.Start()
 }
