@@ -6,26 +6,25 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/codern-org/codern/domain"
 	"github.com/linxGnu/goseaweedfs"
 )
 
-type seaweedFs struct {
+type SeaweedFs struct {
 	client *goseaweedfs.Seaweed
 }
 
-func NewSeaweedFs(url string, filerUrl []string) (domain.SeaweedFs, error) {
+func NewSeaweedFs(url string, filerUrl []string) (*SeaweedFs, error) {
 	httpClient := &http.Client{Timeout: 1 * time.Minute}
 	client, err := goseaweedfs.NewSeaweed(url, filerUrl, 4096, httpClient)
 	if err != nil {
 		return nil, err
 	}
-	return &seaweedFs{
+	return &SeaweedFs{
 		client: client,
 	}, err
 }
 
-func (fs *seaweedFs) Upload(content io.Reader, size int, path string) error {
+func (fs *SeaweedFs) Upload(content io.Reader, size int, path string) error {
 	filer := fs.client.Filers()[0]
 	if filer == nil {
 		return errors.New("cannot connect to file system upstream")
@@ -34,5 +33,10 @@ func (fs *seaweedFs) Upload(content io.Reader, size int, path string) error {
 	if err != nil {
 		return err
 	}
+
 	return nil
+}
+
+func (fs *SeaweedFs) Close() {
+	fs.client.Close()
 }

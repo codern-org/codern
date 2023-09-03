@@ -4,6 +4,7 @@ import (
 	"github.com/codern-org/codern/domain"
 	"github.com/codern-org/codern/internal/payload"
 	"github.com/codern-org/codern/internal/response"
+	"github.com/codern-org/codern/platform"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
@@ -12,12 +13,12 @@ import (
 type payloadValidator struct {
 	logger    *zap.Logger
 	validator *validator.Validate
-	influxdb  domain.InfluxDb
+	influxdb  *platform.InfluxDb
 }
 
 func NewPayloadValidator(
 	logger *zap.Logger,
-	influxdb domain.InfluxDb,
+	influxdb *platform.InfluxDb,
 ) domain.PayloadValidator {
 	return &payloadValidator{
 		logger:    logger,

@@ -2,9 +2,10 @@ package route
 
 import (
 	"github.com/codern-org/codern/controller"
-	"github.com/codern-org/codern/domain"
+	"github.com/codern-org/codern/internal/config"
 	"github.com/codern-org/codern/internal/validator"
 	"github.com/codern-org/codern/middleware"
+	"github.com/codern-org/codern/platform"
 	"github.com/codern-org/codern/repository"
 	"github.com/codern-org/codern/usecase"
 	"github.com/gofiber/fiber/v2"
@@ -14,10 +15,12 @@ import (
 
 func ApplyApiRoutes(
 	app *fiber.App,
-	cfg *domain.Config,
+	cfg *config.Config,
 	logger *zap.Logger,
-	influxdb domain.InfluxDb,
+	influxdb *platform.InfluxDb,
 	mysql *sqlx.DB,
+	seaweedfs *platform.SeaweedFs,
+	rabbitMq *platform.RabbitMq,
 ) {
 	// Initialize Dependencies
 	validator := validator.NewPayloadValidator(logger, influxdb)
@@ -32,7 +35,7 @@ func ApplyApiRoutes(
 	sessionUsecase := usecase.NewSessionUsecase(cfg.Auth.Session, sessionRepository)
 	userUsecase := usecase.NewUserUsecase(userRepository)
 	authUsecase := usecase.NewAuthUsecase(googleUsecase, sessionUsecase, userUsecase)
-	workspaceUsecase := usecase.NewWorkspaceUsecase(workspaceRepository)
+	workspaceUsecase := usecase.NewWorkspaceUsecase(seaweedfs, rabbitMq, workspaceRepository)
 
 	// Initialize Controllers
 	authController := controller.NewAuthController(

@@ -7,11 +7,12 @@ import (
 
 	"github.com/codern-org/codern/domain"
 	"github.com/codern-org/codern/internal/response"
+	"github.com/codern-org/codern/platform"
 	"github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
 )
 
-func NewLogger(logger *zap.Logger, influxdb domain.InfluxDb) fiber.Handler {
+func NewLogger(logger *zap.Logger, influxdb *platform.InfluxDb) fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 		startTime := time.Now()
 		err := ctx.Next()

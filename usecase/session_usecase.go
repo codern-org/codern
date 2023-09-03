@@ -10,17 +10,18 @@ import (
 	"time"
 
 	"github.com/codern-org/codern/domain"
+	"github.com/codern-org/codern/internal/config"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 )
 
 type sessionUsecase struct {
-	cfgAuthSession    domain.ConfigAuthSession
+	cfgAuthSession    config.ConfigAuthSession
 	sessionRepository domain.SessionRepository
 }
 
 func NewSessionUsecase(
-	cfgAuthSession domain.ConfigAuthSession,
+	cfgAuthSession config.ConfigAuthSession,
 	sessionRepository domain.SessionRepository,
 ) domain.SessionUsecase {
 	return &sessionUsecase{

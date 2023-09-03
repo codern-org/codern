@@ -11,14 +11,15 @@ import (
 	"time"
 
 	"github.com/codern-org/codern/domain"
+	"github.com/codern-org/codern/internal/config"
 )
 
 type googleUsecase struct {
-	cfgGoogle  domain.ConfigGoogle
+	cfgGoogle  config.ConfigGoogle
 	httpClient *http.Client
 }
 
-func NewGoogleUsecase(cfgGoogle domain.ConfigGoogle) domain.GoogleUsecase {
+func NewGoogleUsecase(cfgGoogle config.ConfigGoogle) domain.GoogleUsecase {
 	httpClient := &http.Client{Timeout: 10 * time.Second}
 	return &googleUsecase{
 		cfgGoogle:  cfgGoogle,
