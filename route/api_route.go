@@ -9,7 +9,6 @@ import (
 	"github.com/codern-org/codern/usecase"
 	"github.com/gofiber/fiber/v2"
 	"github.com/jmoiron/sqlx"
-	"github.com/sony/sonyflake"
 	"go.uber.org/zap"
 )
 
@@ -19,7 +18,6 @@ func ApplyApiRoutes(
 	logger *zap.Logger,
 	influxdb domain.InfluxDb,
 	mysql *sqlx.DB,
-	sonyflake *sonyflake.Sonyflake,
 ) {
 	// Initialize Dependencies
 	validator := validator.NewPayloadValidator(logger, influxdb)
@@ -40,7 +38,7 @@ func ApplyApiRoutes(
 	authController := controller.NewAuthController(
 		logger, cfg.Client.Frontend, validator, authUsecase, googleUsecase, userUsecase,
 	)
-	workspaceController := controller.NewWorkspaceController(logger, workspaceUsecase)
+	workspaceController := controller.NewWorkspaceController(logger, validator, workspaceUsecase)
 
 	// Initialize Middlewares
 	authMiddleware := middleware.NewAuthMiddleware(logger, validator, authUsecase)
@@ -59,4 +57,5 @@ func ApplyApiRoutes(
 	api.Get("/workspaces/:workspaceId", authMiddleware, workspaceMiddleware, workspaceController.Get)
 	api.Get("/workspaces/:workspaceId/assignments", authMiddleware, workspaceMiddleware, workspaceController.ListAssignment)
 	api.Get("/workspaces/:workspaceId/assignments/:assignmentId", authMiddleware, workspaceMiddleware, workspaceController.GetAssignment)
+	api.Post("/workspaces/:workspaceId/assignments/:assignmentId/submissions", authMiddleware, workspaceMiddleware, workspaceController.CreateSubmission)
 }
