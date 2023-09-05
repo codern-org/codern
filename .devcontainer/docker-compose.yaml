@@ -39,15 +39,41 @@ services:
       PMA_HOST: mysql
       PMA_USER: root
       PMA_PASSWORD: password
-  # rabbitmq:
-  #   image: rabbitmq:3.12-management-alpine
-  #   ports:
-  #     - 5672:5672
-  #     - 15672:15672
-  #   environment:
-  #     RABBITMQ_DEFAULT_USER: root
-  #     RABBITMQ_DEFAULT_PASS: password
-
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    ports:
+      - 5672:5672
+      - 15672:15672
+    environment:
+      RABBITMQ_DEFAULT_USER: root
+      RABBITMQ_DEFAULT_PASS: password
+  seaweedfs-master:
+    image: chrislusf/seaweedfs:dev
+    ports:
+      - 9333:9333
+      - 19333:19333
+    command: "master -ip=seaweedfs-master -ip.bind=0.0.0.0"
+  seaweedfs-volume:
+    image: chrislusf/seaweedfs:dev
+    ports:
+      - 8080:8080
+      - 18080:18080
+    volumes:
+      - ./.docker/seaweedfs/volume/:/data/volume/
+    command: 'volume -dir=/data/volume -mserver="seaweedfs-master:9333" -ip.bind=0.0.0.0 -port=8080'
+    depends_on:
+      - seaweedfs-master
+  seaweedfs-filer:
+    image: chrislusf/seaweedfs:dev
+    ports:
+      - 8888:8888
+      - 18888:18888
+    volumes:
+      - ./.docker/seaweedfs/filerldb2/:/data/filerldb2/
+    command: 'filer -master="seaweedfs-master:9333" -ip.bind=0.0.0.0'
+    depends_on:
+      - seaweedfs-master
+      - seaweedfs-volume
   grafana:
     image: grafana/grafana-oss:10.0.3
     ports:
