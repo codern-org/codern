@@ -1,6 +1,9 @@
 package domain
 
-import "time"
+import (
+	"io"
+	"time"
+)
 
 type Workspace struct {
 	Id         int       `json:"id" db:"id"`
@@ -32,8 +35,17 @@ type AssignmentLevel string
 
 const (
 	AssignmentEasyLevel   AssignmentLevel = "EASY"
-	AssignmentNormalLevel AssignmentLevel = "NORMAL"
+	AssignmentMediumLevel AssignmentLevel = "MEDIUM"
 	AssignmentHardLevel   AssignmentLevel = "HARD"
+)
+
+type AssignmentStatus string
+
+const (
+	AssignmentStatusTodo    AssignmentStatus = "TODO"
+	AssignmentStatusGrading AssignmentStatus = "GRADING"
+	AssignmentStatusError   AssignmentStatus = "ERROR"
+	AssignmentStatusDone    AssignmentStatus = "DONE"
 )
 
 type Assignment struct {
@@ -47,18 +59,69 @@ type Assignment struct {
 	Level       AssignmentLevel `json:"level" db:"level"`
 	CreatedAt   time.Time       `json:"createdAt" db:"created_at"`
 	UpdatedAt   time.Time       `json:"updatedAt" db:"updated_at"`
+
+	// Optional aggregation
+	LastSubmittedAt *time.Time       `json:"lastSubmittedAt" db:"last_submitted_at"`
+	Status          AssignmentStatus `json:"status" db:"status"`
+}
+
+type Submission struct {
+	Id           int       `json:"id" db:"id"`
+	AssignmentId int       `json:"assignmentId" db:"assignment_id"`
+	UserId       string    `json:"-" db:"user_id"`
+	Language     string    `json:"language" db:"language"`
+	FileUrl      string    `json:"fileUrl" db:"file_url"`
+	SubmittedAt  time.Time `json:"submitted_at" db:"submitted_at"`
+
+	// Always aggregation
+	Results   *[]SubmissionResult `json:"-"`
+	Testcases *[]Testcase         `json:"-"`
+}
+
+type SubmissionResultStatus string
+
+const (
+	SubmissionResultGrading SubmissionResultStatus = "GRADING"
+	SubmissionResultError   SubmissionResultStatus = "ERROR"
+	SubmissionResultDone    SubmissionResultStatus = "DONE"
+)
+
+type SubmissionResult struct {
+	SubmissionId int                    `json:"submissionId" db:"submission_id"`
+	TestcaseId   int                    `json:"testcaseId" db:"testcase_id"`
+	Status       SubmissionResultStatus `json:"status" db:"status"`
+
+	// Can be null if status is `GRADING`
+	StatusDetail   *string `json:"statusDetail" db:"status_detail"`
+	MemoryUsage    *int    `json:"memoryUsage" db:"memory_usage"`
+	TimeUsage      *int    `json:"timeUsage" db:"time_usage"`
+	CompilationLog *string `json:"compilationLog" db:"compilation_log"`
+}
+
+type Testcase struct {
+	Id           int    `json:"id" db:"id"`
+	AssignmentId int    `json:"assignmentId" db:"assignment_id"`
+	FileUrl      string `json:"fileUrl" db:"file_url"`
 }
 
 type WorkspaceRepository interface {
+	CreateSubmission(submission *Submission) error
 	IsUserIn(userId string, workspaceId int) (bool, error)
+	IsAssignmentIn(assignmentId int, workspaceId int) (bool, error)
 	Get(id int, selector *WorkspaceSelector) (*Workspace, error)
+	GetAssignment(id int, userId string, workspaceId int) (*Assignment, error)
+	GetSubmission(id int) (*Submission, error)
 	List(ids []int, selector *WorkspaceSelector) (*[]Workspace, error)
 	ListFromUserId(userId string, selector *WorkspaceSelector) (*[]Workspace, error)
+	ListAssignment(userId string, workspaceId int) (*[]Assignment, error)
 }
 
 type WorkspaceUsecase interface {
-	CanUserView(userId string, workspaceIds []int) (bool, error)
+	CreateSubmission(userId string, assignmentId int, workspaceId int, language string, file io.Reader) error
 	IsUserIn(userId string, workspaceId int) (bool, error)
+	IsAssignmentIn(assignmentId int, workspaceId int) (bool, error)
 	Get(id int, selector *WorkspaceSelector) (*Workspace, error)
-	ListFromUserId(userId string, selector *WorkspaceSelector) (*[]Workspace, error)
+	GetAssignment(id int, userId string, workspaceId int) (*Assignment, error)
+	List(userId string, selector *WorkspaceSelector) (*[]Workspace, error)
+	ListAssignment(userId string, workspaceId int) (*[]Assignment, error)
 }

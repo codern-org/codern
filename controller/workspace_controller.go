@@ -1,6 +1,8 @@
 package controller
 
 import (
+	"time"
+
 	"github.com/codern-org/codern/domain"
 	"github.com/codern-org/codern/internal/payload"
 	"github.com/codern-org/codern/internal/response"
@@ -10,19 +12,59 @@ import (
 )
 
 type WorkspaceController struct {
-	logger *zap.Logger
+	logger    *zap.Logger
+	validator domain.PayloadValidator
 
 	workspaceUsecase domain.WorkspaceUsecase
 }
 
 func NewWorkspaceController(
 	logger *zap.Logger,
+	validator domain.PayloadValidator,
 	workspaceUsecase domain.WorkspaceUsecase,
 ) *WorkspaceController {
 	return &WorkspaceController{
 		logger:           logger,
+		validator:        validator,
 		workspaceUsecase: workspaceUsecase,
 	}
+}
+
+// CreateSubmission godoc
+//
+// @Summary 		Create a new submission
+// @Description	Submit a submission of the assignment
+// @Router 			/api/workspaces/{workspaceId}/assignments/{assignmentId}/submissions [post]
+func (c *WorkspaceController) CreateSubmission(ctx *fiber.Ctx) error {
+	var body payload.CreateSubmissionBody
+	if ok, err := c.validator.ValidateBody(&body, ctx); !ok {
+		return err
+	}
+	file, err := payload.GetFile("sourcecode", ctx)
+	if err != nil {
+		return response.NewErrorResponse(
+			ctx,
+			fiber.StatusBadRequest,
+			domain.NewError(domain.ErrBodyValidator, "file is invalid"),
+		)
+	}
+
+	user := middleware.GetUserFromCtx(ctx)
+	workspaceId := middleware.GetWorkspaceIdFromCtx(ctx)
+	assignmentId, _ := ctx.ParamsInt("assignmentId")
+
+	err = c.workspaceUsecase.CreateSubmission(user.Id, assignmentId, workspaceId, body.Language, file)
+	if err != nil {
+		return response.NewErrorResponse(
+			ctx,
+			fiber.StatusInternalServerError,
+			domain.NewError(domain.ErrInternal, "cannot create submission"),
+		)
+	}
+
+	return response.NewSuccessResponse(ctx, fiber.StatusOK, fiber.Map{
+		"submitted_at": time.Now(),
+	})
 }
 
 // List godoc
@@ -40,7 +82,7 @@ func (c *WorkspaceController) List(ctx *fiber.Ctx) error {
 	user := middleware.GetUserFromCtx(ctx)
 	selector := payload.GetFieldSelector(ctx)
 
-	workspaces, err := c.workspaceUsecase.ListFromUserId(user.Id, &domain.WorkspaceSelector{
+	workspaces, err := c.workspaceUsecase.List(user.Id, &domain.WorkspaceSelector{
 		Participants: selector.Has("participant"),
 	})
 	if err != nil {
@@ -62,7 +104,15 @@ func (c *WorkspaceController) List(ctx *fiber.Ctx) error {
 // @Param 			sid header string true "Session ID"
 // @Router 			/api/workspaces/{workspaceId}/assignments [get]
 func (c *WorkspaceController) ListAssignment(ctx *fiber.Ctx) error {
-	return nil
+	user := middleware.GetUserFromCtx(ctx)
+	workspaceId := middleware.GetWorkspaceIdFromCtx(ctx)
+
+	assignments, err := c.workspaceUsecase.ListAssignment(user.Id, workspaceId)
+	if err != nil {
+		return response.NewErrorResponse(ctx, fiber.StatusBadRequest, err)
+	}
+
+	return response.NewSuccessResponse(ctx, fiber.StatusOK, assignments)
 }
 
 // Get godoc
@@ -103,5 +153,14 @@ func (c *WorkspaceController) Get(ctx *fiber.Ctx) error {
 // @Param 			sid header string true "Session ID"
 // @Router 			/api/workspaces/{workspaceId}/assignments/{assignmentId} [get]
 func (c *WorkspaceController) GetAssignment(ctx *fiber.Ctx) error {
-	return nil
+	user := middleware.GetUserFromCtx(ctx)
+	workspaceId := middleware.GetWorkspaceIdFromCtx(ctx)
+	assignmentId := middleware.GetAssignmentIdFromCtx(ctx)
+
+	assignment, err := c.workspaceUsecase.GetAssignment(assignmentId, user.Id, workspaceId)
+	if err != nil {
+		return response.NewErrorResponse(ctx, fiber.StatusBadRequest, err)
+	}
+
+	return response.NewSuccessResponse(ctx, fiber.StatusOK, assignment)
 }

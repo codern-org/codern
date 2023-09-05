@@ -6,8 +6,9 @@ import (
 )
 
 const (
-	ErrInternal = 1
-	ErrRoute    = 2
+	ErrInternal   = 1
+	ErrRoute      = 2
+	ErrFileSystem = 3
 
 	ErrLoggingError    = 1000
 	ErrAuthHeader      = 1010
@@ -31,6 +32,9 @@ const (
 	ErrWorkspaceNotFound   = 3000
 	ErrWorkspaceNoPerm     = 3001
 	ErrWorkspacePermFailed = 3002
+	ErrCreateSubmission    = 3010
+	ErrGetSubmission       = 3011
+	ErrGetAssignment       = 3012
 )
 
 type Error struct {

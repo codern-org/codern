@@ -1,8 +1,10 @@
 package payload
 
 import (
+	"mime/multipart"
 	"strings"
 
+	"github.com/codern-org/codern/middleware"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -32,4 +34,21 @@ func (p *FieldsSelector) Has(field string) bool {
 		}
 	}
 	return false
+}
+
+func GetUserIdParam(ctx *fiber.Ctx) (string, bool) {
+	param := ctx.Params("userId")
+	user := middleware.GetUserFromCtx(ctx)
+	if param == "me" {
+		param = user.Id
+	}
+	return param, (param == user.Id)
+}
+
+func GetFile(key string, ctx *fiber.Ctx) (multipart.File, error) {
+	fileHeader, err := ctx.FormFile(key)
+	if err != nil {
+		return nil, err
+	}
+	return fileHeader.Open()
 }

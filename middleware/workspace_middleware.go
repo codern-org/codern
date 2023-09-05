@@ -12,9 +12,17 @@ func NewWorkspaceMiddleware(
 	workspaceUsecase domain.WorkspaceUsecase,
 ) fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
-		workspaceId := ctx.Params("workspaceId")
-		if workspaceId == "" {
+		if ctx.Params("workspaceId") == "" {
 			return ctx.Next()
+		}
+
+		workspaceId, err := ctx.ParamsInt("workspaceId")
+		if err != nil {
+			return response.NewErrorResponse(
+				ctx,
+				fiber.StatusBadRequest,
+				domain.NewErrorWithData(domain.ErrParamsValidator, "params payload is invalid", err),
+			)
 		}
 
 		user := GetUserFromCtx(ctx)
@@ -23,18 +31,47 @@ func NewWorkspaceMiddleware(
 			return response.NewErrorResponse(
 				ctx,
 				fiber.StatusForbidden,
-				domain.NewErrorf(domain.ErrWorkspaceNoPerm, "cannot access workspace id %s", workspaceId),
+				domain.NewErrorf(domain.ErrWorkspaceNoPerm, "cannot access workspace id %d", workspaceId),
 			)
 		} else if err != nil {
 			return response.NewErrorResponse(ctx, fiber.StatusInternalServerError, err)
 		}
 
+		var assignmentId int
+		if ctx.Params("assignmentId") != "" {
+			assignmentId, err = ctx.ParamsInt("assignmentId")
+			if err != nil {
+				return response.NewErrorResponse(
+					ctx,
+					fiber.StatusBadRequest,
+					domain.NewErrorWithData(domain.ErrParamsValidator, "params payload is invalid", err),
+				)
+			}
+
+			ok, err := workspaceUsecase.IsAssignmentIn(assignmentId, workspaceId)
+
+			if !ok {
+				return response.NewErrorResponse(
+					ctx,
+					fiber.StatusForbidden,
+					domain.NewErrorf(domain.ErrWorkspaceNoPerm, "cannot access assignment id %d", assignmentId),
+				)
+			} else if err != nil {
+				return response.NewErrorResponse(ctx, fiber.StatusInternalServerError, err)
+			}
+		}
+
 		ctx.Locals("workspaceId", workspaceId)
+		ctx.Locals("assignmentId", assignmentId)
 
 		return ctx.Next()
 	}
 }
 
-func GetWorkspaceIdFromCtx(ctx *fiber.Ctx) string {
-	return ctx.Locals("workspaceId").(string)
+func GetWorkspaceIdFromCtx(ctx *fiber.Ctx) int {
+	return ctx.Locals("workspaceId").(int)
+}
+
+func GetAssignmentIdFromCtx(ctx *fiber.Ctx) int {
+	return ctx.Locals("assignmentId").(int)
 }

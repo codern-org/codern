@@ -2,6 +2,7 @@ package platform
 
 import (
 	"context"
+	"encoding/json"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
@@ -22,6 +23,18 @@ func NewRabbitMq(url string) (*RabbitMq, error) {
 		return nil, err
 	}
 
+	_, err = ch.QueueDeclare(
+		"grading",
+		true,  // durable
+		false, // delete when unused
+		false, // exclusive
+		false, // no-wait
+		nil,   // args
+	)
+	if err != nil {
+		return nil, err
+	}
+
 	return &RabbitMq{
 		conn: conn,
 		ch:   ch,
@@ -34,9 +47,16 @@ func (q *RabbitMq) Publish(
 	key string,
 	mandatory bool,
 	immediate bool,
-	msg amqp.Publishing,
+	message interface{},
 ) error {
-	return q.ch.PublishWithContext(ctx, exchange, key, mandatory, immediate, msg)
+	body, err := json.Marshal(message)
+	if err != nil {
+		return err
+	}
+	return q.ch.PublishWithContext(ctx, exchange, key, mandatory, immediate, amqp.Publishing{
+		ContentType: "application/json",
+		Body:        body,
+	})
 }
 
 func (q *RabbitMq) Close() {
