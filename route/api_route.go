@@ -62,5 +62,6 @@ func ApplyApiRoutes(
 	api.Get("/workspaces/:workspaceId", authMiddleware, workspaceMiddleware, workspaceController.Get)
 	api.Get("/workspaces/:workspaceId/assignments", authMiddleware, workspaceMiddleware, workspaceController.ListAssignment)
 	api.Get("/workspaces/:workspaceId/assignments/:assignmentId", authMiddleware, workspaceMiddleware, workspaceController.GetAssignment)
+	api.Get("/workspaces/:workspaceId/assignments/:assignmentId/submissions", authMiddleware, workspaceMiddleware, workspaceController.ListSubmission)
 	api.Post("/workspaces/:workspaceId/assignments/:assignmentId/submissions", authMiddleware, workspaceMiddleware, workspaceController.CreateSubmission)
 }

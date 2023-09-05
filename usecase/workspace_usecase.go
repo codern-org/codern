@@ -72,14 +72,10 @@ func (u *workspaceUsecase) CreateSubmission(
 		return domain.NewError(domain.ErrFileSystem, "cannot upload file")
 	}
 
-	if submission, err = u.workspaceRepository.GetSubmission(id); err != nil {
-		return domain.NewError(domain.ErrGetSubmission, "cannot get submission")
-	}
-
 	eg, egctx := errgroup.WithContext(context.Background())
 
-	for _, testcase := range *submission.Testcases {
-		testcase := testcase
+	for i := range assignment.Testcases {
+		testcase := assignment.Testcases[i]
 		eg.Go(func() error {
 			select {
 			case <-egctx.Done():
@@ -146,9 +142,13 @@ func (u *workspaceUsecase) List(
 	userId string,
 	selector *domain.WorkspaceSelector,
 ) (*[]domain.Workspace, error) {
-	return u.workspaceRepository.ListFromUserId(userId, selector)
+	return u.workspaceRepository.List(userId, selector)
 }
 
 func (u *workspaceUsecase) ListAssignment(userId string, workspaceId int) (*[]domain.Assignment, error) {
 	return u.workspaceRepository.ListAssignment(userId, workspaceId)
+}
+
+func (u *workspaceUsecase) ListSubmission(userId string, assignmentId int) (*[]domain.Submission, error) {
+	return u.workspaceRepository.ListSubmission(userId, assignmentId)
 }
