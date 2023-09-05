@@ -141,14 +141,14 @@ func (u *workspaceUsecase) GetAssignment(id int, userId string, workspaceId int)
 func (u *workspaceUsecase) List(
 	userId string,
 	selector *domain.WorkspaceSelector,
-) (*[]domain.Workspace, error) {
+) ([]domain.Workspace, error) {
 	return u.workspaceRepository.List(userId, selector)
 }
 
-func (u *workspaceUsecase) ListAssignment(userId string, workspaceId int) (*[]domain.Assignment, error) {
+func (u *workspaceUsecase) ListAssignment(userId string, workspaceId int) ([]domain.Assignment, error) {
 	return u.workspaceRepository.ListAssignment(userId, workspaceId)
 }
 
-func (u *workspaceUsecase) ListSubmission(userId string, assignmentId int) (*[]domain.Submission, error) {
+func (u *workspaceUsecase) ListSubmission(userId string, assignmentId int) ([]domain.Submission, error) {
 	return u.workspaceRepository.ListSubmission(userId, assignmentId)
 }
