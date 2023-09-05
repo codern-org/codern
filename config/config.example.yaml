@@ -1,0 +1,33 @@
+metadata:
+  name: Codern API Server
+  version: 0.0.0
+  logLevel: info
+client:
+  influxdb:
+    url: http://influxdb:8086
+    token: token
+    org: codern
+    bucket: api
+  mysql:
+    uri: root:password@(mysql:3306)/codern?parseTime=true
+  seaweedfs:
+    masterUrl: http://seaweedfs-master:9333
+    filerUrls:
+      - http://seaweedfs-filer:8888
+  rabbitmq:
+    url: amqp://root:password@rabbitmq:5672
+  fiber:
+    address: :3000
+  frontend:
+    baseUrl: http://localhost:5555
+    path:
+      signIn: /signin
+google:
+  clientId: replace_with_your_google_client_id
+  clientSecret: replace_with_your_google_client_secret
+  redirectUri: http://localhost:3000/api/auth/google/callback
+auth:
+  session:
+    prefix: $
+    secret: secret
+    maxAge: 604800 # 7 days in second unit
