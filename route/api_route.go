@@ -35,7 +35,9 @@ func ApplyApiRoutes(
 	sessionUsecase := usecase.NewSessionUsecase(cfg.Auth.Session, sessionRepository)
 	userUsecase := usecase.NewUserUsecase(userRepository)
 	authUsecase := usecase.NewAuthUsecase(googleUsecase, sessionUsecase, userUsecase)
-	workspaceUsecase := usecase.NewWorkspaceUsecase(seaweedfs, rabbitMq, workspaceRepository)
+	workspaceUsecase := usecase.NewWorkspaceUsecase(
+		cfg.Client.SeaweedFs, seaweedfs, rabbitMq, workspaceRepository,
+	)
 
 	// Initialize Controllers
 	authController := controller.NewAuthController(
