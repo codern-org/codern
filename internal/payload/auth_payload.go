@@ -2,7 +2,7 @@ package payload
 
 var AuthCookieKey = "sid"
 
-type AuthSignIn struct {
-	Email    string `validate:"email,required"`
-	Password string `validate:"required"`
+type SignInBody struct {
+	Email    string `json:"email" validate:"email,required"`
+	Password string `json:"password" validate:"required"`
 }

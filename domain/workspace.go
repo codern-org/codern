@@ -111,9 +111,9 @@ type WorkspaceRepository interface {
 	Get(id int, selector *WorkspaceSelector) (*Workspace, error)
 	GetAssignment(id int, userId string, workspaceId int) (*Assignment, error)
 	GetSubmission(id int) (*Submission, error)
-	List(userId string, selector *WorkspaceSelector) (*[]Workspace, error)
-	ListAssignment(userId string, workspaceId int) (*[]Assignment, error)
-	ListSubmission(userId string, assignmentId int) (*[]Submission, error)
+	List(userId string, selector *WorkspaceSelector) ([]Workspace, error)
+	ListAssignment(userId string, workspaceId int) ([]Assignment, error)
+	ListSubmission(userId string, assignmentId int) ([]Submission, error)
 }
 
 type WorkspaceUsecase interface {
@@ -122,7 +122,7 @@ type WorkspaceUsecase interface {
 	IsAssignmentIn(assignmentId int, workspaceId int) (bool, error)
 	Get(id int, selector *WorkspaceSelector) (*Workspace, error)
 	GetAssignment(id int, userId string, workspaceId int) (*Assignment, error)
-	List(userId string, selector *WorkspaceSelector) (*[]Workspace, error)
-	ListAssignment(userId string, workspaceId int) (*[]Assignment, error)
-	ListSubmission(userId string, assignmentId int) (*[]Submission, error)
+	List(userId string, selector *WorkspaceSelector) ([]Workspace, error)
+	ListAssignment(userId string, workspaceId int) ([]Assignment, error)
+	ListSubmission(userId string, assignmentId int) ([]Submission, error)
 }

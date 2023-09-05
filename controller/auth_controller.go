@@ -62,7 +62,7 @@ func (c *AuthController) Me(ctx *fiber.Ctx) error {
 // @Tags 				auth
 // @Accept 			json
 // @Produce 		json
-// @Param				credentials	body	payload.SignIn true "Email and password for authentication"
+// @Param				credentials	body	payload.SignInBody true "Email and password for authentication"
 // @Router 			/api/auth/signin [post]
 func (c *AuthController) SignIn(ctx *fiber.Ctx) error {
 	var body payload.SignInBody

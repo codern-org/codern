@@ -84,10 +84,10 @@ func (r *workspaceRepository) Get(id int, selector *domain.WorkspaceSelector) (*
 	workspaces, err := r.list([]int{id}, selector)
 	if err != nil {
 		return nil, err
-	} else if len(*workspaces) != 1 {
+	} else if len(workspaces) != 1 {
 		return nil, nil
 	}
-	return &(*workspaces)[0], nil
+	return &workspaces[0], nil
 }
 
 func (r *workspaceRepository) GetAssignment(
@@ -99,7 +99,7 @@ func (r *workspaceRepository) GetAssignment(
 	if err != nil {
 		return nil, err
 	}
-	return &(*assignments)[0], nil
+	return &assignments[0], nil
 }
 
 func (r *workspaceRepository) GetSubmission(id int) (*domain.Submission, error) {
@@ -124,7 +124,7 @@ func (r *workspaceRepository) GetSubmission(id int) (*domain.Submission, error) 
 func (r *workspaceRepository) List(
 	userId string,
 	selector *domain.WorkspaceSelector,
-) (*[]domain.Workspace, error) {
+) ([]domain.Workspace, error) {
 	var workspaceIds []int
 	err := r.db.Select(&workspaceIds, "SELECT workspace_id FROM workspace_participant WHERE user_id = ?", userId)
 	if err != nil {
@@ -133,10 +133,10 @@ func (r *workspaceRepository) List(
 	return r.list(workspaceIds, selector)
 }
 
-func (r *workspaceRepository) list(ids []int, selector *domain.WorkspaceSelector) (*[]domain.Workspace, error) {
+func (r *workspaceRepository) list(ids []int, selector *domain.WorkspaceSelector) ([]domain.Workspace, error) {
 	workspaces := make([]domain.Workspace, 0)
 	if len(ids) == 0 {
-		return &workspaces, nil
+		return workspaces, nil
 	}
 
 	query, args, err := sqlx.In(`
@@ -181,10 +181,10 @@ func (r *workspaceRepository) list(ids []int, selector *domain.WorkspaceSelector
 		}
 	}
 
-	return &workspaces, nil
+	return workspaces, nil
 }
 
-func (r *workspaceRepository) ListAssignment(userId string, workspaceId int) (*[]domain.Assignment, error) {
+func (r *workspaceRepository) ListAssignment(userId string, workspaceId int) ([]domain.Assignment, error) {
 	return r.listAssignment(userId, workspaceId, nil)
 }
 
@@ -192,7 +192,7 @@ func (r *workspaceRepository) listAssignment(
 	userId string,
 	workspaceId int,
 	assignmentId *int,
-) (*[]domain.Assignment, error) {
+) ([]domain.Assignment, error) {
 	assignments := make([]domain.Assignment, 0)
 
 	query := `
@@ -268,10 +268,10 @@ func (r *workspaceRepository) listAssignment(
 		}
 	}
 
-	return &assignments, nil
+	return assignments, nil
 }
 
-func (r *workspaceRepository) ListSubmission(userId string, assignmentId int) (*[]domain.Submission, error) {
+func (r *workspaceRepository) ListSubmission(userId string, assignmentId int) ([]domain.Submission, error) {
 	submissions := make([]domain.Submission, 0)
 	err := r.db.Select(&submissions, "SELECT * FROM submission WHERE assignment_id = ?", assignmentId)
 	if err != nil {
@@ -303,5 +303,5 @@ func (r *workspaceRepository) ListSubmission(userId string, assignmentId int) (*
 		}
 	}
 
-	return &submissions, nil
+	return submissions, nil
 }
