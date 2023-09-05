@@ -83,7 +83,7 @@ func (c *WorkspaceController) List(ctx *fiber.Ctx) error {
 	selector := payload.GetFieldSelector(ctx)
 
 	workspaces, err := c.workspaceUsecase.List(user.Id, &domain.WorkspaceSelector{
-		Participants: selector.Has("participant"),
+		Participants: selector.Has("participants"),
 	})
 	if err != nil {
 		return response.NewErrorResponse(ctx, fiber.StatusBadRequest, err)
