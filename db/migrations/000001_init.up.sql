@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS `session` (
 -- Workspace
 
 CREATE TABLE IF NOT EXISTS `workspace` (
-  `id` VARCHAR(64) PRIMARY KEY,
+  `id` BIGINT UNSIGNED PRIMARY KEY,
   `name` VARCHAR(64) NOT NULL,
   `profile_url` VARCHAR(128) NOT NULL,
   `owner_id` VARCHAR(64) NOT NULL,
@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS `workspace` (
 );
 
 CREATE TABLE IF NOT EXISTS `workspace_participant` (
-  `workspace_id` VARCHAR(64) NOT NULL,
+  `workspace_id` BIGINT UNSIGNED NOT NULL,
   `user_id` VARCHAR(64) NOT NULL,
   `joined_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`workspace_id`, `user_id`),
@@ -40,8 +40,8 @@ CREATE TABLE IF NOT EXISTS `workspace_participant` (
 );
 
 CREATE TABLE IF NOT EXISTS `assignment` (
-  `id` VARCHAR(64) PRIMARY KEY,
-  `workspace_id` VARCHAR(64) NOT NULL,
+  `id` BIGINT UNSIGNED PRIMARY KEY,
+  `workspace_id` BIGINT UNSIGNED NOT NULL,
   `name` VARCHAR(64) NOT NULL,
   `description` VARCHAR(64) NOT NULL,
   `detail_url` VARCHAR(128) NOT NULL,
@@ -54,15 +54,15 @@ CREATE TABLE IF NOT EXISTS `assignment` (
 );
 
 CREATE TABLE IF NOT EXISTS `testcase` (
-  `id` INTEGER PRIMARY KEY AUTO_INCREMENT,
-  `assignment_id` VARCHAR(64) NOT NULL,
+  `id` BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
+  `assignment_id` BIGINT UNSIGNED NOT NULL,
   `file_url` VARCHAR(128) NOT NULL,
   FOREIGN KEY (`assignment_id`) REFERENCES `assignment`(`id`)
 );
 
 CREATE TABLE IF NOT EXISTS `submission` (
-  `id` VARCHAR(64) PRIMARY KEY,
-  `assignment_id` VARCHAR(64) NOT NULL,
+  `id` BIGINT UNSIGNED PRIMARY KEY,
+  `assignment_id` BIGINT UNSIGNED NOT NULL,
   `user_id` VARCHAR(64) NOT NULL,
   `language` VARCHAR(64) NOT NULL,
   `file_url` VARCHAR(128) NOT NULL,
@@ -72,16 +72,16 @@ CREATE TABLE IF NOT EXISTS `submission` (
 );
 
 CREATE TABLE IF NOT EXISTS `submission_result` (
-  `submission_id` VARCHAR(64) NOT NULL,
-  `testcase_id` INTEGER NOT NULL,
+  `submission_id` BIGINT UNSIGNED NOT NULL,
+  `testcase_id` BIGINT UNSIGNED NOT NULL,
   `status` VARCHAR(32) NOT NULL,
   `status_detail` VARCHAR(32),
   `memory_usage` INTEGER,
   `time_usage` INTEGER,
   `compilation_log` LONGTEXT,
   PRIMARY KEY (`submission_id`, `testcase_id`),
-  FOREIGN KEY (`submission_id`) REFERENCES `submission`(`id`),
-  FOREIGN KEY (`testcase_id`) REFERENCES `testcase`(`id`)
+  FOREIGN KEY (`submission_id`) REFERENCES `submission`(`id`) ON DELETE CASCADE,
+  FOREIGN KEY (`testcase_id`) REFERENCES `testcase`(`id`) ON DELETE CASCADE
 );
 
 -- Seeding
