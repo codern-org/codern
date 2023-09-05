@@ -34,6 +34,13 @@ func NewWorkspaceController(
 //
 // @Summary 		Create a new submission
 // @Description	Submit a submission of the assignment
+// @Tags 				workspace
+// @Accept 			json
+// @Produce 		json
+// @Param				workspaceId					path	int				true	"Workspace ID"
+// @Param				assignmentId				path	int				true	"Assignment ID"
+// @Security 		ApiKeyAuth
+// @Param 			sid header string true "Session ID"
 // @Router 			/api/workspaces/{workspaceId}/assignments/{assignmentId}/submissions [post]
 func (c *WorkspaceController) CreateSubmission(ctx *fiber.Ctx) error {
 	var body payload.CreateSubmissionBody
@@ -99,7 +106,7 @@ func (c *WorkspaceController) List(ctx *fiber.Ctx) error {
 // @Tags 				workspace
 // @Accept 			json
 // @Produce 		json
-// @Param				id					path	int				true	"Workspace ID"
+// @Param				workspaceId					path	int				true	"Workspace ID"
 // @Security 		ApiKeyAuth
 // @Param 			sid header string true "Session ID"
 // @Router 			/api/workspaces/{workspaceId}/assignments [get]
@@ -115,6 +122,30 @@ func (c *WorkspaceController) ListAssignment(ctx *fiber.Ctx) error {
 	return response.NewSuccessResponse(ctx, fiber.StatusOK, assignments)
 }
 
+// ListSubmission godoc
+//
+// @Summary 		List submission
+// @Description	Get all submission from a workspace id on path parameter
+// @Tags 				workspace
+// @Accept 			json
+// @Produce 		json
+// @Param				workspaceId					path	int				true	"Workspace ID"
+// @Param				assignmentId				path	int				true	"Assignment ID"
+// @Security 		ApiKeyAuth
+// @Param 			sid header string true "Session ID"
+// @Router 			/api/workspaces/{workspaceId}/assignments/{assignmentId}/submissions [get]
+func (c *WorkspaceController) ListSubmission(ctx *fiber.Ctx) error {
+	user := middleware.GetUserFromCtx(ctx)
+	assignmentId := middleware.GetAssignmentIdFromCtx(ctx)
+
+	submissions, err := c.workspaceUsecase.ListSubmission(user.Id, assignmentId)
+	if err != nil {
+		return response.NewErrorResponse(ctx, fiber.StatusBadRequest, err)
+	}
+
+	return response.NewSuccessResponse(ctx, fiber.StatusOK, submissions)
+}
+
 // Get godoc
 //
 // @Summary 		Get a workspace
@@ -122,7 +153,7 @@ func (c *WorkspaceController) ListAssignment(ctx *fiber.Ctx) error {
 // @Tags 				workspace
 // @Accept 			json
 // @Produce 		json
-// @Param				id					path	int				true	"Workspace ID"
+// @Param				workspaceId	path	int				true	"Workspace ID"
 // @Param				fields			query []string	false	"Specific fields to include in the response"	collectionFormat(csv)	Enums(participants)
 // @Security 		ApiKeyAuth
 // @Param 			sid header string true "Session ID"
@@ -148,7 +179,8 @@ func (c *WorkspaceController) Get(ctx *fiber.Ctx) error {
 // @Tags 				workspace
 // @Accept 			json
 // @Produce 		json
-// @Param				id					path	int				true	"Workspace ID"
+// @Param				workspaceId					path	int				true	"Workspace ID"
+// @Param				assignmentId				path	int				true	"Assignment ID"
 // @Security 		ApiKeyAuth
 // @Param 			sid header string true "Session ID"
 // @Router 			/api/workspaces/{workspaceId}/assignments/{assignmentId} [get]

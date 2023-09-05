@@ -1,5 +1,5 @@
 definitions:
-  payload.AuthSignIn:
+  payload.SignInBody:
     properties:
       email:
         type: string
@@ -64,7 +64,7 @@ paths:
         name: credentials
         required: true
         schema:
-          $ref: '#/definitions/payload.AuthSignIn'
+          $ref: '#/definitions/payload.SignInBody'
       produces:
       - application/json
       responses: {}
@@ -88,23 +88,17 @@ paths:
       summary: Sign out
       tags:
       - auth
-  /api/user/{userId}/workspace:
+  /api/workspaces:
     get:
       consumes:
       - application/json
-      description: Get all workspaces from the specific user id
+      description: Get all workspaces
       parameters:
-      - description: User ID
-        in: path
-        name: userId
-        required: true
-        type: string
       - collectionFormat: csv
         description: Specific fields to include in the response
         in: query
         items:
           enum:
-          - ownerName
           - participants
           type: string
         name: fields
@@ -119,10 +113,10 @@ paths:
       responses: {}
       security:
       - ApiKeyAuth: []
-      summary: List workspaces of user
+      summary: List workspaces
       tags:
       - workspace
-  /api/workspace/{id}:
+  /api/workspaces/{workspaceId}:
     get:
       consumes:
       - application/json
@@ -130,7 +124,7 @@ paths:
       parameters:
       - description: Workspace ID
         in: path
-        name: id
+        name: workspaceId
         required: true
         type: integer
       - collectionFormat: csv
@@ -138,7 +132,6 @@ paths:
         in: query
         items:
           enum:
-          - ownerName
           - participants
           type: string
         name: fields
@@ -153,7 +146,117 @@ paths:
       responses: {}
       security:
       - ApiKeyAuth: []
-      summary: Get a workspace from workspace id
+      summary: Get a workspace
+      tags:
+      - workspace
+  /api/workspaces/{workspaceId}/assignments:
+    get:
+      consumes:
+      - application/json
+      description: Get all assignment from a workspace id on path parameter
+      parameters:
+      - description: Workspace ID
+        in: path
+        name: workspaceId
+        required: true
+        type: integer
+      - description: Session ID
+        in: header
+        name: sid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - ApiKeyAuth: []
+      summary: List assignment
+      tags:
+      - workspace
+  /api/workspaces/{workspaceId}/assignments/{assignmentId}:
+    get:
+      consumes:
+      - application/json
+      description: Get an assignment from workspace id on path parameter
+      parameters:
+      - description: Workspace ID
+        in: path
+        name: workspaceId
+        required: true
+        type: integer
+      - description: Assignment ID
+        in: path
+        name: assignmentId
+        required: true
+        type: integer
+      - description: Session ID
+        in: header
+        name: sid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Get an assignment
+      tags:
+      - workspace
+  /api/workspaces/{workspaceId}/assignments/{assignmentId}/submissions:
+    get:
+      consumes:
+      - application/json
+      description: Get all submission from a workspace id on path parameter
+      parameters:
+      - description: Workspace ID
+        in: path
+        name: workspaceId
+        required: true
+        type: integer
+      - description: Assignment ID
+        in: path
+        name: assignmentId
+        required: true
+        type: integer
+      - description: Session ID
+        in: header
+        name: sid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - ApiKeyAuth: []
+      summary: List submission
+      tags:
+      - workspace
+    post:
+      consumes:
+      - application/json
+      description: Submit a submission of the assignment
+      parameters:
+      - description: Workspace ID
+        in: path
+        name: workspaceId
+        required: true
+        type: integer
+      - description: Assignment ID
+        in: path
+        name: assignmentId
+        required: true
+        type: integer
+      - description: Session ID
+        in: header
+        name: sid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Create a new submission
       tags:
       - workspace
 securityDefinitions:

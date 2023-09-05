@@ -81,7 +81,7 @@ func (r *workspaceRepository) IsAssignmentIn(assignmentId int, workspaceId int) 
 }
 
 func (r *workspaceRepository) Get(id int, selector *domain.WorkspaceSelector) (*domain.Workspace, error) {
-	workspaces, err := r.List([]int{id}, selector)
+	workspaces, err := r.list([]int{id}, selector)
 	if err != nil {
 		return nil, err
 	} else if len(*workspaces) != 1 {
@@ -116,19 +116,24 @@ func (r *workspaceRepository) GetSubmission(id int) (*domain.Submission, error) 
 	if err != nil {
 		return nil, err
 	}
-	submission.Results = &results
-
-	var testcases []domain.Testcase
-	err = r.db.Select(&testcases, "SELECT * FROM testcase WHERE assignment_id = ?", submission.AssignmentId)
-	if err != nil {
-		return nil, err
-	}
-	submission.Testcases = &testcases
+	submission.Results = results
 
 	return &submission, nil
 }
 
-func (r *workspaceRepository) List(ids []int, selector *domain.WorkspaceSelector) (*[]domain.Workspace, error) {
+func (r *workspaceRepository) List(
+	userId string,
+	selector *domain.WorkspaceSelector,
+) (*[]domain.Workspace, error) {
+	var workspaceIds []int
+	err := r.db.Select(&workspaceIds, "SELECT workspace_id FROM workspace_participant WHERE user_id = ?", userId)
+	if err != nil {
+		return nil, err
+	}
+	return r.list(workspaceIds, selector)
+}
+
+func (r *workspaceRepository) list(ids []int, selector *domain.WorkspaceSelector) (*[]domain.Workspace, error) {
 	workspaces := make([]domain.Workspace, 0)
 	if len(ids) == 0 {
 		return &workspaces, nil
@@ -177,18 +182,6 @@ func (r *workspaceRepository) List(ids []int, selector *domain.WorkspaceSelector
 	}
 
 	return &workspaces, nil
-}
-
-func (r *workspaceRepository) ListFromUserId(
-	userId string,
-	selector *domain.WorkspaceSelector,
-) (*[]domain.Workspace, error) {
-	workspaceIds := make([]int, 0)
-	err := r.db.Select(&workspaceIds, "SELECT workspace_id FROM workspace_participant WHERE user_id = ?", userId)
-	if err != nil {
-		return nil, err
-	}
-	return r.List(workspaceIds, selector)
 }
 
 func (r *workspaceRepository) ListAssignment(userId string, workspaceId int) (*[]domain.Assignment, error) {
@@ -249,5 +242,66 @@ func (r *workspaceRepository) listAssignment(
 	if err := r.db.Select(&assignments, query, userId, param, param); err != nil {
 		return nil, err
 	}
+
+	if len(assignments) > 0 {
+		var assignmentIds []int
+		for i := range assignments {
+			assignmentIds = append(assignmentIds, assignments[i].Id)
+		}
+
+		var testcases []domain.Testcase
+		query, args, err := sqlx.In("SELECT * FROM testcase WHERE assignment_id IN (?)", assignmentIds)
+		if err != nil {
+			return nil, err
+		}
+		if err = r.db.Select(&testcases, query, args...); err != nil {
+			return nil, err
+		}
+
+		assignmentById := make(map[int]*domain.Assignment)
+		for i := range assignments {
+			assignmentById[assignments[i].Id] = &assignments[i]
+		}
+		for i := range testcases {
+			assignment := assignmentById[testcases[i].AssignmentId]
+			assignment.Testcases = append(assignment.Testcases, testcases[i])
+		}
+	}
+
 	return &assignments, nil
+}
+
+func (r *workspaceRepository) ListSubmission(userId string, assignmentId int) (*[]domain.Submission, error) {
+	submissions := make([]domain.Submission, 0)
+	err := r.db.Select(&submissions, "SELECT * FROM submission WHERE assignment_id = ?", assignmentId)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(submissions) > 0 {
+		var submissionIds []int
+		for i := range submissions {
+			submissionIds = append(submissionIds, submissions[i].Id)
+		}
+
+		var results []domain.SubmissionResult
+		query, args, err := sqlx.In("SELECT * FROM submission_result WHERE submission_id IN (?)", submissionIds)
+		if err != nil {
+			return nil, err
+		}
+		if err = r.db.Select(&results, query, args...); err != nil {
+			return nil, err
+		}
+
+		submissionById := make(map[int]*domain.Submission)
+		for i := range submissions {
+			submissionById[submissions[i].Id] = &submissions[i]
+		}
+		for i := range results {
+			submission := submissionById[results[i].SubmissionId]
+			submission.Results = append(submission.Results, results[i])
+		}
+	}
+
+	return &submissions, nil
 }

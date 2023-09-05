@@ -83,7 +83,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/payload.AuthSignIn"
+                            "$ref": "#/definitions/payload.SignInBody"
                         }
                     }
                 ],
@@ -117,14 +117,14 @@
                 "responses": {}
             }
         },
-        "/api/user/{userId}/workspace": {
+        "/api/workspaces": {
             "get": {
                 "security": [
                     {
                         "ApiKeyAuth": []
                     }
                 ],
-                "description": "Get all workspaces from the specific user id",
+                "description": "Get all workspaces",
                 "consumes": [
                     "application/json"
                 ],
@@ -134,20 +134,12 @@
                 "tags": [
                     "workspace"
                 ],
-                "summary": "List workspaces of user",
+                "summary": "List workspaces",
                 "parameters": [
-                    {
-                        "type": "string",
-                        "description": "User ID",
-                        "name": "userId",
-                        "in": "path",
-                        "required": true
-                    },
                     {
                         "type": "array",
                         "items": {
                             "enum": [
-                                "ownerName",
                                 "participants"
                             ],
                             "type": "string"
@@ -168,7 +160,7 @@
                 "responses": {}
             }
         },
-        "/api/workspace/{id}": {
+        "/api/workspaces/{workspaceId}": {
             "get": {
                 "security": [
                     {
@@ -185,12 +177,12 @@
                 "tags": [
                     "workspace"
                 ],
-                "summary": "Get a workspace from workspace id",
+                "summary": "Get a workspace",
                 "parameters": [
                     {
                         "type": "integer",
                         "description": "Workspace ID",
-                        "name": "id",
+                        "name": "workspaceId",
                         "in": "path",
                         "required": true
                     },
@@ -198,7 +190,6 @@
                         "type": "array",
                         "items": {
                             "enum": [
-                                "ownerName",
                                 "participants"
                             ],
                             "type": "string"
@@ -218,10 +209,177 @@
                 ],
                 "responses": {}
             }
+        },
+        "/api/workspaces/{workspaceId}/assignments": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Get all assignment from a workspace id on path parameter",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "workspace"
+                ],
+                "summary": "List assignment",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Workspace ID",
+                        "name": "workspaceId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Session ID",
+                        "name": "sid",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/workspaces/{workspaceId}/assignments/{assignmentId}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Get an assignment from workspace id on path parameter",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "workspace"
+                ],
+                "summary": "Get an assignment",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Workspace ID",
+                        "name": "workspaceId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Assignment ID",
+                        "name": "assignmentId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Session ID",
+                        "name": "sid",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/api/workspaces/{workspaceId}/assignments/{assignmentId}/submissions": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Get all submission from a workspace id on path parameter",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "workspace"
+                ],
+                "summary": "List submission",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Workspace ID",
+                        "name": "workspaceId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Assignment ID",
+                        "name": "assignmentId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Session ID",
+                        "name": "sid",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            },
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Submit a submission of the assignment",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "workspace"
+                ],
+                "summary": "Create a new submission",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Workspace ID",
+                        "name": "workspaceId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Assignment ID",
+                        "name": "assignmentId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Session ID",
+                        "name": "sid",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
         }
     },
     "definitions": {
-        "payload.AuthSignIn": {
+        "payload.SignInBody": {
             "type": "object",
             "required": [
                 "email",
