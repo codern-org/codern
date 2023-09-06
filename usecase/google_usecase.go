@@ -15,22 +15,21 @@ import (
 )
 
 type googleUsecase struct {
-	cfgGoogle  config.ConfigGoogle
+	cfg        *config.Config
 	httpClient *http.Client
 }
 
-func NewGoogleUsecase(cfgGoogle config.ConfigGoogle) domain.GoogleUsecase {
-	httpClient := &http.Client{Timeout: 10 * time.Second}
+func NewGoogleUsecase(cfg *config.Config) domain.GoogleUsecase {
 	return &googleUsecase{
-		cfgGoogle:  cfgGoogle,
-		httpClient: httpClient,
+		cfg:        cfg,
+		httpClient: &http.Client{Timeout: 10 * time.Second},
 	}
 }
 
 func (u *googleUsecase) GetOAuthUrl() string {
 	query := url.Values{}
-	query.Add("client_id", u.cfgGoogle.ClientId)
-	query.Add("redirect_uri", u.cfgGoogle.RedirectUri)
+	query.Add("client_id", u.cfg.Google.ClientId)
+	query.Add("redirect_uri", u.cfg.Google.RedirectUri)
 	query.Add("response_type", "code")
 	query.Add("prompt", "consent")
 	query.Add("scope", strings.Join([]string{
@@ -44,9 +43,9 @@ func (u *googleUsecase) GetOAuthUrl() string {
 func (u *googleUsecase) GetToken(code string) (string, error) {
 	body, err := json.Marshal(&map[string]string{
 		"code":          code,
-		"client_id":     u.cfgGoogle.ClientId,
-		"client_secret": u.cfgGoogle.ClientSecret,
-		"redirect_uri":  u.cfgGoogle.RedirectUri,
+		"client_id":     u.cfg.Google.ClientId,
+		"client_secret": u.cfg.Google.ClientSecret,
+		"redirect_uri":  u.cfg.Google.RedirectUri,
 		"grant_type":    "authorization_code",
 	})
 	if err != nil {

@@ -14,9 +14,9 @@ import (
 )
 
 type AuthController struct {
-	logger      *zap.Logger
-	frontendCfg config.ConfigFrontend
-	validator   domain.PayloadValidator
+	logger    *zap.Logger
+	cfg       *config.Config
+	validator domain.PayloadValidator
 
 	authUsecase   domain.AuthUsecase
 	googleUsecase domain.GoogleUsecase
@@ -25,7 +25,7 @@ type AuthController struct {
 
 func NewAuthController(
 	logger *zap.Logger,
-	frontendCfg config.ConfigFrontend,
+	cfg *config.Config,
 	validator domain.PayloadValidator,
 	authUsecase domain.AuthUsecase,
 	googleUsecase domain.GoogleUsecase,
@@ -33,7 +33,7 @@ func NewAuthController(
 ) *AuthController {
 	return &AuthController{
 		logger:        logger,
-		frontendCfg:   frontendCfg,
+		cfg:           cfg,
 		validator:     validator,
 		authUsecase:   authUsecase,
 		googleUsecase: googleUsecase,
@@ -114,7 +114,7 @@ func (c *AuthController) SignInWithGoogle(ctx *fiber.Ctx) error {
 	}
 	ctx.Cookie(cookie)
 
-	url, err := url.JoinPath(c.frontendCfg.BaseUrl, c.frontendCfg.Path.SignIn)
+	url, err := url.JoinPath(c.cfg.Client.Frontend.BaseUrl, c.cfg.Client.Frontend.Path.SignIn)
 	if err != nil {
 		return err
 	}
