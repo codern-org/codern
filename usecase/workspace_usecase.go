@@ -14,20 +14,20 @@ import (
 )
 
 type workspaceUsecase struct {
-	cfgSeaweedFs        config.ConfigSeaweedFs
+	cfg                 *config.Config
 	seaweedfs           *platform.SeaweedFs
 	rabbitMq            *platform.RabbitMq
 	workspaceRepository domain.WorkspaceRepository
 }
 
 func NewWorkspaceUsecase(
-	cfgSeaweedFs config.ConfigSeaweedFs,
+	cfg *config.Config,
 	seaweedfs *platform.SeaweedFs,
 	rabbitMq *platform.RabbitMq,
 	workspaceRepository domain.WorkspaceRepository,
 ) domain.WorkspaceUsecase {
 	return &workspaceUsecase{
-		cfgSeaweedFs:        cfgSeaweedFs,
+		cfg:                 cfg,
 		seaweedfs:           seaweedfs,
 		rabbitMq:            rabbitMq,
 		workspaceRepository: workspaceRepository,

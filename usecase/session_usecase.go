@@ -16,34 +16,34 @@ import (
 )
 
 type sessionUsecase struct {
-	cfgAuthSession    config.ConfigAuthSession
+	cfg               *config.Config
 	sessionRepository domain.SessionRepository
 }
 
 func NewSessionUsecase(
-	cfgAuthSession config.ConfigAuthSession,
+	cfg *config.Config,
 	sessionRepository domain.SessionRepository,
 ) domain.SessionUsecase {
 	return &sessionUsecase{
-		cfgAuthSession:    cfgAuthSession,
+		cfg:               cfg,
 		sessionRepository: sessionRepository,
 	}
 }
 
 func (u *sessionUsecase) Sign(id string) string {
-	hmac := hmac.New(sha256.New, []byte(u.cfgAuthSession.Secret))
+	hmac := hmac.New(sha256.New, []byte(u.cfg.Auth.Session.Secret))
 	hmac.Write([]byte(id))
 	regex := regexp.MustCompile(`=+$`)
 	signature := regex.ReplaceAllString(base64.StdEncoding.EncodeToString(hmac.Sum(nil)), "")
-	return u.cfgAuthSession.Prefix + ":" + id + "." + signature
+	return u.cfg.Auth.Session.Prefix + ":" + id + "." + signature
 }
 
 func (u *sessionUsecase) Unsign(header string) (string, error) {
-	if !strings.HasPrefix(header, u.cfgAuthSession.Prefix+":") {
+	if !strings.HasPrefix(header, u.cfg.Auth.Session.Prefix+":") {
 		return "", domain.NewError(domain.ErrSessionPrefix, "prefix mismatch")
 	}
 
-	id := header[len(u.cfgAuthSession.Prefix)+1 : strings.LastIndex(header, ".")]
+	id := header[len(u.cfg.Auth.Session.Prefix)+1 : strings.LastIndex(header, ".")]
 	expectation := u.Sign(id)
 
 	isLengthMatch := len([]byte(header)) == len([]byte(expectation))
@@ -65,7 +65,7 @@ func (u *sessionUsecase) Create(
 	id := uuid.NewString()
 	signedId := u.Sign(id)
 	createdAt := time.Now()
-	expiredAt := createdAt.Add(time.Duration(u.cfgAuthSession.MaxAge) * time.Second)
+	expiredAt := createdAt.Add(time.Duration(u.cfg.Auth.Session.MaxAge) * time.Second)
 
 	err := u.sessionRepository.Create(&domain.Session{
 		Id:        id,
