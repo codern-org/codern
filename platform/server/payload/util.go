@@ -4,7 +4,7 @@ import (
 	"mime/multipart"
 	"strings"
 
-	"github.com/codern-org/codern/middleware"
+	"github.com/codern-org/codern/platform/server/middleware"
 	"github.com/gofiber/fiber/v2"
 )
 
