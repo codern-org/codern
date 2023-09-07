@@ -305,3 +305,17 @@ func (r *workspaceRepository) ListSubmission(userId string, assignmentId int) ([
 
 	return submissions, nil
 }
+
+func (r *workspaceRepository) UpdateSubmissionResult(result *domain.SubmissionResult) error {
+	_, err := r.db.NamedExec(`
+		UPDATE submission_result
+		SET
+			status = :status,
+			status_detail = :status_detail,
+			memory_usage = :memory_usage,
+			time_usage = :time_usage,
+			compilation_log = :compilation_log
+		WHERE submission_id = :submission_id AND testcase_id = :testcase_id
+	`, result)
+	return err
+}
