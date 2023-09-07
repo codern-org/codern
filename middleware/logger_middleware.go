@@ -5,8 +5,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/codern-org/codern/domain"
-	"github.com/codern-org/codern/internal/response"
 	"github.com/codern-org/codern/platform"
 	"github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
@@ -25,7 +23,7 @@ func NewLogger(logger *zap.Logger, influxdb *platform.InfluxDb) fiber.Handler {
 		requestId := ctx.Locals("requestid").(string)
 		userAgent := ctx.Context().UserAgent()
 
-		influxDbErr := influxdb.WritePoint(
+		influxdb.WritePoint(
 			"httpRequest",
 			map[string]string{
 				"method":     method,
@@ -36,14 +34,6 @@ func NewLogger(logger *zap.Logger, influxdb *platform.InfluxDb) fiber.Handler {
 				"executionTime": executionTime.Nanoseconds(),
 			},
 		)
-		if influxDbErr != nil {
-			logger.Error("HTTP Request Measurement", zap.Error(influxDbErr))
-			return response.NewErrorResponse(
-				ctx,
-				fiber.StatusInternalServerError,
-				domain.NewError(domain.ErrLoggingError, "internal logging error"),
-			)
-		}
 
 		logger.Info(
 			fmt.Sprintf("Request %s %s %d", method, path, statusCode),
