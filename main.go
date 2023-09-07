@@ -83,6 +83,7 @@ func initPlatform(cfg *config.Config, logger *zap.Logger) *domain.Platform {
 		cfg.Client.InfluxDb.Token,
 		cfg.Client.InfluxDb.Org,
 		cfg.Client.InfluxDb.Bucket,
+		logger,
 	)
 	if err != nil {
 		logger.Fatal("Cannot create a InfluxDB connection", zap.Error(err))
