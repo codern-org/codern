@@ -54,8 +54,8 @@ type Assignment struct {
 	Name        string          `json:"name" db:"name"`
 	Description string          `json:"description" db:"description"`
 	DetailUrl   string          `json:"detailUrl" db:"detail_url"`
-	MemoryLimit string          `json:"memoryLimit" db:"memory_limit"`
-	TimeLimit   string          `json:"timeLimit" db:"time_limit"`
+	MemoryLimit int             `json:"memoryLimit" db:"memory_limit"`
+	TimeLimit   int             `json:"timeLimit" db:"time_limit"`
 	Level       AssignmentLevel `json:"level" db:"level"`
 	CreatedAt   time.Time       `json:"createdAt" db:"created_at"`
 	UpdatedAt   time.Time       `json:"updatedAt" db:"updated_at"`
@@ -114,6 +114,7 @@ type WorkspaceRepository interface {
 	List(userId string, selector *WorkspaceSelector) ([]Workspace, error)
 	ListAssignment(userId string, workspaceId int) ([]Assignment, error)
 	ListSubmission(userId string, assignmentId int) ([]Submission, error)
+	UpdateSubmissionResult(result *SubmissionResult) error
 }
 
 type WorkspaceUsecase interface {
@@ -125,4 +126,5 @@ type WorkspaceUsecase interface {
 	List(userId string, selector *WorkspaceSelector) ([]Workspace, error)
 	ListAssignment(userId string, workspaceId int) ([]Assignment, error)
 	ListSubmission(userId string, assignmentId int) ([]Submission, error)
+	UpdateSubmissionResult(result *SubmissionResult) error
 }
