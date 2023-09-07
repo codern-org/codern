@@ -4,9 +4,9 @@ import (
 	"time"
 
 	"github.com/codern-org/codern/domain"
-	"github.com/codern-org/codern/internal/payload"
-	"github.com/codern-org/codern/internal/response"
-	"github.com/codern-org/codern/middleware"
+	"github.com/codern-org/codern/platform/server/middleware"
+	"github.com/codern-org/codern/platform/server/payload"
+	"github.com/codern-org/codern/platform/server/response"
 	"github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
 )

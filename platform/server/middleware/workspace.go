@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"github.com/codern-org/codern/domain"
-	"github.com/codern-org/codern/internal/response"
+	"github.com/codern-org/codern/platform/server/response"
 	"github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
 )
