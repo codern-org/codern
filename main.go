@@ -12,6 +12,8 @@ import (
 	"github.com/codern-org/codern/internal/constant"
 	"github.com/codern-org/codern/internal/logger"
 	"github.com/codern-org/codern/platform"
+	"github.com/codern-org/codern/platform/amqp/consumer"
+	"github.com/codern-org/codern/platform/amqp/publisher"
 	"github.com/codern-org/codern/platform/server"
 	"github.com/codern-org/codern/repository"
 	"github.com/codern-org/codern/usecase"
@@ -50,7 +52,10 @@ func main() {
 	// Initialize dependencies
 	platform := initPlatform(cfg, logger)
 	repository := initRepository(platform.MySql)
-	usecase := initUsecase(cfg, platform, repository)
+	pulisher := initPublisher(logger, platform)
+	usecase := initUsecase(cfg, logger, platform, repository, pulisher)
+
+	startConsumer(logger, platform, usecase)
 
 	// Initialize server with gracefully shutdown
 	signals := make(chan os.Signal, 1)
@@ -132,15 +137,17 @@ func initRepository(mysql *sqlx.DB) *domain.Repository {
 
 func initUsecase(
 	cfg *config.Config,
+	logger *zap.Logger,
 	platform *domain.Platform,
 	repository *domain.Repository,
+	publisher *domain.Publisher,
 ) *domain.Usecase {
 	googleUsecase := usecase.NewGoogleUsecase(cfg)
 	sessionUsecase := usecase.NewSessionUsecase(cfg, repository.Session)
 	userUsecase := usecase.NewUserUsecase(repository.User)
 	authUsecase := usecase.NewAuthUsecase(googleUsecase, sessionUsecase, userUsecase)
 	workspaceUsecase := usecase.NewWorkspaceUsecase(
-		cfg, platform.SeaweedFs, platform.RabbitMq, repository.Workspace,
+		cfg, platform.SeaweedFs, platform.RabbitMq, repository.Workspace, publisher.Grading,
 	)
 
 	return &domain.Usecase{
@@ -149,5 +156,30 @@ func initUsecase(
 		User:      userUsecase,
 		Auth:      authUsecase,
 		Workspace: workspaceUsecase,
+	}
+}
+
+func initPublisher(
+	logger *zap.Logger,
+	platform *domain.Platform,
+) *domain.Publisher {
+	gradingPublisher, err := publisher.NewGradingPublisher(platform.RabbitMq)
+	if err != nil {
+		logger.Fatal("Grading publisher initialization failed", zap.Error(err))
+	}
+
+	return &domain.Publisher{
+		Grading: gradingPublisher,
+	}
+}
+
+func startConsumer(
+	logger *zap.Logger,
+	platform *domain.Platform,
+	usecase *domain.Usecase,
+) {
+	gradingConsumer := consumer.NewGradingConsumer(platform.RabbitMq, usecase.Workspace)
+	if err := gradingConsumer.ConsumeSubmssionResult(); err != nil {
+		logger.Fatal("Cannot consume submission result", zap.Error(err))
 	}
 }

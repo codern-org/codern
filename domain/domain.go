@@ -25,3 +25,7 @@ type Usecase struct {
 	Auth      AuthUsecase
 	Workspace WorkspaceUsecase
 }
+
+type Publisher struct {
+	Grading GradingPublisher
+}

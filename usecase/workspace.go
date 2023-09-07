@@ -1,16 +1,13 @@
 package usecase
 
 import (
-	"context"
 	"fmt"
 	"io"
-	"time"
 
 	"github.com/codern-org/codern/domain"
 	"github.com/codern-org/codern/internal/config"
 	"github.com/codern-org/codern/internal/generator"
 	"github.com/codern-org/codern/platform"
-	"golang.org/x/sync/errgroup"
 )
 
 type workspaceUsecase struct {
@@ -18,6 +15,7 @@ type workspaceUsecase struct {
 	seaweedfs           *platform.SeaweedFs
 	rabbitMq            *platform.RabbitMq
 	workspaceRepository domain.WorkspaceRepository
+	gradingPublisher    domain.GradingPublisher
 }
 
 func NewWorkspaceUsecase(
@@ -25,12 +23,14 @@ func NewWorkspaceUsecase(
 	seaweedfs *platform.SeaweedFs,
 	rabbitMq *platform.RabbitMq,
 	workspaceRepository domain.WorkspaceRepository,
+	gradingPublisher domain.GradingPublisher,
 ) domain.WorkspaceUsecase {
 	return &workspaceUsecase{
 		cfg:                 cfg,
 		seaweedfs:           seaweedfs,
 		rabbitMq:            rabbitMq,
 		workspaceRepository: workspaceRepository,
+		gradingPublisher:    gradingPublisher,
 	}
 }
 
@@ -48,9 +48,6 @@ func (u *workspaceUsecase) CreateSubmission(
 		"/workspaces/%d/assignments/%d/submissions/%s/%d",
 		workspaceId, assignmentId, userId, id,
 	)
-
-	var err error
-	var assignment *domain.Assignment
 	submission := &domain.Submission{
 		Id:           id,
 		AssignmentId: assignmentId,
@@ -59,59 +56,21 @@ func (u *workspaceUsecase) CreateSubmission(
 		FileUrl:      filePath,
 	}
 
-	if assignment, err = u.workspaceRepository.GetAssignment(assignmentId, userId, workspaceId); err != nil {
+	assignment, err := u.workspaceRepository.GetAssignment(assignmentId, userId, workspaceId)
+	if err != nil {
 		return domain.NewError(domain.ErrGetAssignment, "cannot get assignment")
 	}
 
-	if err = u.workspaceRepository.CreateSubmission(submission); err != nil {
+	if err := u.workspaceRepository.CreateSubmission(submission); err != nil {
 		return domain.NewError(domain.ErrCreateSubmission, "cannot create submission")
 	}
 
 	// TODO: retry strategy, error
-	if err = u.seaweedfs.Upload(file, 0, filePath); err != nil {
+	if err := u.seaweedfs.Upload(file, 0, filePath); err != nil {
 		return domain.NewError(domain.ErrFileSystem, "cannot upload file")
 	}
 
-	eg, egctx := errgroup.WithContext(context.Background())
-
-	for i := range assignment.Testcases {
-		testcase := assignment.Testcases[i]
-		eg.Go(func() error {
-			select {
-			case <-egctx.Done():
-				// log.Println("cancel", testcase.Id)
-				return egctx.Err()
-			default:
-				ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-				defer cancel()
-
-				// log.Println("run", testcase.Id)
-
-				// 50% chance of failure
-				// if rand.Intn(2) == 1 {
-				// 	log.Println("fail:", testcase.Id)
-				// 	return fmt.Errorf("from run %d", testcase.Id)
-				// }
-
-				// Follow legacy version message
-				return u.rabbitMq.Publish(ctx, "", "grading", false, false, map[string]interface{}{
-					"id":   fmt.Sprintf("%d.%d", assignmentId, testcase.Id),
-					"type": language,
-					"settings": map[string]interface{}{
-						"softLimitMemory": assignment.MemoryLimit,
-						"softLimitTime":   assignment.TimeLimit,
-					},
-					"files": []string{}, // TODO: list correct files
-				})
-			}
-		})
-	}
-
-	if err := eg.Wait(); err != nil {
-		// log.Println("catch", err)
-		// TODO: deal with partial outage
-		return err
-	}
+	u.gradingPublisher.Grade(assignment, submission)
 
 	return nil
 }
@@ -151,4 +110,8 @@ func (u *workspaceUsecase) ListAssignment(userId string, workspaceId int) ([]dom
 
 func (u *workspaceUsecase) ListSubmission(userId string, assignmentId int) ([]domain.Submission, error) {
 	return u.workspaceRepository.ListSubmission(userId, assignmentId)
+}
+
+func (u *workspaceUsecase) UpdateSubmissionResult(result *domain.SubmissionResult) error {
+	return u.workspaceRepository.UpdateSubmissionResult(result)
 }
