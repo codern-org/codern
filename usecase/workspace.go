@@ -83,13 +83,14 @@ func (u *workspaceUsecase) IsAssignmentIn(assignmentId int, workspaceId int) (bo
 	return u.workspaceRepository.IsAssignmentIn(assignmentId, workspaceId)
 }
 
-func (u *workspaceUsecase) Get(id int, selector *domain.WorkspaceSelector) (*domain.Workspace, error) {
+func (u *workspaceUsecase) Get(id int, selector *domain.WorkspaceSelector, userId string) (*domain.Workspace, error) {
 	workspace, err := u.workspaceRepository.Get(id, selector)
 	if workspace == nil {
 		return nil, domain.NewErrorf(domain.ErrWorkspaceNotFound, "workspace id %d not found", id)
 	} else if err != nil {
 		return nil, err
 	}
+	go u.workspaceRepository.UpdateRecent(userId, workspace.Id)
 	return workspace, nil
 }
 
@@ -102,6 +103,10 @@ func (u *workspaceUsecase) List(
 	selector *domain.WorkspaceSelector,
 ) ([]domain.Workspace, error) {
 	return u.workspaceRepository.List(userId, selector)
+}
+
+func (u *workspaceUsecase) ListRecent(userId string) ([]domain.Workspace, error) {
+	return u.workspaceRepository.ListRecent(userId)
 }
 
 func (u *workspaceUsecase) ListAssignment(userId string, workspaceId int) ([]domain.Assignment, error) {

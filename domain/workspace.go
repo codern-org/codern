@@ -22,9 +22,10 @@ type Workspace struct {
 }
 
 type WorkspaceParticipant struct {
-	WorkspaceId int       `json:"-" db:"workspace_id"`
-	UserId      string    `json:"userId" db:"user_id"`
-	JoinedAt    time.Time `json:"joinedAt" db:"joined_at"`
+	WorkspaceId       int       `json:"-" db:"workspace_id"`
+	UserId            string    `json:"userId" db:"user_id"`
+	JoinedAt          time.Time `json:"joinedAt" db:"joined_at"`
+	RecentlyVisitedAt time.Time `json:"-" db:"recently_visited_at"`
 }
 
 type WorkspaceSelector struct {
@@ -112,8 +113,10 @@ type WorkspaceRepository interface {
 	GetAssignment(id int, userId string, workspaceId int) (*Assignment, error)
 	GetSubmission(id int) (*Submission, error)
 	List(userId string, selector *WorkspaceSelector) ([]Workspace, error)
+	ListRecent(userId string) ([]Workspace, error)
 	ListAssignment(userId string, workspaceId int) ([]Assignment, error)
 	ListSubmission(userId string, assignmentId int) ([]Submission, error)
+	UpdateRecent(userId string, workspaceId int) error
 	UpdateSubmissionResult(result *SubmissionResult) error
 }
 
@@ -121,9 +124,10 @@ type WorkspaceUsecase interface {
 	CreateSubmission(userId string, assignmentId int, workspaceId int, language string, file io.Reader) error
 	IsUserIn(userId string, workspaceId int) (bool, error)
 	IsAssignmentIn(assignmentId int, workspaceId int) (bool, error)
-	Get(id int, selector *WorkspaceSelector) (*Workspace, error)
+	Get(id int, selector *WorkspaceSelector, userId string) (*Workspace, error)
 	GetAssignment(id int, userId string, workspaceId int) (*Assignment, error)
 	List(userId string, selector *WorkspaceSelector) ([]Workspace, error)
+	ListRecent(userId string) ([]Workspace, error)
 	ListAssignment(userId string, workspaceId int) ([]Assignment, error)
 	ListSubmission(userId string, assignmentId int) ([]Submission, error)
 	UpdateSubmissionResult(result *SubmissionResult) error

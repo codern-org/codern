@@ -3,6 +3,7 @@ package repository
 import (
 	"database/sql"
 	"fmt"
+	"time"
 
 	"github.com/codern-org/codern/domain"
 	"github.com/jmoiron/sqlx"
@@ -133,6 +134,38 @@ func (r *workspaceRepository) List(
 	return r.list(workspaceIds, selector)
 }
 
+func (r *workspaceRepository) ListRecent(userId string) ([]domain.Workspace, error) {
+	workspaces := make([]domain.Workspace, 0)
+	query, args, err := sqlx.In(`
+		SELECT
+			t1.*
+		FROM (
+			SELECT
+					w.*,
+					user.display_name AS owner_name,
+					count(wp.user_id) AS participant_count,
+					count(a.id) AS total_assignment
+				FROM workspace w
+				INNER JOIN user ON user.id = w.owner_id
+				INNER JOIN workspace_participant wp ON wp.workspace_id = w.id
+				LEFT JOIN assignment a ON a.workspace_id = w.id
+				WHERE w.id IN (SELECT workspace_id FROM workspace_participant WHERE user_id = ?)
+				GROUP BY w.id
+		) t1
+		INNER JOIN workspace_participant wp ON wp.workspace_id = t1.id
+		WHERE wp.user_id = ?
+		ORDER BY wp.recently_visited_at DESC
+		LIMIT 4
+	`, userId, userId)
+	if err != nil {
+		return nil, err
+	}
+	if err := r.db.Select(&workspaces, query, args...); err != nil {
+		return nil, err
+	}
+	return workspaces, nil
+}
+
 func (r *workspaceRepository) list(ids []int, selector *domain.WorkspaceSelector) ([]domain.Workspace, error) {
 	workspaces := make([]domain.Workspace, 0)
 	if len(ids) == 0 {
@@ -152,8 +185,7 @@ func (r *workspaceRepository) list(ids []int, selector *domain.WorkspaceSelector
 		WHERE w.id IN (?)
 		GROUP BY w.id
 		LIMIT ?
-		`, ids, len(ids),
-	)
+	`, ids, len(ids))
 	if err != nil {
 		return nil, err
 	}
@@ -304,6 +336,13 @@ func (r *workspaceRepository) ListSubmission(userId string, assignmentId int) ([
 	}
 
 	return submissions, nil
+}
+
+func (r *workspaceRepository) UpdateRecent(userId string, workspaceId int) error {
+	_, err := r.db.Exec(`
+		UPDATE workspace_participant SET recently_visited_at = ? WHERE user_id = ? AND workspace_id = ?
+	`, time.Now(), userId, workspaceId)
+	return err
 }
 
 func (r *workspaceRepository) UpdateSubmissionResult(result *domain.SubmissionResult) error {
