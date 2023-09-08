@@ -34,6 +34,7 @@ CREATE TABLE IF NOT EXISTS `workspace_participant` (
   `workspace_id` BIGINT UNSIGNED NOT NULL,
   `user_id` VARCHAR(64) NOT NULL,
   `joined_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `recently_visited_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`workspace_id`, `user_id`),
   FOREIGN KEY (`workspace_id`) REFERENCES `workspace`(`id`),
   FOREIGN KEY (`user_id`) REFERENCES `user`(`id`)

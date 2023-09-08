@@ -88,10 +88,18 @@ func (c *WorkspaceController) CreateSubmission(ctx *fiber.Ctx) error {
 func (c *WorkspaceController) List(ctx *fiber.Ctx) error {
 	user := middleware.GetUserFromCtx(ctx)
 	selector := payload.GetFieldSelector(ctx)
+	order := ctx.Query("order")
 
-	workspaces, err := c.workspaceUsecase.List(user.Id, &domain.WorkspaceSelector{
-		Participants: selector.Has("participants"),
-	})
+	var workspaces []domain.Workspace
+	var err error
+
+	if order == "recent" {
+		workspaces, err = c.workspaceUsecase.ListRecent(user.Id)
+	} else {
+		workspaces, err = c.workspaceUsecase.List(user.Id, &domain.WorkspaceSelector{
+			Participants: selector.Has("participants"),
+		})
+	}
 	if err != nil {
 		return response.NewErrorResponse(ctx, fiber.StatusBadRequest, err)
 	}
@@ -159,12 +167,13 @@ func (c *WorkspaceController) ListSubmission(ctx *fiber.Ctx) error {
 // @Param 			sid header string true "Session ID"
 // @Router 			/api/workspaces/{workspaceId} [get]
 func (c *WorkspaceController) Get(ctx *fiber.Ctx) error {
+	user := middleware.GetUserFromCtx(ctx)
 	workspaceId := middleware.GetWorkspaceIdFromCtx(ctx)
 	selector := payload.GetFieldSelector(ctx)
 
 	workspace, err := c.workspaceUsecase.Get(workspaceId, &domain.WorkspaceSelector{
 		Participants: selector.Has("participants"),
-	})
+	}, user.Id)
 	if err != nil {
 		return response.NewErrorResponse(ctx, fiber.StatusBadRequest, err)
 	}
