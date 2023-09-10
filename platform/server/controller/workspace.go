@@ -8,23 +8,19 @@ import (
 	"github.com/codern-org/codern/platform/server/payload"
 	"github.com/codern-org/codern/platform/server/response"
 	"github.com/gofiber/fiber/v2"
-	"go.uber.org/zap"
 )
 
 type WorkspaceController struct {
-	logger    *zap.Logger
 	validator domain.PayloadValidator
 
 	workspaceUsecase domain.WorkspaceUsecase
 }
 
 func NewWorkspaceController(
-	logger *zap.Logger,
 	validator domain.PayloadValidator,
 	workspaceUsecase domain.WorkspaceUsecase,
 ) *WorkspaceController {
 	return &WorkspaceController{
-		logger:           logger,
 		validator:        validator,
 		workspaceUsecase: workspaceUsecase,
 	}

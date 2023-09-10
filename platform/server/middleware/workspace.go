@@ -4,13 +4,9 @@ import (
 	"github.com/codern-org/codern/domain"
 	errs "github.com/codern-org/codern/domain/error"
 	"github.com/gofiber/fiber/v2"
-	"go.uber.org/zap"
 )
 
-func NewWorkspaceMiddleware(
-	logger *zap.Logger,
-	workspaceUsecase domain.WorkspaceUsecase,
-) fiber.Handler {
+func NewWorkspaceMiddleware(workspaceUsecase domain.WorkspaceUsecase) fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 		if ctx.Params("workspaceId") == "" {
 			return ctx.Next()

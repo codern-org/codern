@@ -3,11 +3,9 @@ package middleware
 import (
 	"github.com/codern-org/codern/domain"
 	"github.com/gofiber/fiber/v2"
-	"go.uber.org/zap"
 )
 
 func NewAuthMiddleware(
-	logger *zap.Logger,
 	validator domain.PayloadValidator,
 	authUsecase domain.AuthUsecase,
 ) fiber.Handler {
@@ -19,12 +17,6 @@ func NewAuthMiddleware(
 
 		user, err := authUsecase.Authenticate(sid)
 		if err != nil {
-			logger.Warn(
-				"Unauthorized incomming request",
-				zap.String("request_id", ctx.Locals("requestid").(string)),
-				zap.String("path", ctx.Path()),
-				zap.String("error", err.Error()),
-			)
 			return err
 		}
 
