@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"github.com/codern-org/codern/domain"
+	errs "github.com/codern-org/codern/domain/error"
 	"github.com/gofiber/fiber/v2"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -36,15 +37,15 @@ func (u *authUsecase) SignIn(
 	email string, password string, ipAddress string, userAgent string,
 ) (*fiber.Cookie, error) {
 	user, err := u.userUsecase.GetByEmail(email, domain.SelfAuth)
-	if domain.HasErrorCode(err, domain.ErrUserData) {
+	if errs.HasCode(err, errs.ErrUserNotFound) {
 		// Override error message
-		return nil, domain.NewError(domain.ErrUserData, "this account is not registered")
+		return nil, errs.New(errs.ErrUserNotFound, "account with email %s is not registered", email)
 	} else if err != nil {
 		return nil, err
 	}
 
 	if err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
-		return nil, domain.NewError(domain.ErrUserPassword, "password is incorrect")
+		return nil, errs.New(errs.ErrUserPassword, "password is incorrect")
 	}
 	return u.sessionUsecase.Create(user.Id, ipAddress, userAgent)
 }
@@ -62,7 +63,7 @@ func (u *authUsecase) SignInWithGoogle(
 	}
 
 	user, err := u.userUsecase.GetByEmail(googleUser.Email, domain.GoogleAuth)
-	if err != nil && !domain.HasErrorCode(err, domain.ErrUserData) {
+	if err != nil && !errs.HasCode(err, errs.ErrUserNotFound) {
 		return nil, err
 	}
 

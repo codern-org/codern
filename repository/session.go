@@ -2,6 +2,7 @@ package repository
 
 import (
 	"database/sql"
+	"fmt"
 
 	"github.com/codern-org/codern/domain"
 	"github.com/jmoiron/sqlx"
@@ -20,7 +21,10 @@ func (r *sessionRepository) Create(session *domain.Session) error {
 		"INSERT INTO session VALUES (:id, :user_id, :ip_address, :user_agent, :created_at, :expired_at)",
 		session,
 	)
-	return err
+	if err != nil {
+		return fmt.Errorf("cannot create session: %w", err)
+	}
+	return nil
 }
 
 func (r *sessionRepository) Get(id string) (*domain.Session, error) {
@@ -29,14 +33,17 @@ func (r *sessionRepository) Get(id string) (*domain.Session, error) {
 	if err == sql.ErrNoRows {
 		return nil, nil
 	} else if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("cannot get session: %w", err)
 	}
 	return &session, nil
 }
 
 func (r *sessionRepository) Delete(id string) error {
 	_, err := r.db.Exec("DELETE FROM session WHERE id = ?", id)
-	return err
+	if err != nil {
+		return fmt.Errorf("cannot delete session: %w", err)
+	}
+	return nil
 }
 
 func (r *sessionRepository) DeleteDuplicates(userId string, ipAddress string, userAgent string) error {
@@ -44,5 +51,8 @@ func (r *sessionRepository) DeleteDuplicates(userId string, ipAddress string, us
 		"DELETE FROM session WHERE user_id = ? AND user_agent = ? AND ip_address = ?",
 		userId, userAgent, ipAddress,
 	)
-	return err
+	if err != nil {
+		return fmt.Errorf("cannot delete duplicated session: %w", err)
+	}
+	return nil
 }

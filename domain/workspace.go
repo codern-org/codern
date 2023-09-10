@@ -106,15 +106,15 @@ type Testcase struct {
 }
 
 type WorkspaceRepository interface {
-	CreateSubmission(submission *Submission) error
+	CreateSubmission(submission *Submission, testcases []Testcase) error
 	IsUserIn(userId string, workspaceId int) (bool, error)
 	IsAssignmentIn(assignmentId int, workspaceId int) (bool, error)
 	Get(id int, selector *WorkspaceSelector) (*Workspace, error)
 	GetAssignment(id int, userId string, workspaceId int) (*Assignment, error)
-	GetSubmission(id int) (*Submission, error)
 	List(userId string, selector *WorkspaceSelector) ([]Workspace, error)
 	ListRecent(userId string) ([]Workspace, error)
 	ListAssignment(userId string, workspaceId int) ([]Assignment, error)
+	ListTestcase(assignmentIds []int) ([]Testcase, error)
 	ListSubmission(userId string, assignmentId int) ([]Submission, error)
 	UpdateRecent(userId string, workspaceId int) error
 	UpdateSubmissionResult(result *SubmissionResult) error

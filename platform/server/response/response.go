@@ -3,7 +3,7 @@ package response
 import (
 	"errors"
 
-	"github.com/codern-org/codern/domain"
+	errs "github.com/codern-org/codern/domain/error"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -14,20 +14,19 @@ type Response struct {
 }
 
 func NewErrorResponse(ctx *fiber.Ctx, status int, err error) error {
-	var domainError *domain.Error
+	var domainError *errs.DomainError
 	if errors.As(err, &domainError) {
 		return ctx.Status(status).JSON(Response{
 			Success: false,
-			Error:   err,
+			Error:   domainError,
 		})
 	}
 
-	ctx.Locals("internal_error", err)
-	return ctx.Status(fiber.StatusInternalServerError).JSON(Response{
+	return ctx.Status(status).JSON(Response{
 		Success: false,
-		Error: &domain.Error{
-			Code:    domain.ErrInternal,
-			Message: err.Error(),
+		Error: &errs.DomainError{
+			Code:    errs.ErrInternal,
+			Message: "Internal server error",
 		},
 	})
 }

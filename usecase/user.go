@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/codern-org/codern/domain"
+	errs "github.com/codern-org/codern/domain/error"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -19,12 +20,12 @@ func NewUserUsecase(userRepository domain.UserRepository) domain.UserUsecase {
 
 func (u *userUsecase) Create(email string, password string) (*domain.User, error) {
 	if _, err := mail.ParseAddress(email); err != nil {
-		return nil, domain.NewErrorf(domain.ErrInvalidEmail, "invalid email %s", email)
+		return nil, errs.New(errs.ErrInvalidEmail, "invalid email %s", email, err)
 	}
 
 	user, err := u.GetByEmail(email, domain.SelfAuth)
 	if user != nil {
-		return nil, domain.NewErrorf(domain.ErrDupEmail, "email %s is already registerd", email)
+		return nil, errs.New(errs.ErrDupEmail, "email %s is already registered", email, err)
 	} else if err != nil {
 		return nil, err
 	}
@@ -76,7 +77,7 @@ func (u *userUsecase) CreateFromGoogle(id string, email string, name string) (*d
 func (u *userUsecase) Get(id string) (*domain.User, error) {
 	user, err := u.userRepository.Get(id)
 	if user == nil {
-		return nil, domain.NewErrorf(domain.ErrUserData, "user with id %s not found", id)
+		return nil, errs.New(errs.ErrUserNotFound, "user with id %s not found", id)
 	} else if err != nil {
 		return nil, err
 	}
@@ -86,7 +87,7 @@ func (u *userUsecase) Get(id string) (*domain.User, error) {
 func (u *userUsecase) GetBySessionId(id string) (*domain.User, error) {
 	user, err := u.userRepository.GetBySessionId(id)
 	if user == nil {
-		return nil, domain.NewErrorf(domain.ErrUserData, "user with session id %s not found", id)
+		return nil, errs.New(errs.ErrUserNotFound, "user with session id %s not found", id)
 	} else if err != nil {
 		return nil, err
 	}
@@ -96,7 +97,7 @@ func (u *userUsecase) GetBySessionId(id string) (*domain.User, error) {
 func (u *userUsecase) GetByEmail(email string, provider domain.AuthProvider) (*domain.User, error) {
 	user, err := u.userRepository.GetByEmail(email, provider)
 	if user == nil {
-		return nil, domain.NewErrorf(domain.ErrUserData, "user with email %s not found", email)
+		return nil, errs.New(errs.ErrUserNotFound, "user with email %s not found", email)
 	} else if err != nil {
 		return nil, err
 	}

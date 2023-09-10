@@ -2,6 +2,7 @@ package repository
 
 import (
 	"database/sql"
+	"fmt"
 
 	"github.com/codern-org/codern/domain"
 	"github.com/jmoiron/sqlx"
@@ -21,7 +22,10 @@ func (r *userRepository) Create(user *domain.User) error {
 			"VALUES (:id, :email, :password, :display_name, :profile_url, :account_type, :provider, :created_at)",
 		user,
 	)
-	return err
+	if err != nil {
+		return fmt.Errorf("cannot create user: %w", err)
+	}
+	return nil
 }
 
 func (r *userRepository) Get(id string) (*domain.User, error) {
@@ -30,7 +34,7 @@ func (r *userRepository) Get(id string) (*domain.User, error) {
 	if err == sql.ErrNoRows {
 		return nil, nil
 	} else if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("cannot get user: %w", err)
 	}
 	return &user, nil
 }
@@ -45,7 +49,7 @@ func (r *userRepository) GetBySessionId(id string) (*domain.User, error) {
 	if err == sql.ErrNoRows {
 		return nil, nil
 	} else if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("cannot get user by sesion id: %w", err)
 	}
 	return &user, nil
 }
@@ -63,7 +67,7 @@ func (r *userRepository) GetByEmail(
 	if err == sql.ErrNoRows {
 		return nil, nil
 	} else if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("cannot get user by email: %w", err)
 	}
 	return &user, nil
 }
