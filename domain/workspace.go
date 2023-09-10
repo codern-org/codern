@@ -114,7 +114,6 @@ type WorkspaceRepository interface {
 	List(userId string, selector *WorkspaceSelector) ([]Workspace, error)
 	ListRecent(userId string) ([]Workspace, error)
 	ListAssignment(userId string, workspaceId int) ([]Assignment, error)
-	ListTestcase(assignmentIds []int) ([]Testcase, error)
 	ListSubmission(userId string, assignmentId int) ([]Submission, error)
 	UpdateRecent(userId string, workspaceId int) error
 	UpdateSubmissionResult(result *SubmissionResult) error
