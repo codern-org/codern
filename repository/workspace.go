@@ -120,14 +120,11 @@ func (r *workspaceRepository) list(ids []int, selector *domain.WorkspaceSelector
 		SELECT
 			w.*,
 			user.display_name AS owner_name,
-			count(wp.user_id) AS participant_count,
-			count(a.id) AS total_assignment
+			(SELECT COUNT(*) FROM workspace_participant wp WHERE wp.workspace_id = w.id) AS participant_count,
+			(SELECT COUNT(*) FROM assignment a WHERE a.workspace_id = w.id) AS total_assignment
 		FROM workspace w
 		INNER JOIN user ON user.id = w.owner_id
-		INNER JOIN workspace_participant wp ON wp.workspace_id = w.id
-		LEFT JOIN assignment a ON a.workspace_id = w.id
 		WHERE w.id IN (?)
-		GROUP BY w.id
 		LIMIT ?
 	`, ids, len(ids))
 	if err != nil {
@@ -164,22 +161,14 @@ func (r *workspaceRepository) ListRecent(userId string) ([]domain.Workspace, err
 	workspaces := make([]domain.Workspace, 0)
 	query, args, err := sqlx.In(`
 		SELECT
-			t1.*
-		FROM (
-			SELECT
-					w.*,
-					user.display_name AS owner_name,
-					count(wp.user_id) AS participant_count,
-					count(a.id) AS total_assignment
-				FROM workspace w
-				INNER JOIN user ON user.id = w.owner_id
-				INNER JOIN workspace_participant wp ON wp.workspace_id = w.id
-				LEFT JOIN assignment a ON a.workspace_id = w.id
-				WHERE w.id IN (SELECT workspace_id FROM workspace_participant WHERE user_id = ?)
-				GROUP BY w.id
-		) t1
-		INNER JOIN workspace_participant wp ON wp.workspace_id = t1.id
-		WHERE wp.user_id = ?
+			w.*,
+			user.display_name AS owner_name,
+			(SELECT COUNT(*) FROM workspace_participant wp WHERE wp.workspace_id = w.id) AS participant_count,
+			(SELECT COUNT(*) FROM assignment a WHERE a.workspace_id = w.id) AS total_assignment
+		FROM workspace w
+		INNER JOIN user ON user.id = w.owner_id
+		INNER JOIN workspace_participant wp ON wp.workspace_id = w.id
+		WHERE wp.user_id = ? AND w.id IN (SELECT workspace_id FROM workspace_participant WHERE user_id = ?)
 		ORDER BY wp.recently_visited_at DESC
 		LIMIT 4
 	`, userId, userId)
