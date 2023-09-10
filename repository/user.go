@@ -23,7 +23,7 @@ func (r *userRepository) Create(user *domain.User) error {
 		user,
 	)
 	if err != nil {
-		return fmt.Errorf("cannot create user: %w", err)
+		return fmt.Errorf("cannot query to create user: %w", err)
 	}
 	return nil
 }
@@ -34,7 +34,7 @@ func (r *userRepository) Get(id string) (*domain.User, error) {
 	if err == sql.ErrNoRows {
 		return nil, nil
 	} else if err != nil {
-		return nil, fmt.Errorf("cannot get user: %w", err)
+		return nil, fmt.Errorf("cannot query to get user: %w", err)
 	}
 	return &user, nil
 }
@@ -49,7 +49,7 @@ func (r *userRepository) GetBySessionId(id string) (*domain.User, error) {
 	if err == sql.ErrNoRows {
 		return nil, nil
 	} else if err != nil {
-		return nil, fmt.Errorf("cannot get user by sesion id: %w", err)
+		return nil, fmt.Errorf("cannot query to get user by sesion id: %w", err)
 	}
 	return &user, nil
 }
@@ -67,7 +67,7 @@ func (r *userRepository) GetByEmail(
 	if err == sql.ErrNoRows {
 		return nil, nil
 	} else if err != nil {
-		return nil, fmt.Errorf("cannot get user by email: %w", err)
+		return nil, fmt.Errorf("cannot query to get user by email: %w", err)
 	}
 	return &user, nil
 }

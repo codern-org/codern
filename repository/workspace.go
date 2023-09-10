@@ -28,7 +28,7 @@ func (r *workspaceRepository) CreateSubmission(
 
 	_, err = tx.NamedExec("INSERT INTO submission (id, assignment_id, user_id, language, file_url) VALUES (:id, :assignment_id, :user_id, :language, :file_url)", submission)
 	if err != nil {
-		return fmt.Errorf("cannot insert submission: %w", err)
+		return fmt.Errorf("cannot query to insert submission: %w", err)
 	}
 
 	query := "INSERT INTO submission_result (submission_id, testcase_id, status) VALUES "
@@ -58,7 +58,7 @@ func (r *workspaceRepository) IsUserIn(userId string, workspaceId int) (bool, er
 	if err == sql.ErrNoRows {
 		return false, nil
 	} else if err != nil {
-		return false, fmt.Errorf("cannot check user in workspace participant: %w", err)
+		return false, fmt.Errorf("cannot query to check user in workspace participant: %w", err)
 	}
 	return true, nil
 }
@@ -73,7 +73,7 @@ func (r *workspaceRepository) IsAssignmentIn(assignmentId int, workspaceId int) 
 	if err == sql.ErrNoRows {
 		return false, nil
 	} else if err != nil {
-		return false, fmt.Errorf("cannot check assignment in workspace: %w", err)
+		return false, fmt.Errorf("cannot query to check assignment in workspace: %w", err)
 	}
 	return true, nil
 }
@@ -81,7 +81,7 @@ func (r *workspaceRepository) IsAssignmentIn(assignmentId int, workspaceId int) 
 func (r *workspaceRepository) Get(id int, selector *domain.WorkspaceSelector) (*domain.Workspace, error) {
 	workspaces, err := r.list([]int{id}, selector)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("cannot query to get workspace: %w", err)
 	}
 	return &workspaces[0], nil
 }
@@ -93,7 +93,7 @@ func (r *workspaceRepository) GetAssignment(
 ) (*domain.Assignment, error) {
 	assignments, err := r.listAssignment(userId, workspaceId, &id)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("cannot query to get assignment: %w", err)
 	}
 	return &assignments[0], nil
 }
@@ -105,7 +105,7 @@ func (r *workspaceRepository) List(
 	var workspaceIds []int
 	err := r.db.Select(&workspaceIds, "SELECT workspace_id FROM workspace_participant WHERE user_id = ?", userId)
 	if err != nil {
-		return nil, fmt.Errorf("cannot list workspace id: %w", err)
+		return nil, fmt.Errorf("cannot query to list workspace id: %w", err)
 	}
 	return r.list(workspaceIds, selector)
 }
@@ -131,20 +131,20 @@ func (r *workspaceRepository) list(ids []int, selector *domain.WorkspaceSelector
 		LIMIT ?
 	`, ids, len(ids))
 	if err != nil {
-		return nil, fmt.Errorf("cannot create query to list workspace: %w", err)
+		return nil, fmt.Errorf("cannot query to create query to list workspace: %w", err)
 	}
 	if err := r.db.Select(&workspaces, query, args...); err != nil {
-		return nil, fmt.Errorf("cannot list workspace: %w", err)
+		return nil, fmt.Errorf("cannot query to list workspace: %w", err)
 	}
 
 	if selector.Participants {
 		participants := make([]domain.WorkspaceParticipant, 0)
 		query, args, err := sqlx.In("SELECT * FROM workspace_participant WHERE workspace_id IN (?)", ids)
 		if err != nil {
-			return nil, fmt.Errorf("cannot create query to list workspace participant: %w", err)
+			return nil, fmt.Errorf("cannot query to create query to list workspace participant: %w", err)
 		}
 		if err := r.db.Select(&participants, query, args...); err != nil {
-			return nil, fmt.Errorf("cannot list workspace participant: %w", err)
+			return nil, fmt.Errorf("cannot query to list workspace participant: %w", err)
 		}
 
 		for i := range workspaces {
@@ -184,10 +184,10 @@ func (r *workspaceRepository) ListRecent(userId string) ([]domain.Workspace, err
 		LIMIT 4
 	`, userId, userId)
 	if err != nil {
-		return nil, fmt.Errorf("cannot create query to list recent workspace: %w", err)
+		return nil, fmt.Errorf("cannot query to create query to list recent workspace: %w", err)
 	}
 	if err := r.db.Select(&workspaces, query, args...); err != nil {
-		return nil, fmt.Errorf("cannot list recent workspace: %w", err)
+		return nil, fmt.Errorf("cannot query to list recent workspace: %w", err)
 	}
 	return workspaces, nil
 }
@@ -248,7 +248,7 @@ func (r *workspaceRepository) listAssignment(
 	query = fmt.Sprintf(query, whereAssignmentId)
 
 	if err := r.db.Select(&assignments, query, userId, param, param); err != nil {
-		return nil, fmt.Errorf("cannot list assignment: %w", err)
+		return nil, fmt.Errorf("cannot query to list assignment: %w", err)
 	}
 
 	if len(assignments) > 0 {
@@ -257,9 +257,9 @@ func (r *workspaceRepository) listAssignment(
 			assignmentIds = append(assignmentIds, assignments[i].Id)
 		}
 
-		testcases, err := r.ListTestcase(assignmentIds)
+		testcases, err := r.listTestcase(assignmentIds)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("cannot query to list testcase for assignment: %w", err)
 		}
 
 		assignmentById := make(map[int]*domain.Assignment)
@@ -275,14 +275,14 @@ func (r *workspaceRepository) listAssignment(
 	return assignments, nil
 }
 
-func (r *workspaceRepository) ListTestcase(assignmentIds []int) ([]domain.Testcase, error) {
+func (r *workspaceRepository) listTestcase(assignmentIds []int) ([]domain.Testcase, error) {
 	var testcases []domain.Testcase
 	query, args, err := sqlx.In("SELECT * FROM testcase WHERE assignment_id IN (?)", assignmentIds)
 	if err != nil {
-		return nil, fmt.Errorf("cannot create query to list testcase: %w", err)
+		return nil, fmt.Errorf("cannot query to create query to list testcase: %w", err)
 	}
 	if err = r.db.Select(&testcases, query, args...); err != nil {
-		return nil, fmt.Errorf("cannot list testcase: %w", err)
+		return nil, fmt.Errorf("cannot query to list testcase: %w", err)
 	}
 	return testcases, nil
 }
@@ -291,7 +291,7 @@ func (r *workspaceRepository) ListSubmission(userId string, assignmentId int) ([
 	submissions := make([]domain.Submission, 0)
 	err := r.db.Select(&submissions, "SELECT * FROM submission WHERE assignment_id = ?", assignmentId)
 	if err != nil {
-		return nil, fmt.Errorf("cannot list submission: %w", err)
+		return nil, fmt.Errorf("cannot query to list submission: %w", err)
 	}
 
 	if len(submissions) > 0 {
@@ -302,10 +302,10 @@ func (r *workspaceRepository) ListSubmission(userId string, assignmentId int) ([
 		var results []domain.SubmissionResult
 		query, args, err := sqlx.In("SELECT * FROM submission_result WHERE submission_id IN (?)", submissionIds)
 		if err != nil {
-			return nil, fmt.Errorf("cannot create query to list submission result: %w", err)
+			return nil, fmt.Errorf("cannot query to create query to list submission result: %w", err)
 		}
 		if err = r.db.Select(&results, query, args...); err != nil {
-			return nil, fmt.Errorf("cannot list submission result: %w", err)
+			return nil, fmt.Errorf("cannot query to list submission result: %w", err)
 		}
 
 		submissionById := make(map[int]*domain.Submission)
@@ -326,7 +326,7 @@ func (r *workspaceRepository) UpdateRecent(userId string, workspaceId int) error
 		UPDATE workspace_participant SET recently_visited_at = ? WHERE user_id = ? AND workspace_id = ?
 	`, time.Now(), userId, workspaceId)
 	if err != nil {
-		return fmt.Errorf("cannot update recent workspace: %w", err)
+		return fmt.Errorf("cannot query to update recent workspace: %w", err)
 	}
 	return nil
 }
@@ -343,7 +343,7 @@ func (r *workspaceRepository) UpdateSubmissionResult(result *domain.SubmissionRe
 		WHERE submission_id = :submission_id AND testcase_id = :testcase_id
 	`, result)
 	if err != nil {
-		return fmt.Errorf("cannot update submission result: %w", err)
+		return fmt.Errorf("cannot query to update submission result: %w", err)
 	}
 	return nil
 }

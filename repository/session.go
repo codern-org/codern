@@ -22,7 +22,7 @@ func (r *sessionRepository) Create(session *domain.Session) error {
 		session,
 	)
 	if err != nil {
-		return fmt.Errorf("cannot create session: %w", err)
+		return fmt.Errorf("cannot query to create session: %w", err)
 	}
 	return nil
 }
@@ -33,7 +33,7 @@ func (r *sessionRepository) Get(id string) (*domain.Session, error) {
 	if err == sql.ErrNoRows {
 		return nil, nil
 	} else if err != nil {
-		return nil, fmt.Errorf("cannot get session: %w", err)
+		return nil, fmt.Errorf("cannot query to get session: %w", err)
 	}
 	return &session, nil
 }
@@ -41,7 +41,7 @@ func (r *sessionRepository) Get(id string) (*domain.Session, error) {
 func (r *sessionRepository) Delete(id string) error {
 	_, err := r.db.Exec("DELETE FROM session WHERE id = ?", id)
 	if err != nil {
-		return fmt.Errorf("cannot delete session: %w", err)
+		return fmt.Errorf("cannot query to delete session: %w", err)
 	}
 	return nil
 }
@@ -52,7 +52,7 @@ func (r *sessionRepository) DeleteDuplicates(userId string, ipAddress string, us
 		userId, userAgent, ipAddress,
 	)
 	if err != nil {
-		return fmt.Errorf("cannot delete duplicated session: %w", err)
+		return fmt.Errorf("cannot query to delete duplicated session: %w", err)
 	}
 	return nil
 }
