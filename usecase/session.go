@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/codern-org/codern/domain"
+	errs "github.com/codern-org/codern/domain/error"
 	"github.com/codern-org/codern/internal/config"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -40,7 +41,7 @@ func (u *sessionUsecase) Sign(id string) string {
 
 func (u *sessionUsecase) Unsign(header string) (string, error) {
 	if !strings.HasPrefix(header, u.cfg.Auth.Session.Prefix+":") {
-		return "", domain.NewError(domain.ErrSessionPrefix, "prefix mismatch")
+		return "", errs.New(errs.ErrSessionPrefix, "prefix mismatch")
 	}
 
 	id := header[len(u.cfg.Auth.Session.Prefix)+1 : strings.LastIndex(header, ".")]
@@ -50,7 +51,7 @@ func (u *sessionUsecase) Unsign(header string) (string, error) {
 	isInputMatch := subtle.ConstantTimeCompare([]byte(header), []byte(expectation)) == 1
 
 	if !isLengthMatch || !isInputMatch {
-		return "", domain.NewError(domain.ErrSignatureMismatch, "signature mismatch")
+		return "", errs.New(errs.ErrSignatureMismatch, "signature mismatch")
 	}
 	return id, nil
 }
@@ -96,7 +97,7 @@ func (u *sessionUsecase) Get(header string) (*domain.Session, error) {
 
 	session, err := u.sessionRepository.Get(id)
 	if session == nil {
-		return nil, domain.NewError(domain.ErrInvalidSession, "invalid session")
+		return nil, errs.New(errs.ErrInvalidSession, "invalid session")
 	} else if err != nil {
 		return nil, err
 	}
@@ -118,7 +119,7 @@ func (u *sessionUsecase) Validate(header string) (*domain.Session, error) {
 	}
 
 	if !time.Now().Before(session.ExpiredAt) {
-		return nil, domain.NewError(domain.ErrSessionExpired, "session expired")
+		return nil, errs.New(errs.ErrSessionExpired, "session expired")
 	}
 
 	return session, nil

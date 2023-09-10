@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"github.com/codern-org/codern/domain"
-	"github.com/codern-org/codern/platform/server/response"
 	"github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
 )
@@ -26,7 +25,7 @@ func NewAuthMiddleware(
 				zap.String("path", ctx.Path()),
 				zap.String("error", err.Error()),
 			)
-			return response.NewErrorResponse(ctx, fiber.StatusUnauthorized, err)
+			return err
 		}
 
 		ctx.Locals("user", user)

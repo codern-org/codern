@@ -1,16 +1,15 @@
 package server
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/codern-org/codern/domain"
+	errs "github.com/codern-org/codern/domain/error"
 	"github.com/codern-org/codern/internal/config"
 	"github.com/codern-org/codern/internal/constant"
 	"github.com/codern-org/codern/internal/validator"
 	"github.com/codern-org/codern/platform/server/controller"
 	"github.com/codern-org/codern/platform/server/middleware"
-	"github.com/codern-org/codern/platform/server/response"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
@@ -47,7 +46,7 @@ func (s *FiberServer) Start() {
 	app := fiber.New(fiber.Config{
 		AppName:               s.cfg.Metadata.Name,
 		DisableStartupMessage: true,
-		ErrorHandler:          errorHandler,
+		ErrorHandler:          errorHandler(s.logger),
 	})
 	s.app = app
 	app.Hooks().OnListen(func(ld fiber.ListenData) error {
@@ -81,18 +80,9 @@ func (s *FiberServer) Close() error {
 	return s.app.Shutdown()
 }
 
-func errorHandler(ctx *fiber.Ctx, err error) error {
-	code := fiber.StatusInternalServerError
-	var e *fiber.Error
-	if errors.As(err, &e) {
-		code = e.Code
-	}
-	return response.NewErrorResponse(ctx, code, err)
-}
-
 func (s *FiberServer) applyRoutes() {
 	// Initialize Dependencies
-	validator := validator.NewPayloadValidator(s.logger, s.platform.InfluxDb)
+	validator := validator.NewPayloadValidator(s.platform.InfluxDb)
 
 	// Initialize Middlewares
 	authMiddleware := middleware.NewAuthMiddleware(s.logger, validator, s.usecase.Auth)
@@ -122,9 +112,6 @@ func (s *FiberServer) applyRoutes() {
 
 	// Fallback route
 	s.app.Use(func(ctx *fiber.Ctx) error {
-		return response.NewErrorResponse(
-			ctx,
-			fiber.StatusNotFound,
-			domain.NewError(domain.ErrRoute, fmt.Sprintf("No route for %s %s", ctx.Method(), ctx.Path())))
+		return errs.New(errs.ErrRoute, fmt.Sprintf("No route for %s %s", ctx.Method(), ctx.Path()))
 	})
 }

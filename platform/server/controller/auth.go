@@ -74,7 +74,7 @@ func (c *AuthController) SignIn(ctx *fiber.Ctx) error {
 
 	cookie, err := c.authUsecase.SignIn(body.Email, body.Password, ipAddress, string(userAgent))
 	if err != nil {
-		return response.NewErrorResponse(ctx, fiber.StatusBadRequest, err)
+		return err
 	}
 	ctx.Cookie(cookie)
 
@@ -110,7 +110,7 @@ func (c *AuthController) SignInWithGoogle(ctx *fiber.Ctx) error {
 
 	cookie, err := c.authUsecase.SignInWithGoogle(code, ipAddress, string(userAgent))
 	if err != nil {
-		return response.NewErrorResponse(ctx, fiber.StatusBadRequest, err)
+		return err
 	}
 	ctx.Cookie(cookie)
 
@@ -136,7 +136,7 @@ func (c *AuthController) SignOut(ctx *fiber.Ctx) error {
 
 	cookie, err := c.authUsecase.SignOut(sid)
 	if err != nil {
-		return response.NewErrorResponse(ctx, fiber.StatusUnauthorized, err)
+		return err
 	}
 	ctx.Cookie(cookie)
 

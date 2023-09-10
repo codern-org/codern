@@ -49,11 +49,7 @@ func (c *WorkspaceController) CreateSubmission(ctx *fiber.Ctx) error {
 	}
 	file, err := payload.GetFile("sourcecode", ctx)
 	if err != nil {
-		return response.NewErrorResponse(
-			ctx,
-			fiber.StatusBadRequest,
-			domain.NewError(domain.ErrBodyValidator, "file is invalid"),
-		)
+		return err
 	}
 
 	user := middleware.GetUserFromCtx(ctx)
@@ -62,11 +58,7 @@ func (c *WorkspaceController) CreateSubmission(ctx *fiber.Ctx) error {
 
 	err = c.workspaceUsecase.CreateSubmission(user.Id, assignmentId, workspaceId, body.Language, file)
 	if err != nil {
-		return response.NewErrorResponse(
-			ctx,
-			fiber.StatusInternalServerError,
-			domain.NewError(domain.ErrInternal, "cannot create submission"),
-		)
+		return err
 	}
 
 	return response.NewSuccessResponse(ctx, fiber.StatusOK, fiber.Map{
@@ -101,7 +93,7 @@ func (c *WorkspaceController) List(ctx *fiber.Ctx) error {
 		})
 	}
 	if err != nil {
-		return response.NewErrorResponse(ctx, fiber.StatusBadRequest, err)
+		return err
 	}
 
 	return response.NewSuccessResponse(ctx, fiber.StatusOK, workspaces)
@@ -124,7 +116,7 @@ func (c *WorkspaceController) ListAssignment(ctx *fiber.Ctx) error {
 
 	assignments, err := c.workspaceUsecase.ListAssignment(user.Id, workspaceId)
 	if err != nil {
-		return response.NewErrorResponse(ctx, fiber.StatusBadRequest, err)
+		return err
 	}
 
 	return response.NewSuccessResponse(ctx, fiber.StatusOK, assignments)
@@ -148,7 +140,7 @@ func (c *WorkspaceController) ListSubmission(ctx *fiber.Ctx) error {
 
 	submissions, err := c.workspaceUsecase.ListSubmission(user.Id, assignmentId)
 	if err != nil {
-		return response.NewErrorResponse(ctx, fiber.StatusBadRequest, err)
+		return err
 	}
 
 	return response.NewSuccessResponse(ctx, fiber.StatusOK, submissions)
@@ -175,7 +167,7 @@ func (c *WorkspaceController) Get(ctx *fiber.Ctx) error {
 		Participants: selector.Has("participants"),
 	}, user.Id)
 	if err != nil {
-		return response.NewErrorResponse(ctx, fiber.StatusBadRequest, err)
+		return err
 	}
 
 	return response.NewSuccessResponse(ctx, fiber.StatusOK, workspace)
@@ -200,7 +192,7 @@ func (c *WorkspaceController) GetAssignment(ctx *fiber.Ctx) error {
 
 	assignment, err := c.workspaceUsecase.GetAssignment(assignmentId, user.Id, workspaceId)
 	if err != nil {
-		return response.NewErrorResponse(ctx, fiber.StatusBadRequest, err)
+		return err
 	}
 
 	return response.NewSuccessResponse(ctx, fiber.StatusOK, assignment)

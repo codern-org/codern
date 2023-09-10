@@ -2,7 +2,7 @@ package middleware
 
 import (
 	"github.com/codern-org/codern/domain"
-	"github.com/codern-org/codern/platform/server/response"
+	errs "github.com/codern-org/codern/domain/error"
 	"github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
 )
@@ -18,46 +18,29 @@ func NewWorkspaceMiddleware(
 
 		workspaceId, err := ctx.ParamsInt("workspaceId")
 		if err != nil {
-			return response.NewErrorResponse(
-				ctx,
-				fiber.StatusBadRequest,
-				domain.NewErrorWithData(domain.ErrParamsValidator, "params payload is invalid", err),
-			)
+			return errs.New(errs.ErrParamsValidator, "param workspaceId is invalid")
 		}
 
 		user := GetUserFromCtx(ctx)
 		ok, err := workspaceUsecase.IsUserIn(user.Id, workspaceId)
 		if !ok {
-			return response.NewErrorResponse(
-				ctx,
-				fiber.StatusForbidden,
-				domain.NewErrorf(domain.ErrWorkspaceNoPerm, "cannot access workspace id %d", workspaceId),
-			)
+			return errs.New(errs.ErrWorkspaceNoPerm, "cannot access workspace id %d", workspaceId)
 		} else if err != nil {
-			return response.NewErrorResponse(ctx, fiber.StatusInternalServerError, err)
+			return err
 		}
 
 		var assignmentId int
 		if ctx.Params("assignmentId") != "" {
 			assignmentId, err = ctx.ParamsInt("assignmentId")
 			if err != nil {
-				return response.NewErrorResponse(
-					ctx,
-					fiber.StatusBadRequest,
-					domain.NewErrorWithData(domain.ErrParamsValidator, "params payload is invalid", err),
-				)
+				return errs.New(errs.ErrParamsValidator, "param assignmentId is invalid", err)
 			}
 
 			ok, err := workspaceUsecase.IsAssignmentIn(assignmentId, workspaceId)
-
 			if !ok {
-				return response.NewErrorResponse(
-					ctx,
-					fiber.StatusForbidden,
-					domain.NewErrorf(domain.ErrWorkspaceNoPerm, "cannot access assignment id %d", assignmentId),
-				)
+				return errs.New(errs.ErrWorkspaceNoPerm, "cannot access assignment id %d", assignmentId)
 			} else if err != nil {
-				return response.NewErrorResponse(ctx, fiber.StatusInternalServerError, err)
+				return err
 			}
 		}
 

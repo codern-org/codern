@@ -5,6 +5,7 @@ import (
 	"io"
 
 	"github.com/codern-org/codern/domain"
+	errs "github.com/codern-org/codern/domain/error"
 	"github.com/codern-org/codern/internal/config"
 	"github.com/codern-org/codern/internal/generator"
 	"github.com/codern-org/codern/platform"
@@ -58,16 +59,24 @@ func (u *workspaceUsecase) CreateSubmission(
 
 	assignment, err := u.workspaceRepository.GetAssignment(assignmentId, userId, workspaceId)
 	if err != nil {
-		return domain.NewError(domain.ErrGetAssignment, "cannot get assignment")
+		return errs.New(errs.ErrGetAssignment, "cannot get assignment id %s", assignmentId)
 	}
 
-	if err := u.workspaceRepository.CreateSubmission(submission); err != nil {
-		return domain.NewError(domain.ErrCreateSubmission, "cannot create submission")
+	testcases, err := u.workspaceRepository.ListTestcase([]int{assignmentId})
+	if err != nil {
+		return errs.New(errs.ErrListTestcase, "cannot list testcase")
+	}
+	if len(testcases) == 0 {
+		return errs.New(errs.ErrAssignmentNoTestcase, "invalid assignment id %s", assignmentId)
+	}
+
+	if err := u.workspaceRepository.CreateSubmission(submission, testcases); err != nil {
+		return errs.New(errs.ErrCreateSubmission, "cannot create submission")
 	}
 
 	// TODO: retry strategy, error
 	if err := u.seaweedfs.Upload(file, 0, filePath); err != nil {
-		return domain.NewError(domain.ErrFileSystem, "cannot upload file")
+		return errs.New(errs.ErrFileSystem, "cannot upload file")
 	}
 
 	u.gradingPublisher.Grade(assignment, submission)
@@ -86,7 +95,7 @@ func (u *workspaceUsecase) IsAssignmentIn(assignmentId int, workspaceId int) (bo
 func (u *workspaceUsecase) Get(id int, selector *domain.WorkspaceSelector, userId string) (*domain.Workspace, error) {
 	workspace, err := u.workspaceRepository.Get(id, selector)
 	if workspace == nil {
-		return nil, domain.NewErrorf(domain.ErrWorkspaceNotFound, "workspace id %d not found", id)
+		return nil, errs.New(errs.ErrWorkspaceNotFound, "workspace id %d not found", id)
 	} else if err != nil {
 		return nil, err
 	}
