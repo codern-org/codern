@@ -85,14 +85,14 @@ func (s *FiberServer) applyRoutes() {
 	validator := validator.NewPayloadValidator(s.platform.InfluxDb)
 
 	// Initialize Middlewares
-	authMiddleware := middleware.NewAuthMiddleware(s.logger, validator, s.usecase.Auth)
-	workspaceMiddleware := middleware.NewWorkspaceMiddleware(s.logger, s.usecase.Workspace)
+	authMiddleware := middleware.NewAuthMiddleware(validator, s.usecase.Auth)
+	workspaceMiddleware := middleware.NewWorkspaceMiddleware(s.usecase.Workspace)
 
 	// Initialize Controllers
 	authController := controller.NewAuthController(
-		s.logger, s.cfg, validator, s.usecase.Auth, s.usecase.Google, s.usecase.User,
+		s.cfg, validator, s.usecase.Auth, s.usecase.Google, s.usecase.User,
 	)
-	workspaceController := controller.NewWorkspaceController(s.logger, validator, s.usecase.Workspace)
+	workspaceController := controller.NewWorkspaceController(validator, s.usecase.Workspace)
 
 	// Initialize Routes
 	api := s.app.Group("/api")

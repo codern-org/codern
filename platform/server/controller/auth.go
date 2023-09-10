@@ -10,11 +10,9 @@ import (
 	"github.com/codern-org/codern/platform/server/payload"
 	"github.com/codern-org/codern/platform/server/response"
 	"github.com/gofiber/fiber/v2"
-	"go.uber.org/zap"
 )
 
 type AuthController struct {
-	logger    *zap.Logger
 	cfg       *config.Config
 	validator domain.PayloadValidator
 
@@ -24,7 +22,6 @@ type AuthController struct {
 }
 
 func NewAuthController(
-	logger *zap.Logger,
 	cfg *config.Config,
 	validator domain.PayloadValidator,
 	authUsecase domain.AuthUsecase,
@@ -32,7 +29,6 @@ func NewAuthController(
 	userUsecase domain.UserUsecase,
 ) *AuthController {
 	return &AuthController{
-		logger:        logger,
 		cfg:           cfg,
 		validator:     validator,
 		authUsecase:   authUsecase,
