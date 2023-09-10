@@ -60,7 +60,11 @@ func (u *sessionUsecase) Create(
 	userId string, ipAddress string, userAgent string,
 ) (*fiber.Cookie, error) {
 	if err := u.sessionRepository.DeleteDuplicates(userId, userAgent, ipAddress); err != nil {
-		return nil, err
+		return nil, errs.New(
+			errs.ErrDupSession,
+			"cannot delete previous session to create a new session for user id %d", userId,
+			err,
+		)
 	}
 
 	id := uuid.NewString()
@@ -77,7 +81,11 @@ func (u *sessionUsecase) Create(
 		CreatedAt: createdAt,
 	})
 	if err != nil {
-		return nil, err
+		return nil, errs.New(
+			errs.ErrCreateSession,
+			"cannot create session for user id %d", userId,
+			err,
+		)
 	}
 
 	cookie := &fiber.Cookie{
@@ -92,14 +100,14 @@ func (u *sessionUsecase) Create(
 func (u *sessionUsecase) Get(header string) (*domain.Session, error) {
 	id, err := u.Unsign(header)
 	if err != nil {
-		return nil, err
+		return nil, errs.New(errs.OverrideCode, "cannot unsign session", err)
 	}
 
 	session, err := u.sessionRepository.Get(id)
 	if session == nil {
-		return nil, errs.New(errs.ErrInvalidSession, "invalid session")
+		return nil, errs.New(errs.ErrInvalidSession, "cannot get session from header")
 	} else if err != nil {
-		return nil, err
+		return nil, errs.New(errs.ErrGetSession, "cannot get session from header", err)
 	}
 	return session, nil
 }
@@ -115,7 +123,7 @@ func (u *sessionUsecase) Destroy(id string) (*fiber.Cookie, error) {
 func (u *sessionUsecase) Validate(header string) (*domain.Session, error) {
 	session, err := u.Get(header)
 	if err != nil {
-		return nil, err
+		return nil, errs.New(errs.OverrideCode, "cannot validate session", err)
 	}
 
 	if !time.Now().Before(session.ExpiredAt) {

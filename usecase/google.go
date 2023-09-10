@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/codern-org/codern/domain"
+	errs "github.com/codern-org/codern/domain/error"
 	"github.com/codern-org/codern/internal/config"
 )
 
@@ -49,32 +50,32 @@ func (u *googleUsecase) GetToken(code string) (string, error) {
 		"grant_type":    "authorization_code",
 	})
 	if err != nil {
-		return "", err
+		return "", errs.New(errs.ErrGoogleAuth, "cannot construct auth payload", err)
 	}
 
 	request, err := http.NewRequest("POST", "https://oauth2.googleapis.com/token", bytes.NewReader(body))
 	if err != nil {
-		return "", err
+		return "", errs.New(errs.ErrGoogleAuth, "cannot request to google api", err)
 	}
 
 	response, err := u.httpClient.Do(request)
 	if err != nil {
-		return "", err
+		return "", errs.New(errs.ErrGoogleAuth, "cannot request to google api", err)
 	}
 	defer response.Body.Close()
 
 	if response.StatusCode != 200 {
-		return "", fmt.Errorf("cannot get token from Google API,  status: %s", response.Status)
+		return "", errs.New(errs.ErrGoogleAuth, "cannot get token from google api with status %s", response.Status)
 	}
 
 	data, err := io.ReadAll(response.Body)
 	if err != nil {
-		return "", err
+		return "", errs.New(errs.ErrGoogleAuth, "cannot read response from google api", err)
 	}
 
 	var result domain.GoogleTokenResponse
 	if err = json.Unmarshal(data, &result); err != nil {
-		return "", err
+		return "", errs.New(errs.ErrGoogleAuth, "cannot read response from google api", err)
 	}
 	return result.AccessToken, nil
 }
@@ -87,27 +88,27 @@ func (u *googleUsecase) GetUser(accessToken string) (*domain.GoogleUserResponse,
 
 	request, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return nil, err
+		return nil, errs.New(errs.ErrGoogleAuth, "cannot request to google api", err)
 	}
 
 	response, err := u.httpClient.Do(request)
 	if err != nil {
-		return nil, err
+		return nil, errs.New(errs.ErrGoogleAuth, "cannot request to google api", err)
 	}
 	defer response.Body.Close()
 
 	if response.StatusCode != 200 {
-		return nil, fmt.Errorf("cannot get user from Google API, code: %s", response.Status)
+		return nil, errs.New(errs.ErrGoogleAuth, "cannot get user from google api with status %s", response.Status)
 	}
 
 	data, err := io.ReadAll(response.Body)
 	if err != nil {
-		return nil, err
+		return nil, errs.New(errs.ErrGoogleAuth, "cannot read response from google api", err)
 	}
 
 	var result domain.GoogleUserResponse
 	if err = json.Unmarshal(data, &result); err != nil {
-		return nil, err
+		return nil, errs.New(errs.ErrGoogleAuth, "cannot read response from google api", err)
 	}
-	return &result, err
+	return &result, nil
 }

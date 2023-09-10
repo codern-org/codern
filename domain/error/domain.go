@@ -20,13 +20,22 @@ func New(code int, message string, args ...interface{}) *DomainError {
 	i := 0
 
 	if len(args) > 0 {
-		// Assume the last args is a wrapped error
 		err, ok = args[len(args)-1].(error)
+		// If the last arg is an error
 		if ok {
 			i = 1
+			// Override code by inner domain error code
+			var domainErr *DomainError
+			if (code == OverrideCode) && errors.As(err, &domainErr) {
+				code = domainErr.Code
+			}
 		}
 	}
 	message = fmt.Sprintf(message, args[:len(args)-i]...)
+
+	if code == OverrideCode {
+		code = ErrInternal
+	}
 
 	return &DomainError{
 		Code:    code,
