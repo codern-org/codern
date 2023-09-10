@@ -59,24 +59,19 @@ func (u *workspaceUsecase) CreateSubmission(
 
 	assignment, err := u.workspaceRepository.GetAssignment(assignmentId, userId, workspaceId)
 	if err != nil {
-		return errs.New(errs.ErrGetAssignment, "cannot get assignment id %s", assignmentId)
+		return errs.New(errs.ErrGetAssignment, "cannot get assignment id %d", assignmentId, err)
+	}
+	if len(assignment.Testcases) == 0 {
+		return errs.New(errs.ErrAssignmentNoTestcase, "invalid assignment id %d", assignmentId)
 	}
 
-	testcases, err := u.workspaceRepository.ListTestcase([]int{assignmentId})
-	if err != nil {
-		return errs.New(errs.ErrListTestcase, "cannot list testcase")
-	}
-	if len(testcases) == 0 {
-		return errs.New(errs.ErrAssignmentNoTestcase, "invalid assignment id %s", assignmentId)
-	}
-
-	if err := u.workspaceRepository.CreateSubmission(submission, testcases); err != nil {
-		return errs.New(errs.ErrCreateSubmission, "cannot create submission")
+	if err := u.workspaceRepository.CreateSubmission(submission, assignment.Testcases); err != nil {
+		return errs.New(errs.ErrCreateSubmission, "cannot create submission", err)
 	}
 
 	// TODO: retry strategy, error
 	if err := u.seaweedfs.Upload(file, 0, filePath); err != nil {
-		return errs.New(errs.ErrFileSystem, "cannot upload file")
+		return errs.New(errs.ErrFileSystem, "cannot upload file", err)
 	}
 
 	u.gradingPublisher.Grade(assignment, submission)
@@ -85,25 +80,28 @@ func (u *workspaceUsecase) CreateSubmission(
 }
 
 func (u *workspaceUsecase) IsUserIn(userId string, workspaceId int) (bool, error) {
+	// TODO: wrap error
 	return u.workspaceRepository.IsUserIn(userId, workspaceId)
 }
 
 func (u *workspaceUsecase) IsAssignmentIn(assignmentId int, workspaceId int) (bool, error) {
+	// TODO: wrap error
 	return u.workspaceRepository.IsAssignmentIn(assignmentId, workspaceId)
 }
 
 func (u *workspaceUsecase) Get(id int, selector *domain.WorkspaceSelector, userId string) (*domain.Workspace, error) {
 	workspace, err := u.workspaceRepository.Get(id, selector)
-	if workspace == nil {
-		return nil, errs.New(errs.ErrWorkspaceNotFound, "workspace id %d not found", id)
-	} else if err != nil {
-		return nil, err
+	if err != nil {
+		return nil, errs.New(errs.ErrGetWorkspace, "cannot get workspace id %d", id, err)
+	} else if workspace == nil {
+		return nil, errs.New(errs.ErrWorkspaceNotFound, "workspace id %d not found", id, err)
 	}
 	go u.workspaceRepository.UpdateRecent(userId, workspace.Id)
 	return workspace, nil
 }
 
 func (u *workspaceUsecase) GetAssignment(id int, userId string, workspaceId int) (*domain.Assignment, error) {
+	// TODO: wrap error
 	return u.workspaceRepository.GetAssignment(id, userId, workspaceId)
 }
 
@@ -111,21 +109,26 @@ func (u *workspaceUsecase) List(
 	userId string,
 	selector *domain.WorkspaceSelector,
 ) ([]domain.Workspace, error) {
+	// TODO: wrap error
 	return u.workspaceRepository.List(userId, selector)
 }
 
 func (u *workspaceUsecase) ListRecent(userId string) ([]domain.Workspace, error) {
+	// TODO: wrap error
 	return u.workspaceRepository.ListRecent(userId)
 }
 
 func (u *workspaceUsecase) ListAssignment(userId string, workspaceId int) ([]domain.Assignment, error) {
+	// TODO: wrap error
 	return u.workspaceRepository.ListAssignment(userId, workspaceId)
 }
 
 func (u *workspaceUsecase) ListSubmission(userId string, assignmentId int) ([]domain.Submission, error) {
+	// TODO: wrap error
 	return u.workspaceRepository.ListSubmission(userId, assignmentId)
 }
 
 func (u *workspaceUsecase) UpdateSubmissionResult(result *domain.SubmissionResult) error {
+	// TODO: wrap error
 	return u.workspaceRepository.UpdateSubmissionResult(result)
 }

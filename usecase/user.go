@@ -20,19 +20,25 @@ func NewUserUsecase(userRepository domain.UserRepository) domain.UserUsecase {
 
 func (u *userUsecase) Create(email string, password string) (*domain.User, error) {
 	if _, err := mail.ParseAddress(email); err != nil {
-		return nil, errs.New(errs.ErrInvalidEmail, "invalid email %s", email, err)
+		return nil, errs.New(
+			errs.ErrInvalidEmail,
+			"cannot create user with invalid email %s", email,
+			err,
+		)
 	}
 
 	user, err := u.GetByEmail(email, domain.SelfAuth)
-	if user != nil {
-		return nil, errs.New(errs.ErrDupEmail, "email %s is already registered", email, err)
-	} else if err != nil {
-		return nil, err
+	if err != nil {
+		return nil, errs.New(errs.OverrideCode, "cannot create user %s", email)
+	} else if user != nil {
+		return nil, errs.New(errs.ErrDupEmail,
+			"cannot create user due to email %s being already registered", email,
+		)
 	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), 10)
 	if err != nil {
-		return nil, err
+		return nil, errs.New(errs.ErrCreateUser, "cannot create user with invalid password", err)
 	}
 
 	// TODO: profile generation
@@ -49,7 +55,7 @@ func (u *userUsecase) Create(email string, password string) (*domain.User, error
 	}
 
 	if err = u.userRepository.Create(user); err != nil {
-		return nil, err
+		return nil, errs.New(errs.ErrCreateUser, "cannot create user with this email and password", err)
 	}
 	return user, nil
 }
@@ -69,37 +75,31 @@ func (u *userUsecase) CreateFromGoogle(id string, email string, name string) (*d
 	}
 
 	if err := u.userRepository.Create(user); err != nil {
-		return nil, err
+		return nil, errs.New(errs.ErrCreateUser, "cannot create user from google auth", err)
 	}
 	return user, nil
 }
 
 func (u *userUsecase) Get(id string) (*domain.User, error) {
 	user, err := u.userRepository.Get(id)
-	if user == nil {
-		return nil, errs.New(errs.ErrUserNotFound, "user with id %s not found", id)
-	} else if err != nil {
-		return nil, err
+	if err != nil {
+		return nil, errs.New(errs.ErrGetUser, "cannot get user by id %s", id, err)
 	}
 	return user, nil
 }
 
 func (u *userUsecase) GetBySessionId(id string) (*domain.User, error) {
 	user, err := u.userRepository.GetBySessionId(id)
-	if user == nil {
-		return nil, errs.New(errs.ErrUserNotFound, "user with session id %s not found", id)
-	} else if err != nil {
-		return nil, err
+	if err != nil {
+		return nil, errs.New(errs.ErrGetUser, "cannot get user by session id %s", id, err)
 	}
 	return user, nil
 }
 
 func (u *userUsecase) GetByEmail(email string, provider domain.AuthProvider) (*domain.User, error) {
 	user, err := u.userRepository.GetByEmail(email, provider)
-	if user == nil {
-		return nil, errs.New(errs.ErrUserNotFound, "user with email %s not found", email)
-	} else if err != nil {
-		return nil, err
+	if err != nil {
+		return nil, errs.New(errs.ErrGetUser, "cannot get user by email %s", email, err)
 	}
 	return user, nil
 }
