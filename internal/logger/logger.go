@@ -24,8 +24,8 @@ func NewLogger() *zap.Logger {
 	config := zap.Config{
 		Level:             zap.NewAtomicLevelAt(zap.InfoLevel),
 		Development:       false,
-		DisableCaller:     false,
-		DisableStacktrace: false,
+		DisableCaller:     true,
+		DisableStacktrace: true,
 		Sampling:          nil,
 		Encoding:          "console",
 		EncoderConfig:     encoderConfig,
