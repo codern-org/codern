@@ -17,6 +17,30 @@ func NewWorkspaceRepository(db *sqlx.DB) domain.WorkspaceRepository {
 	return &workspaceRepository{db: db}
 }
 
+func (r *workspaceRepository) CreateWorkspace(workspace *domain.Workspace) error {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("cannot begin transaction to create workspace: %w", err)
+	}
+
+	// TODO: combine into one query
+	_, err = tx.NamedExec("INSERT INTO workspace (id, name, owner_id, profile_url) VALUES (:id, :name, :owner_id, :profile_url)", workspace)
+	if err != nil {
+		return fmt.Errorf("cannot query to insert workspace: %w", err)
+	}
+
+	_, err = tx.Exec("INSERT INTO workspace_participant (workspace_id, user_id) VALUES (?, ?)", workspace.Id, workspace.OwnerId)
+	if err != nil {
+		return fmt.Errorf("cannot query to insert workspace participant: %w", err)
+	}
+
+	if err = tx.Commit(); err != nil {
+		return fmt.Errorf("cannot commit transaction to create workspace: %w", err)
+	}
+
+	return nil
+}
+
 func (r *workspaceRepository) CreateSubmission(
 	submission *domain.Submission,
 	testcases []domain.Testcase,
