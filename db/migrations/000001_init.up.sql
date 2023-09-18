@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS `user` (
   `account_type` VARCHAR(32) NOT NULL,
   `provider` VARCHAR(32) NOT NULL,
   `password` VARCHAR(128),
-  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+  `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS `session` (
@@ -26,15 +26,15 @@ CREATE TABLE IF NOT EXISTS `workspace` (
   `name` VARCHAR(64) NOT NULL,
   `profile_url` VARCHAR(128) NOT NULL,
   `owner_id` VARCHAR(64) NOT NULL,
-  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (`owner_id`) REFERENCES `user`(`id`)
 );
 
 CREATE TABLE IF NOT EXISTS `workspace_participant` (
   `workspace_id` BIGINT UNSIGNED NOT NULL,
   `user_id` VARCHAR(64) NOT NULL,
-  `joined_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `recently_visited_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `joined_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  `recently_visited_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`workspace_id`, `user_id`),
   FOREIGN KEY (`workspace_id`) REFERENCES `workspace`(`id`),
   FOREIGN KEY (`user_id`) REFERENCES `user`(`id`)
@@ -49,8 +49,8 @@ CREATE TABLE IF NOT EXISTS `assignment` (
   `memory_limit` INTEGER NOT NULL,
   `time_limit` INTEGER NOT NULL,
   `level` VARCHAR(32) NOT NULL,
-  `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (`workspace_id`) REFERENCES `workspace`(`id`)
 );
 
@@ -67,7 +67,7 @@ CREATE TABLE IF NOT EXISTS `submission` (
   `user_id` VARCHAR(64) NOT NULL,
   `language` VARCHAR(64) NOT NULL,
   `file_url` VARCHAR(128) NOT NULL,
-  `submitted_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `submitted_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (`assignment_id`) REFERENCES `assignment`(`id`),
   FOREIGN KEY (`user_id`) REFERENCES `user`(`id`)
 );
