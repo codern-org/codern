@@ -26,6 +26,39 @@ func NewWorkspaceController(
 	}
 }
 
+// CreateWorkspace godoc
+//
+// @Summary 		Create a new workspace
+// @Description	Create a new workspace
+// @Tags 				workspace
+// @Accept 			json
+// @Produce 		json
+// @Param				name				body	string	true	"Workspace name"
+// @Security 		ApiKeyAuth
+// @Param 			sid header string true "Session ID"
+// @Router 			/api/workspaces [post]
+func (c *WorkspaceController) CreateWorkspace(ctx *fiber.Ctx) error {
+	var body payload.CreateWorkspaceBody
+	if ok, err := c.validator.ValidateBody(&body, ctx); !ok {
+		return err
+	}
+
+	file, err := payload.GetFile("workspace-image", ctx)
+	if err != nil {
+		return err
+	}
+
+	user := middleware.GetUserFromCtx(ctx)
+	err = c.workspaceUsecase.CreateWorkspace(user.Id, body.Name, file)
+	if err != nil {
+		return err
+	}
+
+	return response.NewSuccessResponse(ctx, fiber.StatusCreated, fiber.Map{
+		"submitted_at": time.Now(),
+	})
+}
+
 // CreateSubmission godoc
 //
 // @Summary 		Create a new submission
@@ -57,7 +90,7 @@ func (c *WorkspaceController) CreateSubmission(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	return response.NewSuccessResponse(ctx, fiber.StatusOK, fiber.Map{
+	return response.NewSuccessResponse(ctx, fiber.StatusCreated, fiber.Map{
 		"submitted_at": time.Now(),
 	})
 }

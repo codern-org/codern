@@ -104,6 +104,7 @@ func (s *FiberServer) applyRoutes() {
 	api.Get("/auth/google/callback", authController.SignInWithGoogle)
 
 	api.Get("/workspaces", authMiddleware, workspaceController.List)
+	api.Post("/workspaces", authMiddleware, workspaceController.CreateWorkspace)
 	api.Get("/workspaces/:workspaceId", authMiddleware, workspaceMiddleware, workspaceController.Get)
 	api.Get("/workspaces/:workspaceId/assignments", authMiddleware, workspaceMiddleware, workspaceController.ListAssignment)
 	api.Get("/workspaces/:workspaceId/assignments/:assignmentId", authMiddleware, workspaceMiddleware, workspaceController.GetAssignment)

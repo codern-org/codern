@@ -5,3 +5,7 @@ type CreateSubmissionBody struct {
 	// TODO: inspect why the file tag is not working, even if it exists.
 	// SourceCode string `form:"sourcecode" validate:"required"`
 }
+
+type CreateWorkspaceBody struct {
+	Name string `json:"name" validate:"required"`
+}
