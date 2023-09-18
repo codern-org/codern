@@ -26,6 +26,10 @@ type WorkspaceParticipant struct {
 	UserId            string    `json:"userId" db:"user_id"`
 	JoinedAt          time.Time `json:"joinedAt" db:"joined_at"`
 	RecentlyVisitedAt time.Time `json:"-" db:"recently_visited_at"`
+
+	// Always aggregation
+	Name       string `json:"name" db:"name"`
+	ProfileUrl string `json:"profileUrl" db:"profile_url"`
 }
 
 type WorkspaceSelector struct {
@@ -69,11 +73,11 @@ type Assignment struct {
 
 type Submission struct {
 	Id           int       `json:"id" db:"id"`
-	AssignmentId int       `json:"assignmentId" db:"assignment_id"`
+	AssignmentId int       `json:"-" db:"assignment_id"`
 	UserId       string    `json:"-" db:"user_id"`
 	Language     string    `json:"language" db:"language"`
-	FileUrl      string    `json:"fileUrl" db:"file_url"`
-	SubmittedAt  time.Time `json:"submitted_at" db:"submitted_at"`
+	FileUrl      string    `json:"-" db:"file_url"`
+	SubmittedAt  time.Time `json:"submittedAt" db:"submitted_at"`
 
 	// Always aggregation
 	Results []SubmissionResult `json:"results"`
@@ -88,8 +92,8 @@ const (
 )
 
 type SubmissionResult struct {
-	SubmissionId int                    `json:"submissionId" db:"submission_id"`
-	TestcaseId   int                    `json:"testcaseId" db:"testcase_id"`
+	SubmissionId int                    `json:"-" db:"submission_id"`
+	TestcaseId   int                    `json:"-" db:"testcase_id"`
 	Status       SubmissionResultStatus `json:"status" db:"status"`
 
 	// Can be null if status is `GRADING`
@@ -100,9 +104,10 @@ type SubmissionResult struct {
 }
 
 type Testcase struct {
-	Id           int    `json:"id" db:"id"`
-	AssignmentId int    `json:"assignmentId" db:"assignment_id"`
-	FileUrl      string `json:"fileUrl" db:"file_url"`
+	Id            int    `json:"id" db:"id"`
+	AssignmentId  int    `json:"assignmentId" db:"assignment_id"`
+	InputFileUrl  string `json:"inputFileUrl" db:"input_file_url"`
+	OutputFileUrl string `json:"outputFileUrl" db:"output_file_url"`
 }
 
 type WorkspaceRepository interface {

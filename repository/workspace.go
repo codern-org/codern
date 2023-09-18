@@ -136,7 +136,15 @@ func (r *workspaceRepository) list(ids []int, selector *domain.WorkspaceSelector
 
 	if selector.Participants {
 		participants := make([]domain.WorkspaceParticipant, 0)
-		query, args, err := sqlx.In("SELECT * FROM workspace_participant WHERE workspace_id IN (?)", ids)
+		query, args, err := sqlx.In(`
+			SELECT
+				user.display_name as name,
+				user.profile_url,
+				wp.*
+			FROM workspace_participant wp
+			INNER JOIN user ON user.id = wp.user_id
+			WHERE workspace_id IN (?)
+		`, ids)
 		if err != nil {
 			return nil, fmt.Errorf("cannot query to create query to list workspace participant: %w", err)
 		}
