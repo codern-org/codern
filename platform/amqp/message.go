@@ -1,31 +1,30 @@
 package payload
 
-type GradeMessage struct {
-	Id       string                `json:"id"`
-	Type     string                `json:"language"`
-	Settings *GradeSettingsMessage `json:"settings"`
-	Files    []GradeFileMessage    `json:"files"`
+type GradeRequestMessage struct {
+	Language  string               `json:"language"`
+	SourceUrl string               `json:"sourceUrl"`
+	Test      []GradeTestMessage   `json:"test"`
+	Metadata  GradeMetadataMessage `json:"metadata"`
 }
 
-type GradeSettingsMessage struct {
-	LimitMemory int `json:"softLimitMemory"`
-	LimitTime   int `json:"softLimitTime"`
+type GradeTestMessage struct {
+	InputUrl  string `json:"input"`
+	OutputUrl string `json:"output"`
 }
 
-type GradeFileMessage struct {
-	Name       string `json:"name"`
-	SourceType string `json:"sourceType"`
-	Source     string `json:"source"`
+// Accept only string
+type GradeMetadataMessage struct {
+	Id          string   `json:"id"`
+	TestcaseIds []string `json:"testcaseIds"`
 }
 
-type GradeResultMessage struct {
-	Id       string                     `json:"id"`
-	Status   string                     `json:"status"`
-	Metadata GradeResultMetadataMessage `json:"metadata"`
+type GradeResponseMessage struct {
+	CompileOutput string                       `json:"compileOutput"`
+	Result        []GradeResponseResultMessage `json:"result"`
+	Metadata      GradeMetadataMessage         `json:"metadata"`
 }
 
-type GradeResultMetadataMessage struct {
-	MemoryUsage    int    `json:"memory"`
-	TimeUsage      int    `json:"time"`
-	CompilationLog string `json:"compilationLog"`
+type GradeResponseResultMessage struct {
+	Pass bool `json:"pass"`
+	Time int  `json:"time"`
 }
