@@ -57,7 +57,8 @@ CREATE TABLE IF NOT EXISTS `assignment` (
 CREATE TABLE IF NOT EXISTS `testcase` (
   `id` BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
   `assignment_id` BIGINT UNSIGNED NOT NULL,
-  `file_url` VARCHAR(128) NOT NULL,
+  `input_file_url` VARCHAR(128) NOT NULL,
+  `output_file_url` VARCHAR(128) NOT NULL,
   FOREIGN KEY (`assignment_id`) REFERENCES `assignment`(`id`)
 );
 
