@@ -57,7 +57,7 @@ func (u *workspaceUsecase) CreateSubmission(
 		FileUrl:      filePath,
 	}
 
-	assignment, err := u.workspaceRepository.GetAssignment(assignmentId, userId, workspaceId)
+	assignment, err := u.workspaceRepository.GetAssignment(assignmentId, userId)
 	if err != nil {
 		return errs.New(errs.ErrGetAssignment, "cannot get assignment id %d", assignmentId, err)
 	}
@@ -98,9 +98,9 @@ func (u *workspaceUsecase) Get(id int, selector *domain.WorkspaceSelector, userI
 	return workspace, nil
 }
 
-func (u *workspaceUsecase) GetAssignment(id int, userId string, workspaceId int) (*domain.Assignment, error) {
+func (u *workspaceUsecase) GetAssignment(id int, userId string) (*domain.Assignment, error) {
 	// TODO: wrap error
-	return u.workspaceRepository.GetAssignment(id, userId, workspaceId)
+	return u.workspaceRepository.GetAssignment(id, userId)
 }
 
 func (u *workspaceUsecase) List(

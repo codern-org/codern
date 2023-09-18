@@ -183,10 +183,9 @@ func (c *WorkspaceController) Get(ctx *fiber.Ctx) error {
 // @Router 			/api/workspaces/{workspaceId}/assignments/{assignmentId} [get]
 func (c *WorkspaceController) GetAssignment(ctx *fiber.Ctx) error {
 	user := middleware.GetUserFromCtx(ctx)
-	workspaceId := middleware.GetWorkspaceIdFromCtx(ctx)
 	assignmentId := middleware.GetAssignmentIdFromCtx(ctx)
 
-	assignment, err := c.workspaceUsecase.GetAssignment(assignmentId, user.Id, workspaceId)
+	assignment, err := c.workspaceUsecase.GetAssignment(assignmentId, user.Id)
 	if err != nil {
 		return err
 	}
