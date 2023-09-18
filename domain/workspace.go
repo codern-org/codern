@@ -111,6 +111,7 @@ type Testcase struct {
 }
 
 type WorkspaceRepository interface {
+	CreateWorkspace(workspace *Workspace) error
 	CreateSubmission(submission *Submission, testcases []Testcase) error
 	IsUserIn(userId string, workspaceId int) (bool, error)
 	IsAssignmentIn(assignmentId int, workspaceId int) (bool, error)
@@ -125,6 +126,7 @@ type WorkspaceRepository interface {
 }
 
 type WorkspaceUsecase interface {
+	CreateWorkspace(userId string, name string, file io.Reader) error
 	CreateSubmission(userId string, assignmentId int, workspaceId int, language string, file io.Reader) error
 	IsUserIn(userId string, workspaceId int) (bool, error)
 	IsAssignmentIn(assignmentId int, workspaceId int) (bool, error)
