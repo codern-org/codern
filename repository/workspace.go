@@ -116,6 +116,7 @@ func (r *workspaceRepository) list(ids []int, selector *domain.WorkspaceSelector
 		SELECT
 			w.*,
 			user.display_name AS owner_name,
+			user.profile_url AS owner_profile_url,
 			(SELECT COUNT(*) FROM workspace_participant wp WHERE wp.workspace_id = w.id) AS participant_count,
 			(SELECT COUNT(*) FROM assignment a WHERE a.workspace_id = w.id) AS total_assignment
 		FROM workspace w
@@ -233,10 +234,10 @@ func (r *workspaceRepository) listAssignment(
 	`
 
 	whereAssignmentId := "IN (SELECT id FROM assignment WHERE workspace_id = ?)"
-	param := *workspaceId
+	param := workspaceId
 	if assignmentId != nil {
 		whereAssignmentId = "= ?"
-		param = *assignmentId
+		param = assignmentId
 	}
 	query = fmt.Sprintf(query, whereAssignmentId)
 
