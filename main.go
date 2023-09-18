@@ -163,10 +163,7 @@ func initPublisher(
 	logger *zap.Logger,
 	platform *domain.Platform,
 ) *domain.Publisher {
-	gradingPublisher, err := publisher.NewGradingPublisher(platform.RabbitMq)
-	if err != nil {
-		logger.Fatal("Grading publisher initialization failed", zap.Error(err))
-	}
+	gradingPublisher := publisher.NewGradingPublisher(platform.RabbitMq)
 
 	return &domain.Publisher{
 		Grading: gradingPublisher,

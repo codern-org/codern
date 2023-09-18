@@ -74,9 +74,7 @@ func (u *workspaceUsecase) CreateSubmission(
 		return errs.New(errs.ErrFileSystem, "cannot upload file", err)
 	}
 
-	u.gradingPublisher.Grade(assignment, submission)
-
-	return nil
+	return u.gradingPublisher.Grade(assignment, submission)
 }
 
 func (u *workspaceUsecase) IsUserIn(userId string, workspaceId int) (bool, error) {
