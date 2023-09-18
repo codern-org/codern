@@ -35,6 +35,29 @@ func NewWorkspaceUsecase(
 	}
 }
 
+func (u *workspaceUsecase) CreateWorkspace(userId string, name string, file io.Reader) error {
+	id := generator.GetId()
+	filePath := fmt.Sprintf("/workspaces/%d/profile", id)
+
+	workspace := &domain.Workspace{
+		Id:         id,
+		Name:       name,
+		OwnerId:    userId,
+		ProfileUrl: filePath,
+	}
+
+	// TODO: retry strategy, error
+	if err := u.seaweedfs.Upload(file, 0, filePath); err != nil {
+		return errs.New(errs.ErrFileSystem, "cannot upload file", err)
+	}
+
+	if err := u.workspaceRepository.CreateWorkspace(workspace); err != nil {
+		return errs.New(errs.ErrCreateWorkspace, "cannot create workspace", err)
+	}
+
+	return nil
+}
+
 func (u *workspaceUsecase) CreateSubmission(
 	userId string,
 	assignmentId int,
