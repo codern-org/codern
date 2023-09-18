@@ -259,6 +259,83 @@ paths:
       summary: Create a new submission
       tags:
       - workspace
+  /file/user/{userId}/profile:
+    get:
+      description: Get an user profile image from internal file system by proxy
+      parameters:
+      - description: User ID
+        in: path
+        name: userId
+        required: true
+        type: string
+      - description: Session ID
+        in: header
+        name: sid
+        required: true
+        type: string
+      produces:
+      - image/png
+      - image/jpeg
+      - image/gif
+      responses: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Get an user profile image
+      tags:
+      - file
+  /file/workspaces/{workspaceId}/assignments/{assignmentId}/detail:
+    get:
+      description: Get a workspace detail markdown from internal file system by proxy
+      parameters:
+      - description: Workspace ID
+        in: path
+        name: workspaceId
+        required: true
+        type: number
+      - description: Assignment ID
+        in: path
+        name: assignmentId
+        required: true
+        type: number
+      - description: Session ID
+        in: header
+        name: sid
+        required: true
+        type: string
+      produces:
+      - image/png
+      - image/jpeg
+      - image/gif
+      responses: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Get a workspace detail markdown
+      tags:
+      - file
+  /file/workspaces/{workspaceId}/profile:
+    get:
+      description: Get a workspace profile image from internal file system by proxy
+      parameters:
+      - description: Workspace ID
+        in: path
+        name: workspaceId
+        required: true
+        type: number
+      - description: Session ID
+        in: header
+        name: sid
+        required: true
+        type: string
+      produces:
+      - image/png
+      - image/jpeg
+      - image/gif
+      responses: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Get a workspace profile image
+      tags:
+      - file
 securityDefinitions:
   ApiKeyAuth:
     in: header
