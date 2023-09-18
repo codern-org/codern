@@ -86,12 +86,8 @@ func (r *workspaceRepository) Get(id int, selector *domain.WorkspaceSelector) (*
 	return &workspaces[0], nil
 }
 
-func (r *workspaceRepository) GetAssignment(
-	id int,
-	userId string,
-	workspaceId int,
-) (*domain.Assignment, error) {
-	assignments, err := r.listAssignment(userId, workspaceId, &id)
+func (r *workspaceRepository) GetAssignment(id int, userId string) (*domain.Assignment, error) {
+	assignments, err := r.listAssignment(userId, nil, &id)
 	if err != nil {
 		return nil, fmt.Errorf("cannot query to get assignment: %w", err)
 	}
@@ -190,12 +186,12 @@ func (r *workspaceRepository) ListRecent(userId string) ([]domain.Workspace, err
 }
 
 func (r *workspaceRepository) ListAssignment(userId string, workspaceId int) ([]domain.Assignment, error) {
-	return r.listAssignment(userId, workspaceId, nil)
+	return r.listAssignment(userId, &workspaceId, nil)
 }
 
 func (r *workspaceRepository) listAssignment(
 	userId string,
-	workspaceId int,
+	workspaceId *int,
 	assignmentId *int,
 ) ([]domain.Assignment, error) {
 	assignments := make([]domain.Assignment, 0)
@@ -237,7 +233,7 @@ func (r *workspaceRepository) listAssignment(
 	`
 
 	whereAssignmentId := "IN (SELECT id FROM assignment WHERE workspace_id = ?)"
-	param := workspaceId
+	param := *workspaceId
 	if assignmentId != nil {
 		whereAssignmentId = "= ?"
 		param = *assignmentId
