@@ -14,6 +14,7 @@ type Workspace struct {
 
 	// Always aggregation
 	OwnerName        string `json:"ownerName" db:"owner_name"`
+	OwnerProfileUrl  string `json:"ownerProfileUrl" db:"owner_profile_url"`
 	ParticipantCount int    `json:"participantCount" db:"participant_count"`
 	TotalAssignment  int    `json:"totalAssignment" db:"total_assignment"`
 
