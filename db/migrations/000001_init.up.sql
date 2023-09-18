@@ -109,7 +109,8 @@ INSERT INTO `workspace` VALUES (
 INSERT INTO `workspace_participant` VALUES (
   '1',
   '62b870d7a68388007ba0f8ba292686c70dcb06b8',
-  '2023-08-20 09:30:00'
+  '2023-08-20 09:30:00',
+  DEFAULT
 );
 
 INSERT INTO `assignment` VALUES (
@@ -167,5 +168,6 @@ INSERT INTO `workspace` VALUES (
 INSERT INTO `workspace_participant` VALUES (
   '2',
   '62b870d7a68388007ba0f8ba292686c70dcb06b8',
-  '2023-08-20 09:30:00'
+  '2023-08-20 09:30:00',
+  DEFAULT
 );
