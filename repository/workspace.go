@@ -325,19 +325,30 @@ func (r *workspaceRepository) UpdateRecent(userId string, workspaceId int) error
 	return nil
 }
 
-func (r *workspaceRepository) UpdateSubmissionResult(result *domain.SubmissionResult) error {
-	_, err := r.db.NamedExec(`
-		UPDATE submission_result
-		SET
-			status = :status,
-			status_detail = :status_detail,
-			memory_usage = :memory_usage,
-			time_usage = :time_usage,
-			compilation_log = :compilation_log
-		WHERE submission_id = :submission_id AND testcase_id = :testcase_id
-	`, result)
+func (r *workspaceRepository) UpdateSubmissionResults(
+	submissionId int,
+	compilationLog string,
+	results []domain.SubmissionResult,
+) error {
+	_, err := r.db.Exec("UPDATE submission SET compilation_log = ? WHERE id = ?", compilationLog, submissionId)
 	if err != nil {
-		return fmt.Errorf("cannot query to update submission result: %w", err)
+		return fmt.Errorf("cannot query to update submission from submission result: %w", err)
+	}
+
+	// TODO: optimization
+	for i := range results {
+		_, err := r.db.NamedExec(`
+			UPDATE submission_result
+			SET
+				status = :status,
+				status_detail = :status_detail,
+				memory_usage = :memory_usage,
+				time_usage = :time_usage
+			WHERE submission_id = :submission_id AND testcase_id = :testcase_id;
+		`, results[i])
+		if err != nil {
+			return fmt.Errorf("cannot query to update submission result: %w", err)
+		}
 	}
 	return nil
 }

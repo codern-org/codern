@@ -69,6 +69,7 @@ CREATE TABLE IF NOT EXISTS `submission` (
   `language` VARCHAR(64) NOT NULL,
   `file_url` VARCHAR(128) NOT NULL,
   `submitted_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  `compilation_log` LONGTEXT,
   FOREIGN KEY (`assignment_id`) REFERENCES `assignment`(`id`),
   FOREIGN KEY (`user_id`) REFERENCES `user`(`id`)
 );
@@ -80,7 +81,6 @@ CREATE TABLE IF NOT EXISTS `submission_result` (
   `status_detail` VARCHAR(32),
   `memory_usage` INTEGER,
   `time_usage` INTEGER,
-  `compilation_log` LONGTEXT,
   PRIMARY KEY (`submission_id`, `testcase_id`),
   FOREIGN KEY (`submission_id`) REFERENCES `submission`(`id`) ON DELETE CASCADE,
   FOREIGN KEY (`testcase_id`) REFERENCES `testcase`(`id`) ON DELETE CASCADE
