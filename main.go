@@ -119,11 +119,14 @@ func initPlatform(cfg *config.Config, logger *zap.Logger) *domain.Platform {
 	}
 	logger.Info("Connected to RabbitMq", zap.String("connection_time", time.Since(start).String()))
 
+	webSocketHub := platform.NewWebSocketHub()
+
 	return &domain.Platform{
-		InfluxDb:  influxdb,
-		MySql:     mysql,
-		SeaweedFs: seaweedfs,
-		RabbitMq:  rabbitmq,
+		InfluxDb:     influxdb,
+		MySql:        mysql,
+		SeaweedFs:    seaweedfs,
+		RabbitMq:     rabbitmq,
+		WebSocketHub: webSocketHub,
 	}
 }
 
@@ -176,7 +179,7 @@ func startConsumer(
 	platform *domain.Platform,
 	usecase *domain.Usecase,
 ) {
-	gradingConsumer := consumer.NewGradingConsumer(logger, platform.RabbitMq, usecase.Workspace)
+	gradingConsumer := consumer.NewGradingConsumer(logger, platform.RabbitMq, platform.WebSocketHub, usecase.Workspace)
 	if err := gradingConsumer.ConsumeSubmssionResult(); err != nil {
 		logger.Fatal("Cannot consume submission result", zap.Error(err))
 	}

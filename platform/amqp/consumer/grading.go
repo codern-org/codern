@@ -13,17 +13,20 @@ import (
 type gradingConsumer struct {
 	logger           *zap.Logger
 	ch               *amqp.Channel
+	wsHub            *platform.WebSocketHub
 	workspaceUsecase domain.WorkspaceUsecase
 }
 
 func NewGradingConsumer(
 	logger *zap.Logger,
 	rabbitmq *platform.RabbitMq,
+	wsHub *platform.WebSocketHub,
 	workspaceUsecase domain.WorkspaceUsecase,
 ) domain.GradingConsumer {
 	return &gradingConsumer{
 		logger:           logger,
 		ch:               rabbitmq.Ch,
+		wsHub:            wsHub,
 		workspaceUsecase: workspaceUsecase,
 	}
 }
@@ -37,6 +40,7 @@ func (c *gradingConsumer) ConsumeSubmssionResult() error {
 	go func() {
 		for delivery := range messages {
 			var message payload.GradeResponseMessage
+
 			if err := json.Unmarshal(delivery.Body, &message); err != nil {
 				delivery.Reject(true)
 				c.logger.Error("Cannot unmarshal GradeResponseMessage", zap.Error(err))
@@ -65,6 +69,19 @@ func (c *gradingConsumer) ConsumeSubmssionResult() error {
 			if err != nil {
 				delivery.Reject(true)
 				c.logger.Error("Cannot update submission results", zap.Error(err))
+				return
+			}
+
+			submission, err := c.workspaceUsecase.GetSubmission(submissionId)
+			if err != nil {
+				delivery.Reject(true)
+				c.logger.Error("Cannot get submission data when consuming submission result", zap.Error(err))
+				return
+			}
+			err = c.wsHub.SendMessage(submission.UserId, "onSubmissionUpdate", submission)
+			if err != nil {
+				delivery.Reject(true)
+				c.logger.Error("Cannot send websocket message after consuming submission result", zap.Error(err))
 				return
 			}
 

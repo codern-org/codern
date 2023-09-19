@@ -103,6 +103,11 @@ func (u *workspaceUsecase) GetAssignment(id int, userId string) (*domain.Assignm
 	return u.workspaceRepository.GetAssignment(id, userId)
 }
 
+func (u *workspaceUsecase) GetSubmission(id int) (*domain.Submission, error) {
+	// TODO: wrap error
+	return u.workspaceRepository.GetSubmission(id)
+}
+
 func (u *workspaceUsecase) List(
 	userId string,
 	selector *domain.WorkspaceSelector,

@@ -94,6 +94,28 @@ func (r *workspaceRepository) GetAssignment(id int, userId string) (*domain.Assi
 	return &assignments[0], nil
 }
 
+func (r *workspaceRepository) GetSubmission(id int) (*domain.Submission, error) {
+	var submission domain.Submission
+	err := r.db.Get(&submission, "SELECT * FROM submission WHERE id = ?", id)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	} else if err != nil {
+		return nil, fmt.Errorf("cannot query to get submission: %w", err)
+	}
+
+	var results []domain.SubmissionResult
+	query, args, err := sqlx.In("SELECT * FROM submission_result WHERE submission_id = ?", id)
+	if err != nil {
+		return nil, fmt.Errorf("cannot query to create query to list submission result: %w", err)
+	}
+	if err = r.db.Select(&results, query, args...); err != nil {
+		return nil, fmt.Errorf("cannot query to list submission result: %w", err)
+	}
+
+	submission.Results = results
+	return &submission, nil
+}
+
 func (r *workspaceRepository) List(
 	userId string,
 	selector *domain.WorkspaceSelector,

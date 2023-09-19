@@ -89,6 +89,7 @@ func (s *FiberServer) applyRoutes() {
 	workspaceMiddleware := middleware.NewWorkspaceMiddleware(s.usecase.Workspace)
 
 	// Initialize Controllers
+	webSocketController := controller.NewWebSocketController(s.platform.WebSocketHub)
 	fileController := controller.NewFileController(s.cfg)
 	authController := controller.NewAuthController(
 		s.cfg, validator, s.usecase.Auth, s.usecase.Google, s.usecase.User,
@@ -118,6 +119,10 @@ func (s *FiberServer) applyRoutes() {
 
 	fs.Get("/workspaces/:workspaceId/profile", workspaceMiddleware, fileController.GetWorkspaceProfile)
 	fs.Get("/workspaces/:workspaceId/assignments/:assignmentId/detail", workspaceMiddleware, fileController.GetAssignmentDetail)
+
+	// WebSocket
+	ws := s.app.Group("/ws", authMiddleware, webSocketController.Upgrade)
+	ws.Get("/", webSocketController.Portal())
 
 	// Fallback route
 	s.app.Use(func(ctx *fiber.Ctx) error {
