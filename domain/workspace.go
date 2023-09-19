@@ -25,6 +25,7 @@ type Workspace struct {
 type WorkspaceParticipant struct {
 	WorkspaceId       int       `json:"-" db:"workspace_id"`
 	UserId            string    `json:"userId" db:"user_id"`
+	Role              string    `json:"role" db:"role"`
 	JoinedAt          time.Time `json:"joinedAt" db:"joined_at"`
 	RecentlyVisitedAt time.Time `json:"-" db:"recently_visited_at"`
 
