@@ -33,6 +33,7 @@ CREATE TABLE IF NOT EXISTS `workspace` (
 CREATE TABLE IF NOT EXISTS `workspace_participant` (
   `workspace_id` BIGINT UNSIGNED NOT NULL,
   `user_id` VARCHAR(64) NOT NULL,
+  `role` VARCHAR(32) NOT NULL,
   `joined_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
   `recently_visited_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`workspace_id`, `user_id`),
@@ -57,7 +58,8 @@ CREATE TABLE IF NOT EXISTS `assignment` (
 CREATE TABLE IF NOT EXISTS `testcase` (
   `id` BIGINT UNSIGNED PRIMARY KEY AUTO_INCREMENT,
   `assignment_id` BIGINT UNSIGNED NOT NULL,
-  `file_url` VARCHAR(128) NOT NULL,
+  `input_file_url` VARCHAR(128) NOT NULL,
+  `output_file_url` VARCHAR(128) NOT NULL,
   FOREIGN KEY (`assignment_id`) REFERENCES `assignment`(`id`)
 );
 
@@ -68,6 +70,7 @@ CREATE TABLE IF NOT EXISTS `submission` (
   `language` VARCHAR(64) NOT NULL,
   `file_url` VARCHAR(128) NOT NULL,
   `submitted_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  `compilation_log` LONGTEXT,
   FOREIGN KEY (`assignment_id`) REFERENCES `assignment`(`id`),
   FOREIGN KEY (`user_id`) REFERENCES `user`(`id`)
 );
@@ -79,7 +82,6 @@ CREATE TABLE IF NOT EXISTS `submission_result` (
   `status_detail` VARCHAR(32),
   `memory_usage` INTEGER,
   `time_usage` INTEGER,
-  `compilation_log` LONGTEXT,
   PRIMARY KEY (`submission_id`, `testcase_id`),
   FOREIGN KEY (`submission_id`) REFERENCES `submission`(`id`) ON DELETE CASCADE,
   FOREIGN KEY (`testcase_id`) REFERENCES `testcase`(`id`) ON DELETE CASCADE
@@ -91,7 +93,7 @@ INSERT INTO `user` VALUES (
   '62b870d7a68388007ba0f8ba292686c70dcb06b8',
   'admin@codern.app',
   'Codern Admin',
-  '',
+  '/user/62b870d7a68388007ba0f8ba292686c70dcb06b8/profile',
   'FREE',
   'SELF',
   '$2a$10$9Wz5oM5LlUvFDtgZh3xlzeDtyg1PATgFVg12cafi0cAFDzy8SCUbm',
@@ -109,6 +111,7 @@ INSERT INTO `workspace` VALUES (
 INSERT INTO `workspace_participant` VALUES (
   '1',
   '62b870d7a68388007ba0f8ba292686c70dcb06b8',
+  'ADMIN',
   '2023-08-20 09:30:00',
   DEFAULT
 );
@@ -118,20 +121,7 @@ INSERT INTO `assignment` VALUES (
   '1',
   'Keeratikorn Noodle',
   'The hardest algorithm question in the software world',
-  '',
-  '1024',
-  '500',
-  'EASY',
-  '2023-08-20 09:30:00',
-  '2023-08-20 09:30:00'
-);
-
-INSERT INTO `assignment` VALUES (
-  '2',
-  '1',
-  'Porama Chicken',
-  'The most chicken algorithm question in the software world',
-  '',
+  '/workspaces/1/assignments/1/detail',
   '1024',
   '500',
   'EASY',
@@ -142,19 +132,15 @@ INSERT INTO `assignment` VALUES (
 INSERT INTO `testcase` VALUES (
   '1',
   '1',
-  'file_url_1'
+  '/workspaces/1/assignments/1/testcase/1.in',
+  '/workspaces/1/assignments/1/testcase/1.out'
 );
 
 INSERT INTO `testcase` VALUES (
   '2',
   '1',
-  'file_url_2'
-);
-
-INSERT INTO `testcase` VALUES (
-  '3',
-  '2',
-  'file_url_1'
+  '/workspaces/1/assignments/1/testcase/2.in',
+  '/workspaces/1/assignments/1/testcase/2.out'
 );
 
 INSERT INTO `workspace` VALUES (

@@ -6,10 +6,11 @@ import (
 )
 
 type Platform struct {
-	InfluxDb  *platform.InfluxDb
-	MySql     *sqlx.DB
-	SeaweedFs *platform.SeaweedFs
-	RabbitMq  *platform.RabbitMq
+	InfluxDb     *platform.InfluxDb
+	MySql        *sqlx.DB
+	SeaweedFs    *platform.SeaweedFs
+	RabbitMq     *platform.RabbitMq
+	WebSocketHub *platform.WebSocketHub
 }
 
 type Repository struct {

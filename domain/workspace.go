@@ -14,6 +14,7 @@ type Workspace struct {
 
 	// Always aggregation
 	OwnerName        string `json:"ownerName" db:"owner_name"`
+	OwnerProfileUrl  string `json:"ownerProfileUrl" db:"owner_profile_url"`
 	ParticipantCount int    `json:"participantCount" db:"participant_count"`
 	TotalAssignment  int    `json:"totalAssignment" db:"total_assignment"`
 
@@ -24,6 +25,7 @@ type Workspace struct {
 type WorkspaceParticipant struct {
 	WorkspaceId       int       `json:"-" db:"workspace_id"`
 	UserId            string    `json:"userId" db:"user_id"`
+	Role              string    `json:"role" db:"role"`
 	JoinedAt          time.Time `json:"joinedAt" db:"joined_at"`
 	RecentlyVisitedAt time.Time `json:"-" db:"recently_visited_at"`
 
@@ -72,12 +74,13 @@ type Assignment struct {
 }
 
 type Submission struct {
-	Id           int       `json:"id" db:"id"`
-	AssignmentId int       `json:"-" db:"assignment_id"`
-	UserId       string    `json:"-" db:"user_id"`
-	Language     string    `json:"language" db:"language"`
-	FileUrl      string    `json:"-" db:"file_url"`
-	SubmittedAt  time.Time `json:"submittedAt" db:"submitted_at"`
+	Id             int       `json:"id" db:"id"`
+	AssignmentId   int       `json:"-" db:"assignment_id"`
+	UserId         string    `json:"-" db:"user_id"`
+	Language       string    `json:"language" db:"language"`
+	FileUrl        string    `json:"-" db:"file_url"`
+	SubmittedAt    time.Time `json:"submittedAt" db:"submitted_at"`
+	CompilationLog *string   `json:"compilationLog" db:"compilation_log"`
 
 	// Always aggregation
 	Results []SubmissionResult `json:"results"`
@@ -97,10 +100,9 @@ type SubmissionResult struct {
 	Status       SubmissionResultStatus `json:"status" db:"status"`
 
 	// Can be null if status is `GRADING`
-	StatusDetail   *string `json:"statusDetail" db:"status_detail"`
-	MemoryUsage    *int    `json:"memoryUsage" db:"memory_usage"`
-	TimeUsage      *int    `json:"timeUsage" db:"time_usage"`
-	CompilationLog *string `json:"compilationLog" db:"compilation_log"`
+	StatusDetail *string `json:"statusDetail" db:"status_detail"`
+	MemoryUsage  *int    `json:"memoryUsage" db:"memory_usage"`
+	TimeUsage    *int    `json:"timeUsage" db:"time_usage"`
 }
 
 type Testcase struct {
@@ -117,12 +119,13 @@ type WorkspaceRepository interface {
 	IsAssignmentIn(assignmentId int, workspaceId int) (bool, error)
 	Get(id int, selector *WorkspaceSelector) (*Workspace, error)
 	GetAssignment(id int, userId string) (*Assignment, error)
+	GetSubmission(id int) (*Submission, error)
 	List(userId string, selector *WorkspaceSelector) ([]Workspace, error)
 	ListRecent(userId string) ([]Workspace, error)
 	ListAssignment(userId string, workspaceId int) ([]Assignment, error)
 	ListSubmission(userId string, assignmentId int) ([]Submission, error)
 	UpdateRecent(userId string, workspaceId int) error
-	UpdateSubmissionResult(result *SubmissionResult) error
+	UpdateSubmissionResults(submissionId int, compilationLog string, results []SubmissionResult) error
 }
 
 type WorkspaceUsecase interface {
@@ -132,9 +135,10 @@ type WorkspaceUsecase interface {
 	IsAssignmentIn(assignmentId int, workspaceId int) (bool, error)
 	Get(id int, selector *WorkspaceSelector, userId string) (*Workspace, error)
 	GetAssignment(id int, userId string) (*Assignment, error)
+	GetSubmission(id int) (*Submission, error)
 	List(userId string, selector *WorkspaceSelector) ([]Workspace, error)
 	ListRecent(userId string) ([]Workspace, error)
 	ListAssignment(userId string, workspaceId int) ([]Assignment, error)
 	ListSubmission(userId string, assignmentId int) ([]Submission, error)
-	UpdateSubmissionResult(result *SubmissionResult) error
+	UpdateSubmissionResults(submissionId int, compilationLog string, results []SubmissionResult) error
 }

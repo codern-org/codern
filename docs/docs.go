@@ -384,6 +384,121 @@ const docTemplate = `{
                 ],
                 "responses": {}
             }
+        },
+        "/file/user/{userId}/profile": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Get an user profile image from internal file system by proxy",
+                "produces": [
+                    "image/png",
+                    "image/jpeg",
+                    "image/gif"
+                ],
+                "tags": [
+                    "file"
+                ],
+                "summary": "Get an user profile image",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "userId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Session ID",
+                        "name": "sid",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/file/workspaces/{workspaceId}/assignments/{assignmentId}/detail": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Get a workspace detail markdown from internal file system by proxy",
+                "produces": [
+                    "image/png",
+                    "image/jpeg",
+                    "image/gif"
+                ],
+                "tags": [
+                    "file"
+                ],
+                "summary": "Get a workspace detail markdown",
+                "parameters": [
+                    {
+                        "type": "number",
+                        "description": "Workspace ID",
+                        "name": "workspaceId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "number",
+                        "description": "Assignment ID",
+                        "name": "assignmentId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Session ID",
+                        "name": "sid",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/file/workspaces/{workspaceId}/profile": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Get a workspace profile image from internal file system by proxy",
+                "produces": [
+                    "image/png",
+                    "image/jpeg",
+                    "image/gif"
+                ],
+                "tags": [
+                    "file"
+                ],
+                "summary": "Get a workspace profile image",
+                "parameters": [
+                    {
+                        "type": "number",
+                        "description": "Workspace ID",
+                        "name": "workspaceId",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Session ID",
+                        "name": "sid",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {}
+            }
         }
     },
     "definitions": {

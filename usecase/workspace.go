@@ -126,6 +126,11 @@ func (u *workspaceUsecase) GetAssignment(id int, userId string) (*domain.Assignm
 	return u.workspaceRepository.GetAssignment(id, userId)
 }
 
+func (u *workspaceUsecase) GetSubmission(id int) (*domain.Submission, error) {
+	// TODO: wrap error
+	return u.workspaceRepository.GetSubmission(id)
+}
+
 func (u *workspaceUsecase) List(
 	userId string,
 	selector *domain.WorkspaceSelector,
@@ -149,7 +154,10 @@ func (u *workspaceUsecase) ListSubmission(userId string, assignmentId int) ([]do
 	return u.workspaceRepository.ListSubmission(userId, assignmentId)
 }
 
-func (u *workspaceUsecase) UpdateSubmissionResult(result *domain.SubmissionResult) error {
+func (u *workspaceUsecase) UpdateSubmissionResults(
+	submissionId int,
+	compilationLog string,
+	results []domain.SubmissionResult) error {
 	// TODO: wrap error
-	return u.workspaceRepository.UpdateSubmissionResult(result)
+	return u.workspaceRepository.UpdateSubmissionResults(submissionId, compilationLog, results)
 }

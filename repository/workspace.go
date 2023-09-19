@@ -118,6 +118,28 @@ func (r *workspaceRepository) GetAssignment(id int, userId string) (*domain.Assi
 	return &assignments[0], nil
 }
 
+func (r *workspaceRepository) GetSubmission(id int) (*domain.Submission, error) {
+	var submission domain.Submission
+	err := r.db.Get(&submission, "SELECT * FROM submission WHERE id = ?", id)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	} else if err != nil {
+		return nil, fmt.Errorf("cannot query to get submission: %w", err)
+	}
+
+	var results []domain.SubmissionResult
+	query, args, err := sqlx.In("SELECT * FROM submission_result WHERE submission_id = ?", id)
+	if err != nil {
+		return nil, fmt.Errorf("cannot query to create query to list submission result: %w", err)
+	}
+	if err = r.db.Select(&results, query, args...); err != nil {
+		return nil, fmt.Errorf("cannot query to list submission result: %w", err)
+	}
+
+	submission.Results = results
+	return &submission, nil
+}
+
 func (r *workspaceRepository) List(
 	userId string,
 	selector *domain.WorkspaceSelector,
@@ -140,6 +162,7 @@ func (r *workspaceRepository) list(ids []int, selector *domain.WorkspaceSelector
 		SELECT
 			w.*,
 			user.display_name AS owner_name,
+			user.profile_url AS owner_profile_url,
 			(SELECT COUNT(*) FROM workspace_participant wp WHERE wp.workspace_id = w.id) AS participant_count,
 			(SELECT COUNT(*) FROM assignment a WHERE a.workspace_id = w.id) AS total_assignment
 		FROM workspace w
@@ -257,10 +280,10 @@ func (r *workspaceRepository) listAssignment(
 	`
 
 	whereAssignmentId := "IN (SELECT id FROM assignment WHERE workspace_id = ?)"
-	param := *workspaceId
+	param := workspaceId
 	if assignmentId != nil {
 		whereAssignmentId = "= ?"
-		param = *assignmentId
+		param = assignmentId
 	}
 	query = fmt.Sprintf(query, whereAssignmentId)
 
@@ -348,19 +371,30 @@ func (r *workspaceRepository) UpdateRecent(userId string, workspaceId int) error
 	return nil
 }
 
-func (r *workspaceRepository) UpdateSubmissionResult(result *domain.SubmissionResult) error {
-	_, err := r.db.NamedExec(`
-		UPDATE submission_result
-		SET
-			status = :status,
-			status_detail = :status_detail,
-			memory_usage = :memory_usage,
-			time_usage = :time_usage,
-			compilation_log = :compilation_log
-		WHERE submission_id = :submission_id AND testcase_id = :testcase_id
-	`, result)
+func (r *workspaceRepository) UpdateSubmissionResults(
+	submissionId int,
+	compilationLog string,
+	results []domain.SubmissionResult,
+) error {
+	_, err := r.db.Exec("UPDATE submission SET compilation_log = ? WHERE id = ?", compilationLog, submissionId)
 	if err != nil {
-		return fmt.Errorf("cannot query to update submission result: %w", err)
+		return fmt.Errorf("cannot query to update submission from submission result: %w", err)
+	}
+
+	// TODO: optimization
+	for i := range results {
+		_, err := r.db.NamedExec(`
+			UPDATE submission_result
+			SET
+				status = :status,
+				status_detail = :status_detail,
+				memory_usage = :memory_usage,
+				time_usage = :time_usage
+			WHERE submission_id = :submission_id AND testcase_id = :testcase_id;
+		`, results[i])
+		if err != nil {
+			return fmt.Errorf("cannot query to update submission result: %w", err)
+		}
 	}
 	return nil
 }

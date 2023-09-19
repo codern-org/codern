@@ -11,10 +11,11 @@ import (
 	"github.com/codern-org/codern/platform/server/controller"
 	"github.com/codern-org/codern/platform/server/middleware"
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
 	"github.com/gofiber/swagger"
 	"go.uber.org/zap"
+
+	_ "github.com/codern-org/codern/docs"
 )
 
 type FiberServer struct {
@@ -47,6 +48,7 @@ func (s *FiberServer) Start() {
 		AppName:               s.cfg.Metadata.Name,
 		DisableStartupMessage: true,
 		ErrorHandler:          errorHandler(s.logger),
+		BodyLimit:             25 * 1024 * 1024, // 25 MB
 	})
 	s.app = app
 	app.Hooks().OnListen(func(ld fiber.ListenData) error {
@@ -54,16 +56,13 @@ func (s *FiberServer) Start() {
 		return nil
 	})
 
-	// Apply swagger route
-	app.Get("/swagger/*", swagger.HandlerDefault)
+	// Apply swagger route on development mode
+	if constant.IsDevelopment {
+		app.Get("/swagger/*", swagger.HandlerDefault)
+	}
 
 	// Apply middlewares
-	app.Use(cors.New(cors.Config{
-		AllowCredentials: constant.IsDevelopment,
-		AllowOriginsFunc: func(origin string) bool {
-			return constant.IsDevelopment
-		},
-	}))
+	app.Use(middleware.Cors)
 	app.Use(requestid.New())
 	app.Use(middleware.NewLogger(s.logger, s.platform.InfluxDb))
 
@@ -85,10 +84,13 @@ func (s *FiberServer) applyRoutes() {
 	validator := validator.NewPayloadValidator(s.platform.InfluxDb)
 
 	// Initialize Middlewares
+	fileMiddleware := middleware.NewFileMiddleware()
 	authMiddleware := middleware.NewAuthMiddleware(validator, s.usecase.Auth)
 	workspaceMiddleware := middleware.NewWorkspaceMiddleware(s.usecase.Workspace)
 
 	// Initialize Controllers
+	webSocketController := controller.NewWebSocketController(s.platform.WebSocketHub)
+	fileController := controller.NewFileController(s.cfg)
 	authController := controller.NewAuthController(
 		s.cfg, validator, s.usecase.Auth, s.usecase.Google, s.usecase.User,
 	)
@@ -110,6 +112,18 @@ func (s *FiberServer) applyRoutes() {
 	api.Get("/workspaces/:workspaceId/assignments/:assignmentId", authMiddleware, workspaceMiddleware, workspaceController.GetAssignment)
 	api.Get("/workspaces/:workspaceId/assignments/:assignmentId/submissions", authMiddleware, workspaceMiddleware, workspaceController.ListSubmission)
 	api.Post("/workspaces/:workspaceId/assignments/:assignmentId/submissions", authMiddleware, workspaceMiddleware, workspaceController.CreateSubmission)
+
+	// File proxy from SeaweedFS
+	fs := s.app.Group("/file", authMiddleware, fileMiddleware)
+
+	fs.Get("/user/:userId/profile", fileController.GetUserProfile)
+
+	fs.Get("/workspaces/:workspaceId/profile", workspaceMiddleware, fileController.GetWorkspaceProfile)
+	fs.Get("/workspaces/:workspaceId/assignments/:assignmentId/detail", workspaceMiddleware, fileController.GetAssignmentDetail)
+
+	// WebSocket
+	ws := s.app.Group("/ws", authMiddleware, webSocketController.Upgrade)
+	ws.Get("/", webSocketController.Portal())
 
 	// Fallback route
 	s.app.Use(func(ctx *fiber.Ctx) error {
