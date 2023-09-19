@@ -126,7 +126,10 @@ func (u *workspaceUsecase) ListSubmission(userId string, assignmentId int) ([]do
 	return u.workspaceRepository.ListSubmission(userId, assignmentId)
 }
 
-func (u *workspaceUsecase) UpdateSubmissionResult(result *domain.SubmissionResult) error {
+func (u *workspaceUsecase) UpdateSubmissionResults(
+	submissionId int,
+	compilationLog string,
+	results []domain.SubmissionResult) error {
 	// TODO: wrap error
-	return u.workspaceRepository.UpdateSubmissionResult(result)
+	return u.workspaceRepository.UpdateSubmissionResults(submissionId, compilationLog, results)
 }

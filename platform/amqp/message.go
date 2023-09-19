@@ -12,19 +12,19 @@ type GradeTestMessage struct {
 	OutputUrl string `json:"output"`
 }
 
-// Accept only string
 type GradeMetadataMessage struct {
-	Id          string   `json:"id"`
-	TestcaseIds []string `json:"testcaseIds"`
+	SubmissionId int   `json:"submissionId"`
+	TestcaseIds  []int `json:"testcaseIds"`
 }
 
 type GradeResponseMessage struct {
 	CompileOutput string                       `json:"compileOutput"`
-	Result        []GradeResponseResultMessage `json:"result"`
+	Results       []GradeResponseResultMessage `json:"results"`
 	Metadata      GradeMetadataMessage         `json:"metadata"`
 }
 
 type GradeResponseResultMessage struct {
-	Pass bool `json:"pass"`
-	Time int  `json:"time"`
+	Hash string `json:"hash"`
+	Pass bool   `json:"pass"`
+	Time int    `json:"time"`
 }

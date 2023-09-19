@@ -73,12 +73,13 @@ type Assignment struct {
 }
 
 type Submission struct {
-	Id           int       `json:"id" db:"id"`
-	AssignmentId int       `json:"-" db:"assignment_id"`
-	UserId       string    `json:"-" db:"user_id"`
-	Language     string    `json:"language" db:"language"`
-	FileUrl      string    `json:"-" db:"file_url"`
-	SubmittedAt  time.Time `json:"submittedAt" db:"submitted_at"`
+	Id             int       `json:"id" db:"id"`
+	AssignmentId   int       `json:"-" db:"assignment_id"`
+	UserId         string    `json:"-" db:"user_id"`
+	Language       string    `json:"language" db:"language"`
+	FileUrl        string    `json:"-" db:"file_url"`
+	SubmittedAt    time.Time `json:"submittedAt" db:"submitted_at"`
+	CompilationLog *string   `json:"compilationLog" db:"compilation_log"`
 
 	// Always aggregation
 	Results []SubmissionResult `json:"results"`
@@ -98,10 +99,9 @@ type SubmissionResult struct {
 	Status       SubmissionResultStatus `json:"status" db:"status"`
 
 	// Can be null if status is `GRADING`
-	StatusDetail   *string `json:"statusDetail" db:"status_detail"`
-	MemoryUsage    *int    `json:"memoryUsage" db:"memory_usage"`
-	TimeUsage      *int    `json:"timeUsage" db:"time_usage"`
-	CompilationLog *string `json:"compilationLog" db:"compilation_log"`
+	StatusDetail *string `json:"statusDetail" db:"status_detail"`
+	MemoryUsage  *int    `json:"memoryUsage" db:"memory_usage"`
+	TimeUsage    *int    `json:"timeUsage" db:"time_usage"`
 }
 
 type Testcase struct {
@@ -122,7 +122,7 @@ type WorkspaceRepository interface {
 	ListAssignment(userId string, workspaceId int) ([]Assignment, error)
 	ListSubmission(userId string, assignmentId int) ([]Submission, error)
 	UpdateRecent(userId string, workspaceId int) error
-	UpdateSubmissionResult(result *SubmissionResult) error
+	UpdateSubmissionResults(submissionId int, compilationLog string, results []SubmissionResult) error
 }
 
 type WorkspaceUsecase interface {
@@ -135,5 +135,5 @@ type WorkspaceUsecase interface {
 	ListRecent(userId string) ([]Workspace, error)
 	ListAssignment(userId string, workspaceId int) ([]Assignment, error)
 	ListSubmission(userId string, assignmentId int) ([]Submission, error)
-	UpdateSubmissionResult(result *SubmissionResult) error
+	UpdateSubmissionResults(submissionId int, compilationLog string, results []SubmissionResult) error
 }
