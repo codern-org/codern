@@ -32,7 +32,7 @@ func NewGradingConsumer(
 }
 
 func (c *gradingConsumer) ConsumeSubmssionResult() error {
-	messages, err := c.ch.Consume("grading_response", "", true, false, false, false, nil)
+	messages, err := c.ch.Consume("grading_response", "", false, false, false, false, nil)
 	if err != nil {
 		return err
 	}
@@ -42,9 +42,9 @@ func (c *gradingConsumer) ConsumeSubmssionResult() error {
 			var message payload.GradeResponseMessage
 
 			if err := json.Unmarshal(delivery.Body, &message); err != nil {
-				delivery.Reject(true)
+				delivery.Reject(false)
 				c.logger.Error("Cannot unmarshal GradeResponseMessage", zap.Error(err))
-				return
+				continue
 			}
 
 			submissionId := message.Metadata.SubmissionId
@@ -67,25 +67,26 @@ func (c *gradingConsumer) ConsumeSubmssionResult() error {
 
 			err = c.workspaceUsecase.UpdateSubmissionResults(submissionId, message.CompileOutput, results)
 			if err != nil {
-				delivery.Reject(true)
+				delivery.Reject(false)
 				c.logger.Error("Cannot update submission results", zap.Error(err))
-				return
+				continue
 			}
 
 			submission, err := c.workspaceUsecase.GetSubmission(submissionId)
 			if err != nil {
-				delivery.Reject(true)
+				delivery.Reject(false)
 				c.logger.Error("Cannot get submission data when consuming submission result", zap.Error(err))
-				return
+				continue
 			}
 			err = c.wsHub.SendMessage(submission.UserId, "onSubmissionUpdate", submission)
 			if err != nil {
-				delivery.Reject(true)
+				delivery.Reject(false)
 				c.logger.Error("Cannot send websocket message after consuming submission result", zap.Error(err))
-				return
+				continue
 			}
 
 			c.logger.Info("Consumed submission result", zap.Int("submission_id", submissionId))
+			delivery.Ack(false)
 		}
 	}()
 
