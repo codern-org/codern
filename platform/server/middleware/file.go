@@ -16,6 +16,8 @@ func NewFileMiddleware() fiber.Handler {
 		}
 
 		ctx.Response().Header.Set("Server", "Codern File System 1.0")
+		Cors(ctx)
+
 		return nil
 	}
 }
