@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/codern-org/codern/domain"
+	errs "github.com/codern-org/codern/domain/error"
 	"github.com/codern-org/codern/internal/config"
 	"github.com/codern-org/codern/platform/server/middleware"
 	"github.com/codern-org/codern/platform/server/payload"
@@ -112,7 +113,7 @@ func (c *AuthController) SignInWithGoogle(ctx *fiber.Ctx) error {
 
 	url, err := url.JoinPath(c.cfg.Client.Frontend.BaseUrl, c.cfg.Client.Frontend.Path.SignIn)
 	if err != nil {
-		return err
+		return errs.New(errs.ErrCreateUrlPath, "invalid google callback url", err)
 	}
 
 	return ctx.Redirect(url)

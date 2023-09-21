@@ -30,8 +30,12 @@ func (u *authUsecase) Authenticate(header string) (*domain.User, error) {
 	if err != nil {
 		return nil, errs.New(errs.OverrideCode, "cannot authenticate user", err)
 	}
-	// TODO: wrap error
-	return u.userUsecase.GetBySessionId(session.Id)
+
+	user, err := u.userUsecase.GetBySessionId(session.Id)
+	if err != nil {
+		return nil, errs.New(errs.OverrideCode, "cannot get user to authenticate", err)
+	}
+	return user, nil
 }
 
 func (u *authUsecase) SignIn(
@@ -47,8 +51,12 @@ func (u *authUsecase) SignIn(
 	if err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
 		return nil, errs.New(errs.ErrUserPassword, "password is incorrect", err)
 	}
-	// TODO: wrap error
-	return u.sessionUsecase.Create(user.Id, ipAddress, userAgent)
+
+	cookie, err := u.sessionUsecase.Create(user.Id, ipAddress, userAgent)
+	if err != nil {
+		return nil, errs.New(errs.OverrideCode, "cannot create session to sign in", err)
+	}
+	return cookie, nil
 }
 
 func (u *authUsecase) SignInWithGoogle(
@@ -64,7 +72,7 @@ func (u *authUsecase) SignInWithGoogle(
 	}
 
 	user, err := u.userUsecase.GetByEmail(googleUser.Email, domain.GoogleAuth)
-	if err != nil && !errs.HasCode(err, errs.ErrUserNotFound) {
+	if err != nil {
 		return nil, errs.New(errs.OverrideCode, "cannot get user data to sign in with google", err)
 	}
 
@@ -74,15 +82,23 @@ func (u *authUsecase) SignInWithGoogle(
 			return nil, errs.New(errs.OverrideCode, "cannot create user to sign in with google", err)
 		}
 	}
-	// TODO: wrap error
-	return u.sessionUsecase.Create(user.Id, ipAddress, userAgent)
+
+	cookie, err := u.sessionUsecase.Create(user.Id, ipAddress, userAgent)
+	if err != nil {
+		return nil, errs.New(errs.OverrideCode, "cannot create session to sign in with google", err)
+	}
+	return cookie, nil
 }
 
 func (u *authUsecase) SignOut(header string) (*fiber.Cookie, error) {
 	session, err := u.sessionUsecase.Validate(header)
 	if err != nil {
-		return nil, errs.New(errs.OverrideCode, "cannot validate session to signout", err)
+		return nil, errs.New(errs.OverrideCode, "cannot validate session to sign out", err)
 	}
-	// TODO: wrap error
-	return u.sessionUsecase.Destroy(session.Id)
+
+	cookie, err := u.sessionUsecase.Destroy(session.Id)
+	if err != nil {
+		return nil, errs.New(errs.OverrideCode, "cannot destroy session to sign out", err)
+	}
+	return cookie, nil
 }

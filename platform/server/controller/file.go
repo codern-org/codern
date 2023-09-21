@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/url"
 
+	errs "github.com/codern-org/codern/domain/error"
 	"github.com/codern-org/codern/internal/config"
 	"github.com/codern-org/codern/platform/server/middleware"
 	"github.com/gofiber/fiber/v2"
@@ -34,7 +35,7 @@ func (c *FileController) GetUserProfile(ctx *fiber.Ctx) error {
 	path := fmt.Sprintf("/user/%s/profile", userId)
 	url, err := url.JoinPath(c.filerUrl, path)
 	if err != nil {
-		return err
+		return errs.New(errs.ErrCreateUrlPath, "invalid url", err)
 	}
 	return proxy.Forward(url)(ctx)
 }
@@ -55,7 +56,7 @@ func (c *FileController) GetWorkspaceProfile(ctx *fiber.Ctx) error {
 	path := fmt.Sprintf("/workspaces/%d/profile", workspaceId)
 	url, err := url.JoinPath(c.filerUrl, path)
 	if err != nil {
-		return err
+		return errs.New(errs.ErrCreateUrlPath, "invalid url", err)
 	}
 	return proxy.Forward(url)(ctx)
 }
@@ -78,7 +79,7 @@ func (c *FileController) GetAssignmentDetail(ctx *fiber.Ctx) error {
 	path := fmt.Sprintf("/workspaces/%d/assignments/%d/problem.md", workspaceId, assignmentId)
 	url, err := url.JoinPath(c.filerUrl, path)
 	if err != nil {
-		return err
+		return errs.New(errs.ErrCreateUrlPath, "invalid url", err)
 	}
 	return proxy.Forward(url)(ctx)
 }

@@ -42,8 +42,6 @@ func (u *workspaceUsecase) CreateSubmission(
 	language string,
 	file io.Reader,
 ) error {
-	// TOOD: assignment validation
-
 	id := generator.GetId()
 	filePath := fmt.Sprintf(
 		"/workspaces/%d/assignments/%d/submissions/%s/%d",
@@ -57,10 +55,13 @@ func (u *workspaceUsecase) CreateSubmission(
 		FileUrl:      filePath,
 	}
 
-	assignment, err := u.workspaceRepository.GetAssignment(assignmentId, userId)
+	assignment, err := u.GetAssignment(assignmentId, userId)
 	if err != nil {
-		return errs.New(errs.ErrGetAssignment, "cannot get assignment id %d", assignmentId, err)
+		return errs.New(errs.OverrideCode, "cannot get assignment id %d", assignmentId, err)
+	} else if assignment == nil {
+		return errs.New(errs.ErrAssignmentNotFound, "assignment id %d not found", id)
 	}
+
 	if len(assignment.Testcases) == 0 {
 		return errs.New(errs.ErrAssignmentNoTestcase, "invalid assignment id %d", assignmentId)
 	}
@@ -78,63 +79,90 @@ func (u *workspaceUsecase) CreateSubmission(
 }
 
 func (u *workspaceUsecase) IsUserIn(userId string, workspaceId int) (bool, error) {
-	// TODO: wrap error
-	return u.workspaceRepository.IsUserIn(userId, workspaceId)
+	isIn, err := u.workspaceRepository.IsUserIn(userId, workspaceId)
+	if err != nil {
+		return false, errs.New(errs.ErrIsUserIn, "cannot check if user is in workspace", err)
+	}
+	return isIn, nil
 }
 
 func (u *workspaceUsecase) IsAssignmentIn(assignmentId int, workspaceId int) (bool, error) {
-	// TODO: wrap error
-	return u.workspaceRepository.IsAssignmentIn(assignmentId, workspaceId)
+	isIn, err := u.workspaceRepository.IsAssignmentIn(assignmentId, workspaceId)
+	if err != nil {
+		return false, errs.New(errs.ErrIsAssignmentIn, "cannot check if assignment is in workspace", err)
+	}
+	return isIn, nil
 }
 
 func (u *workspaceUsecase) Get(id int, selector *domain.WorkspaceSelector, userId string) (*domain.Workspace, error) {
 	workspace, err := u.workspaceRepository.Get(id, selector)
 	if err != nil {
 		return nil, errs.New(errs.ErrGetWorkspace, "cannot get workspace id %d", id, err)
-	} else if workspace == nil {
-		return nil, errs.New(errs.ErrWorkspaceNotFound, "workspace id %d not found", id, err)
 	}
-	go u.workspaceRepository.UpdateRecent(userId, workspace.Id)
+	if workspace != nil {
+		go u.workspaceRepository.UpdateRecent(userId, workspace.Id)
+	}
 	return workspace, nil
 }
 
 func (u *workspaceUsecase) GetAssignment(id int, userId string) (*domain.Assignment, error) {
-	// TODO: wrap error
-	return u.workspaceRepository.GetAssignment(id, userId)
+	assignment, err := u.workspaceRepository.GetAssignment(id, userId)
+	if err != nil {
+		return nil, errs.New(errs.ErrGetAssignment, "cannot get assignment id %d", id, err)
+	}
+	return assignment, nil
 }
 
 func (u *workspaceUsecase) GetSubmission(id int) (*domain.Submission, error) {
-	// TODO: wrap error
-	return u.workspaceRepository.GetSubmission(id)
+	submission, err := u.workspaceRepository.GetSubmission(id)
+	if err != nil {
+		return nil, errs.New(errs.ErrGetSubmission, "cannot get submission id %d", id, err)
+	}
+	return submission, nil
 }
 
 func (u *workspaceUsecase) List(
 	userId string,
 	selector *domain.WorkspaceSelector,
 ) ([]domain.Workspace, error) {
-	// TODO: wrap error
-	return u.workspaceRepository.List(userId, selector)
+	workspaces, err := u.workspaceRepository.List(userId, selector)
+	if err != nil {
+		return nil, errs.New(errs.ErrListWorkspace, "cannot list workspace", err)
+	}
+	return workspaces, nil
 }
 
 func (u *workspaceUsecase) ListRecent(userId string) ([]domain.Workspace, error) {
-	// TODO: wrap error
-	return u.workspaceRepository.ListRecent(userId)
+	workspaces, err := u.workspaceRepository.ListRecent(userId)
+	if err != nil {
+		return nil, errs.New(errs.ErrListWorkspace, "cannot list recent workspace", err)
+	}
+	return workspaces, nil
 }
 
 func (u *workspaceUsecase) ListAssignment(userId string, workspaceId int) ([]domain.Assignment, error) {
-	// TODO: wrap error
-	return u.workspaceRepository.ListAssignment(userId, workspaceId)
+	assignments, err := u.workspaceRepository.ListAssignment(userId, workspaceId)
+	if err != nil {
+		return nil, errs.New(errs.ErrListAssignment, "cannot list assignment", err)
+	}
+	return assignments, nil
 }
 
 func (u *workspaceUsecase) ListSubmission(userId string, assignmentId int) ([]domain.Submission, error) {
-	// TODO: wrap error
-	return u.workspaceRepository.ListSubmission(userId, assignmentId)
+	submissions, err := u.workspaceRepository.ListSubmission(userId, assignmentId)
+	if err != nil {
+		return nil, errs.New(errs.ErrListSubmission, "cannot list submission", err)
+	}
+	return submissions, nil
 }
 
 func (u *workspaceUsecase) UpdateSubmissionResults(
 	submissionId int,
 	compilationLog string,
 	results []domain.SubmissionResult) error {
-	// TODO: wrap error
-	return u.workspaceRepository.UpdateSubmissionResults(submissionId, compilationLog, results)
+	err := u.workspaceRepository.UpdateSubmissionResults(submissionId, compilationLog, results)
+	if err != nil {
+		return errs.New(errs.ErrUpdateSubmissionResult, "cannot update submission result", err)
+	}
+	return nil
 }

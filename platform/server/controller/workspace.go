@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/codern-org/codern/domain"
+	errs "github.com/codern-org/codern/domain/error"
 	"github.com/codern-org/codern/platform/server/middleware"
 	"github.com/codern-org/codern/platform/server/payload"
 	"github.com/codern-org/codern/platform/server/response"
@@ -164,6 +165,8 @@ func (c *WorkspaceController) Get(ctx *fiber.Ctx) error {
 	}, user.Id)
 	if err != nil {
 		return err
+	} else if workspace == nil {
+		return errs.New(errs.ErrWorkspaceNotFound, "workspace id %d not found", workspaceId)
 	}
 
 	return response.NewSuccessResponse(ctx, fiber.StatusOK, workspace)
@@ -188,6 +191,8 @@ func (c *WorkspaceController) GetAssignment(ctx *fiber.Ctx) error {
 	assignment, err := c.workspaceUsecase.GetAssignment(assignmentId, user.Id)
 	if err != nil {
 		return err
+	} else if assignment == nil {
+		return errs.New(errs.ErrAssignmentNotFound, "assignment id %d not found", assignmentId)
 	}
 
 	return response.NewSuccessResponse(ctx, fiber.StatusOK, assignment)

@@ -73,7 +73,7 @@ func (c *gradingConsumer) ConsumeSubmssionResult() error {
 			}
 
 			submission, err := c.workspaceUsecase.GetSubmission(submissionId)
-			if err != nil {
+			if err != nil || submission == nil {
 				delivery.Reject(false)
 				c.logger.Error("Cannot get submission data when consuming submission result", zap.Error(err))
 				continue
