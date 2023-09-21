@@ -6,6 +6,7 @@ import (
 	"net/url"
 
 	"github.com/codern-org/codern/domain"
+	errs "github.com/codern-org/codern/domain/error"
 	"github.com/codern-org/codern/internal/config"
 	"github.com/codern-org/codern/platform"
 	payload "github.com/codern-org/codern/platform/amqp"
@@ -39,8 +40,7 @@ func (p *gradingPublisher) Grade(assignment *domain.Assignment, submission *doma
 	// TODO: hardcoded filer url
 	sourceUrl, err := url.JoinPath(p.cfg.Client.SeaweedFs.FilerUrls[1], submission.FileUrl)
 	if err != nil {
-		// TODO: domain error
-		return err
+		return errs.New(errs.ErrCreateUrlPath, "invalid submission url", err)
 	}
 
 	message := &payload.GradeRequestMessage{
@@ -54,8 +54,7 @@ func (p *gradingPublisher) Grade(assignment *domain.Assignment, submission *doma
 	}
 	body, err := json.Marshal(message)
 	if err != nil {
-		// TODO: domain error
-		return err
+		return errs.New(errs.ErrGradingRequest, "cannot marshal grading request message", err)
 	}
 
 	err = p.ch.PublishWithContext(context.Background(), "grading", "request", false, false, amqp.Publishing{
@@ -63,8 +62,7 @@ func (p *gradingPublisher) Grade(assignment *domain.Assignment, submission *doma
 		Body:        body,
 	})
 	if err != nil {
-		// TODO: domain error
-		return err
+		return errs.New(errs.ErrGradingRequest, "cannot publish grading request message", err)
 	}
 
 	return nil

@@ -31,11 +31,23 @@ const (
 	ErrCreateUser        = 2032
 	ErrGoogleAuth        = 2040
 
-	ErrWorkspaceNotFound    = 3000
-	ErrWorkspaceNoPerm      = 3001
-	ErrGetWorkspace         = 3002
-	ErrCreateSubmission     = 3010
-	ErrGetAssignment        = 3011
-	ErrListTestcase         = 3012
-	ErrAssignmentNoTestcase = 3013
+	ErrWorkspaceNotFound      = 3000
+	ErrWorkspaceNoPerm        = 3001
+	ErrGetWorkspace           = 3002
+	ErrListWorkspace          = 3003
+	ErrIsUserIn               = 3004
+	ErrIsAssignmentIn         = 3005
+	ErrCreateSubmission       = 3010
+	ErrGetAssignment          = 3020
+	ErrListAssignment         = 3021
+	ErrAssignmentNotFound     = 3022
+	ErrAssignmentNoTestcase   = 3023
+	ErrListTestcase           = 3030
+	ErrGetSubmission          = 3040
+	ErrListSubmission         = 3041
+	ErrUpdateSubmissionResult = 3042
+
+	ErrGradingRequest = 4000
+
+	ErrCreateUrlPath = 9000
 )
