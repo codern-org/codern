@@ -20,15 +20,25 @@ func NewWorkspaceRepository(db *sqlx.DB) domain.WorkspaceRepository {
 func (r *workspaceRepository) CreateSubmission(
 	submission *domain.Submission,
 	testcases []domain.Testcase,
-) error {
+) (retErr error) {
 	tx, err := r.db.Beginx()
 	if err != nil {
 		return fmt.Errorf("cannot begin transaction to create submission: %w", err)
 	}
 
+	defer func() {
+		if err := recover(); err != nil {
+			if rbErr := tx.Rollback(); rbErr != nil {
+				retErr = fmt.Errorf("cannot rollback transaction: %w", err.(error))
+			} else {
+				retErr = err.(error)
+			}
+		}
+	}()
+
 	_, err = tx.NamedExec("INSERT INTO submission (id, assignment_id, user_id, language, file_url) VALUES (:id, :assignment_id, :user_id, :language, :file_url)", submission)
 	if err != nil {
-		return fmt.Errorf("cannot query to insert submission: %w", err)
+		panic(fmt.Errorf("cannot query to insert submission: %w", err))
 	}
 
 	query := "INSERT INTO submission_result (submission_id, testcase_id, status) VALUES "
@@ -38,14 +48,14 @@ func (r *workspaceRepository) CreateSubmission(
 	query = query[:len(query)-1]
 
 	if _, err := tx.Exec(query); err != nil {
-		return fmt.Errorf("cannot execute transaction to create submission: %w", err)
+		panic(fmt.Errorf("cannot execute transaction to create submission: %w", err))
 	}
 
 	if err = tx.Commit(); err != nil {
-		return fmt.Errorf("cannot commit transaction to create submission: %w", err)
+		panic(fmt.Errorf("cannot commit transaction to create submission: %w", err))
 	}
 
-	return nil
+	return
 }
 
 func (r *workspaceRepository) IsUserIn(userId string, workspaceId int) (bool, error) {
@@ -351,15 +361,25 @@ func (r *workspaceRepository) UpdateSubmissionResults(
 	submissionId int,
 	compilationLog string,
 	results []domain.SubmissionResult,
-) error {
+) (retErr error) {
 	tx, err := r.db.Beginx()
 	if err != nil {
 		return fmt.Errorf("cannot begin transaction to update submission result: %w", err)
 	}
 
+	defer func() {
+		if err := recover(); err != nil {
+			if rbErr := tx.Rollback(); rbErr != nil {
+				retErr = fmt.Errorf("cannot rollback transaction: %w", err.(error))
+			} else {
+				retErr = err.(error)
+			}
+		}
+	}()
+
 	_, err = tx.Exec("UPDATE submission SET compilation_log = ? WHERE id = ?", compilationLog, submissionId)
 	if err != nil {
-		return fmt.Errorf("cannot query to update submission from submission result: %w", err)
+		panic(fmt.Errorf("cannot query to update submission from submission result: %w", err))
 	}
 
 	// TODO: optimization
@@ -374,13 +394,13 @@ func (r *workspaceRepository) UpdateSubmissionResults(
 			WHERE submission_id = :submission_id AND testcase_id = :testcase_id;
 		`, results[i])
 		if err != nil {
-			return fmt.Errorf("cannot query to update submission result: %w", err)
+			panic(fmt.Errorf("cannot query to update submission result: %w", err))
 		}
 	}
 
 	if err = tx.Commit(); err != nil {
-		return fmt.Errorf("cannot commit transaction to update submission result: %w", err)
+		panic(fmt.Errorf("cannot commit transaction to update submission result: %w", err))
 	}
 
-	return nil
+	return
 }
