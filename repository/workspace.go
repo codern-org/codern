@@ -352,14 +352,19 @@ func (r *workspaceRepository) UpdateSubmissionResults(
 	compilationLog string,
 	results []domain.SubmissionResult,
 ) error {
-	_, err := r.db.Exec("UPDATE submission SET compilation_log = ? WHERE id = ?", compilationLog, submissionId)
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("cannot begin transaction to update submission result: %w", err)
+	}
+
+	_, err = tx.Exec("UPDATE submission SET compilation_log = ? WHERE id = ?", compilationLog, submissionId)
 	if err != nil {
 		return fmt.Errorf("cannot query to update submission from submission result: %w", err)
 	}
 
 	// TODO: optimization
 	for i := range results {
-		_, err := r.db.NamedExec(`
+		_, err := tx.NamedExec(`
 			UPDATE submission_result
 			SET
 				status = :status,
@@ -372,5 +377,10 @@ func (r *workspaceRepository) UpdateSubmissionResults(
 			return fmt.Errorf("cannot query to update submission result: %w", err)
 		}
 	}
+
+	if err = tx.Commit(); err != nil {
+		return fmt.Errorf("cannot commit transaction to update submission result: %w", err)
+	}
+
 	return nil
 }
