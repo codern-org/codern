@@ -11,23 +11,23 @@ import (
 )
 
 type gradingConsumer struct {
-	logger           *zap.Logger
-	ch               *amqp.Channel
-	wsHub            *platform.WebSocketHub
-	workspaceUsecase domain.WorkspaceUsecase
+	logger            *zap.Logger
+	ch                *amqp.Channel
+	wsHub             *platform.WebSocketHub
+	assignmentUsecase domain.AssignmentUsecase
 }
 
 func NewGradingConsumer(
 	logger *zap.Logger,
 	rabbitmq *platform.RabbitMq,
 	wsHub *platform.WebSocketHub,
-	workspaceUsecase domain.WorkspaceUsecase,
+	assignmentUsecase domain.AssignmentUsecase,
 ) domain.GradingConsumer {
 	return &gradingConsumer{
-		logger:           logger,
-		ch:               rabbitmq.Ch,
-		wsHub:            wsHub,
-		workspaceUsecase: workspaceUsecase,
+		logger:            logger,
+		ch:                rabbitmq.Ch,
+		wsHub:             wsHub,
+		assignmentUsecase: assignmentUsecase,
 	}
 }
 
@@ -65,14 +65,14 @@ func (c *gradingConsumer) ConsumeSubmssionResult() error {
 				})
 			}
 
-			err = c.workspaceUsecase.UpdateSubmissionResults(submissionId, message.CompileOutput, results)
+			err = c.assignmentUsecase.UpdateSubmissionResults(submissionId, message.CompileOutput, results)
 			if err != nil {
 				delivery.Reject(false)
 				c.logger.Error("Cannot update submission results", zap.Error(err))
 				continue
 			}
 
-			submission, err := c.workspaceUsecase.GetSubmission(submissionId)
+			submission, err := c.assignmentUsecase.GetSubmission(submissionId)
 			if err != nil || submission == nil {
 				delivery.Reject(false)
 				c.logger.Error("Cannot get submission data when consuming submission result", zap.Error(err))

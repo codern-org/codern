@@ -95,6 +95,7 @@ func (s *FiberServer) applyRoutes() {
 		s.cfg, validator, s.usecase.Auth, s.usecase.Google, s.usecase.User,
 	)
 	workspaceController := controller.NewWorkspaceController(validator, s.usecase.Workspace)
+	assignmentController := controller.NewAssignmentController(validator, s.usecase.Assignment)
 
 	// Initialize Routes
 	api := s.app.Group("/api")
@@ -107,10 +108,10 @@ func (s *FiberServer) applyRoutes() {
 
 	api.Get("/workspaces", authMiddleware, workspaceController.List)
 	api.Get("/workspaces/:workspaceId", authMiddleware, workspaceMiddleware, workspaceController.Get)
-	api.Get("/workspaces/:workspaceId/assignments", authMiddleware, workspaceMiddleware, workspaceController.ListAssignment)
-	api.Get("/workspaces/:workspaceId/assignments/:assignmentId", authMiddleware, workspaceMiddleware, workspaceController.GetAssignment)
-	api.Get("/workspaces/:workspaceId/assignments/:assignmentId/submissions", authMiddleware, workspaceMiddleware, workspaceController.ListSubmission)
-	api.Post("/workspaces/:workspaceId/assignments/:assignmentId/submissions", authMiddleware, workspaceMiddleware, workspaceController.CreateSubmission)
+	api.Get("/workspaces/:workspaceId/assignments", authMiddleware, workspaceMiddleware, assignmentController.List)
+	api.Get("/workspaces/:workspaceId/assignments/:assignmentId", authMiddleware, workspaceMiddleware, assignmentController.Get)
+	api.Get("/workspaces/:workspaceId/assignments/:assignmentId/submissions", authMiddleware, workspaceMiddleware, assignmentController.ListSubmission)
+	api.Post("/workspaces/:workspaceId/assignments/:assignmentId/submissions", authMiddleware, workspaceMiddleware, assignmentController.CreateSubmission)
 
 	// File proxy from SeaweedFS
 	fs := s.app.Group("/file", authMiddleware, fileMiddleware)
