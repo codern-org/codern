@@ -14,17 +14,19 @@ type Platform struct {
 }
 
 type Repository struct {
-	Session   SessionRepository
-	User      UserRepository
-	Workspace WorkspaceRepository
+	Session    SessionRepository
+	User       UserRepository
+	Workspace  WorkspaceRepository
+	Assignment AssignmentRepository
 }
 
 type Usecase struct {
-	Google    GoogleUsecase
-	Session   SessionUsecase
-	User      UserUsecase
-	Auth      AuthUsecase
-	Workspace WorkspaceUsecase
+	Google     GoogleUsecase
+	Session    SessionUsecase
+	User       UserUsecase
+	Auth       AuthUsecase
+	Workspace  WorkspaceUsecase
+	Assignment AssignmentUsecase
 }
 
 type Publisher struct {
