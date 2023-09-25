@@ -55,6 +55,15 @@ func (r *workspaceRepository) CreateTestcases(testcases []domain.Testcase) error
 	return nil
 }
 
+func (r *workspaceRepository) CreateAssigment(assignment *domain.Assignment) error {
+	_, err := r.db.NamedExec("INSERT INTO assignment (id, workspace_id, name, description, detail_url, memory_limit, time_limit, level) VALUES (:id, :workspace_id, :name, :description, :detail_url, :memory_limit, :time_limit, :level)", assignment)
+	if err != nil {
+		return fmt.Errorf("cannot query to insert assignment: %w", err)
+	}
+
+	return nil
+}
+
 func (r *workspaceRepository) CreateSubmission(
 	submission *domain.Submission,
 	testcases []domain.Testcase,

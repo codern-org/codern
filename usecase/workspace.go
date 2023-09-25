@@ -103,6 +103,44 @@ func (u *workspaceUsecase) CreateTestcase(assignmentId int, testcaseFiles []doma
 	return nil
 }
 
+func (u *workspaceUsecase) CreateAssigment(
+	workspaceId int,
+	name string,
+	description string,
+	memoryLimit int,
+	timeLimit int,
+	level domain.AssignmentLevel,
+	detailFile io.Reader,
+) (*domain.Assignment, error) {
+	id := generator.GetId()
+	filePath := fmt.Sprintf(
+		"/workspaces/%d/assignments/%d/detail",
+		workspaceId, id,
+	)
+
+	assignment := &domain.Assignment{
+		Id:          id,
+		WorkspaceId: workspaceId,
+		Name:        name,
+		Description: description,
+		DetailUrl:   filePath,
+		MemoryLimit: memoryLimit,
+		TimeLimit:   timeLimit,
+		Level:       level,
+	}
+
+	err := u.workspaceRepository.CreateAssigment(assignment)
+	if err != nil {
+		return nil, errs.New(errs.ErrCreateAssignment, "cannot create assignment", err)
+	}
+
+	if err := u.seaweedfs.Upload(detailFile, 0, filePath); err != nil {
+		return nil, errs.New(errs.ErrFileSystem, "cannot upload file", err)
+	}
+
+	return assignment, nil
+}
+
 func (u *workspaceUsecase) CreateSubmission(
 	userId string,
 	assignmentId int,
