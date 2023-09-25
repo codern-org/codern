@@ -17,28 +17,38 @@ func NewWorkspaceRepository(db *sqlx.DB) domain.WorkspaceRepository {
 	return &workspaceRepository{db: db}
 }
 
-func (r *workspaceRepository) CreateWorkspace(workspace *domain.Workspace, userId string) error {
+func (r *workspaceRepository) CreateWorkspace(workspace *domain.Workspace, userId string) (retErr error) {
 	tx, err := r.db.Beginx()
 	if err != nil {
 		return fmt.Errorf("cannot begin transaction to create workspace: %w", err)
 	}
 
+	defer func() {
+		if err := recover(); err != nil {
+			if rbErr := tx.Rollback(); rbErr != nil {
+				retErr = fmt.Errorf("cannot rollback transaction: %w", err.(error))
+			} else {
+				retErr = err.(error)
+			}
+		}
+	}()
+
 	// TODO: combine into one query
 	_, err = tx.NamedExec("INSERT INTO workspace (id, name, profile_url) VALUES (:id, :name, :profile_url)", workspace)
 	if err != nil {
-		return fmt.Errorf("cannot query to insert workspace: %w", err)
+		panic(fmt.Errorf("cannot query to insert workspace: %w", err))
 	}
 
 	_, err = tx.Exec("INSERT INTO workspace_participant (workspace_id, user_id, role) VALUES (?, ?, ?)", workspace.Id, userId, domain.OwnerRole)
 	if err != nil {
-		return fmt.Errorf("cannot query to insert workspace participant: %w", err)
+		panic(fmt.Errorf("cannot query to insert workspace participant: %w", err))
 	}
 
 	if err = tx.Commit(); err != nil {
-		return fmt.Errorf("cannot commit transaction to create workspace: %w", err)
+		panic(fmt.Errorf("cannot commit transaction to create workspace: %w", err))
 	}
 
-	return nil
+	return
 }
 
 func (r *workspaceRepository) HasUser(userId string, workspaceId int) (bool, error) {
