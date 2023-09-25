@@ -61,6 +61,8 @@ func (r *assignmentRepository) Get(id int, userId string) (*domain.Assignment, e
 	assignments, err := r.list(userId, nil, &id)
 	if err != nil {
 		return nil, fmt.Errorf("cannot query to get assignment: %w", err)
+	} else if len(assignments) == 0 {
+		return nil, nil
 	}
 	return &assignments[0], nil
 }

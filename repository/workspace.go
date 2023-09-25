@@ -51,6 +51,8 @@ func (r *workspaceRepository) Get(id int, selector *domain.WorkspaceSelector) (*
 	workspaces, err := r.list([]int{id}, selector)
 	if err != nil {
 		return nil, fmt.Errorf("cannot query to get workspace: %w", err)
+	} else if len(workspaces) == 0 {
+		return nil, nil
 	}
 	return &workspaces[0], nil
 }
