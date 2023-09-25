@@ -51,6 +51,15 @@ func (r *workspaceRepository) CreateWorkspace(workspace *domain.Workspace, userI
 	return
 }
 
+func (r *workspaceRepository) CreateParticipant(participant *domain.WorkspaceParticipant) error {
+	_, err := r.db.Exec("INSERT INTO workspace_participant (workspace_id, user_id, role) VALUES (?, ?, ?)", participant.WorkspaceId, participant.UserId, domain.OwnerRole)
+	if err != nil {
+		return fmt.Errorf("cannot query to insert workspace participant: %w", err)
+	}
+
+	return nil
+}
+
 func (r *workspaceRepository) HasUser(userId string, workspaceId int) (bool, error) {
 	var result domain.WorkspaceParticipant
 	err := r.db.Get(

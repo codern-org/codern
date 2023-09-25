@@ -52,6 +52,7 @@ type TestcaseFile struct {
 
 type WorkspaceRepository interface {
 	CreateWorkspace(workspace *Workspace, userId string) error
+	CreateParticipant(participant *WorkspaceParticipant) error
 	HasUser(userId string, workspaceId int) (bool, error)
 	HasAssignment(assignmentId int, workspaceId int) (bool, error)
 	Get(id int, selector *WorkspaceSelector) (*Workspace, error)
