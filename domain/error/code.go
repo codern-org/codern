@@ -35,6 +35,8 @@ const (
 	ErrWorkspaceNoPerm      = 3001
 	ErrGetWorkspace         = 3002
 	ErrCreateWorkspace      = 3003
+	ErrCreateAssignment     = 3004
+	ErrCreateTestcase       = 3005
 	ErrCreateSubmission     = 3010
 	ErrGetAssignment        = 3011
 	ErrListTestcase         = 3012

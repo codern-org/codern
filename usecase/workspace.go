@@ -58,6 +58,51 @@ func (u *workspaceUsecase) CreateWorkspace(userId string, name string, file io.R
 	return nil
 }
 
+func (u *workspaceUsecase) CreateTestcase(assignmentId int, testcaseFiles []domain.TestcaseFile) error {
+	assignment, err := u.workspaceRepository.GetAssignment(assignmentId, "")
+	if err != nil {
+		return errs.New(errs.ErrGetAssignment, "cannot get assignment id %d", assignmentId, err)
+	}
+
+	testcases := make([]domain.Testcase, len(testcaseFiles))
+
+	for i, testcaseFile := range testcaseFiles {
+		id := generator.GetId()
+
+		inputFilePath := fmt.Sprintf(
+			"/workspaces/%d/assignments/%d/testcase/%d.in",
+			assignment.WorkspaceId, assignmentId, i,
+		)
+
+		outputFilePath := fmt.Sprintf(
+			"/workspaces/%d/assignments/%d/testcase/%d.out",
+			assignment.WorkspaceId, assignmentId, i,
+		)
+
+		testcases[i] = domain.Testcase{
+			Id:            id,
+			AssignmentId:  assignmentId,
+			InputFileUrl:  inputFilePath,
+			OutputFileUrl: outputFilePath,
+		}
+
+		if err := u.seaweedfs.Upload(testcaseFile.Input, 0, inputFilePath); err != nil {
+			return errs.New(errs.ErrFileSystem, "cannot upload file", err)
+		}
+
+		if err := u.seaweedfs.Upload(testcaseFile.Output, 0, outputFilePath); err != nil {
+			return errs.New(errs.ErrFileSystem, "cannot upload file", err)
+		}
+	}
+
+	err = u.workspaceRepository.CreateTestcases(testcases)
+	if err != nil {
+		return errs.New(errs.ErrCreateTestcase, "cannot create testcase", err)
+	}
+
+	return nil
+}
+
 func (u *workspaceUsecase) CreateSubmission(
 	userId string,
 	assignmentId int,

@@ -112,8 +112,14 @@ type Testcase struct {
 	OutputFileUrl string `json:"outputFileUrl" db:"output_file_url"`
 }
 
+type TestcaseFile struct {
+	Input  io.Reader
+	Output io.Reader
+}
+
 type WorkspaceRepository interface {
 	CreateWorkspace(workspace *Workspace) error
+	CreateTestcases(testcases []Testcase) error
 	CreateSubmission(submission *Submission, testcases []Testcase) error
 	IsUserIn(userId string, workspaceId int) (bool, error)
 	IsAssignmentIn(assignmentId int, workspaceId int) (bool, error)
@@ -130,6 +136,7 @@ type WorkspaceRepository interface {
 
 type WorkspaceUsecase interface {
 	CreateWorkspace(userId string, name string, file io.Reader) error
+	CreateTestcase(assignmentId int, testcaseFiles []TestcaseFile) error
 	CreateSubmission(userId string, assignmentId int, workspaceId int, language string, file io.Reader) error
 	IsUserIn(userId string, workspaceId int) (bool, error)
 	IsAssignmentIn(assignmentId int, workspaceId int) (bool, error)

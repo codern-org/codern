@@ -41,6 +41,20 @@ func (r *workspaceRepository) CreateWorkspace(workspace *domain.Workspace) error
 	return nil
 }
 
+func (r *workspaceRepository) CreateTestcases(testcases []domain.Testcase) error {
+	query := "INSERT INTO testcase (id, assignment_id, input_file_url, output_file_url) VALUES "
+	for i := range testcases {
+		query += fmt.Sprintf("('%d', '%d', '%s', '%s'),", testcases[i].Id, testcases[i].AssignmentId, testcases[i].InputFileUrl, testcases[i].OutputFileUrl)
+	}
+	query = query[:len(query)-1]
+
+	if _, err := r.db.Exec(query); err != nil {
+		return fmt.Errorf("cannot query to create testcase: %w", err)
+	}
+
+	return nil
+}
+
 func (r *workspaceRepository) CreateSubmission(
 	submission *domain.Submission,
 	testcases []domain.Testcase,
