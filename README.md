@@ -18,86 +18,66 @@
 <details><summary>Click to expand!</summary>
 
 ```mermaid
-flowchart TB
-    subgraph route[Route]
-        swaggerRoute[Swagger route]
-        apiRoute[Public API route]
-        fallbackRoute[Fallback route]
+%%{init: {'theme': 'neutral' } }%%
+graph LR
+    nginxIngress --> k8s
 
-        apiRoute -.->|Not match any routes| fallbackRoute
-        swaggerRoute
-    end
+    client["Client"]
+    client -->|http/https/websocket| nginxIngress
 
-    subgraph middleware[Middleware]
-        loggerMiddleware[Logger middleware]
-    end
+    k8s -.-|monitor| observer
+    datastore -.-|monitor| observer
+    messageBroker -.-|monitor| observer
+    vm2 -.-|monitor| observer
 
-    subgraph controller[Controller]
-        authController[Auth Controller]
-    end
+    backend <-->|pub/consume| rabbitmq
+    backend -->|query| mysql
+    backend -->|query| influxdb
+    backend -->|proxy| seaweedfs
 
-    subgraph usecase[Usecase]
-        authUsecase[Auth usecase]
-        googleUsecase[Google usecase]
-        sessionUsecase[Session usecase]
-        userUsecase[User usecase]
-    end
+    gradingCore <-->|pub/consume| rabbitmq
 
-    subgraph repository[Repository]
-        sessionRepository[Session Repository]
-        userRepository[User Repository]
-    end
+    subgraph codern["Codern cluster (Cold state)"]
+        nginxIngress["Nginx ingress"]
 
-    subgraph fiber[Fiber]
-        route
-        middleware
-        controller
-        usecase
-        repository
+        subgraph vm1["Virtual machine"]
+            subgraph k8s["Kubernetes environment"]
+                backend["Backend Pod"]
+                frontend["Frontend Pod"]
+            end
 
-        apiRoute --> loggerMiddleware
-        loggerMiddleware --> controller
+            subgraph docker["Docker environment"]
+                subgraph datastore["Datastore containers"]
+                    direction TB
+                    mysql["MySQL"]
+                    influxdb["InfluxDB"]
+                    seaweedfs["SeaweedFS"]
+                end
+                subgraph messageBroker["Message broker"]
+                    rabbitmq["RabbitMQ"]
+                end
+                subgraph observer["Observability containers"]
+                    direction TB
+                    grafana["Grafana"]
+                    prometheus["Prometheus"]
+                end
+            end
+        end
+        subgraph vm2["Virtual machine"]
+            dockerd
+            gradingCore -->|manage container| dockerd
 
-        authController --> authUsecase
-        authController --> googleUsecase
-
-        authUsecase --> googleUsecase
-        authUsecase --> sessionUsecase
-        authUsecase --> userUsecase
-
-        %% For alignment
-        authController --> userUsecase
-
-        sessionUsecase --> sessionRepository
-        userUsecase --> userRepository
-    end
-
-    style fiber fill:#dfe6e9
-    style route fill:#b2bec3
-    style controller fill:#b2bec3
-    style usecase fill:#b2bec3
-    style repository fill:#b2bec3
-
-    style platform fill:#dfe6e9
-    style database fill:#b2bec3
-
-    loggerMiddleware -->|Measurement executation time| influxdb
-    grafana -.->|Visualization| influxdb
-    repository ---> mysql
-
-    config[YAML file]
-    fiber -->|Load configuration| config
-    vault -->|Render template| config
-
-    subgraph platform[Other platform]
-        grafana[Grafana]
-        vault[Vault]
-
-        subgraph database[Database]
-            mysql[(MySQL)]
-            influxdb[(InfluxDB)]
+            subgraph docker2["Docker environment"]
+                gradingCore["Grading Core"]
+            end
         end
     end
+
+style vm1 fill:#ced4da
+style vm2 fill:#ced4da
+style datastore fill:#e9ecef
+style messageBroker fill:#e9ecef
+style observer fill:#e9ecef
 ```
 
 #### We don't need Microservice

@@ -81,11 +81,7 @@ func (u *sessionUsecase) Create(
 		CreatedAt: createdAt,
 	})
 	if err != nil {
-		return nil, errs.New(
-			errs.ErrCreateSession,
-			"cannot create session for user id %d", userId,
-			err,
-		)
+		return nil, errs.New(errs.ErrCreateSession, "cannot create session for user id %d", userId, err)
 	}
 
 	cookie := &fiber.Cookie{
@@ -104,9 +100,7 @@ func (u *sessionUsecase) Get(header string) (*domain.Session, error) {
 	}
 
 	session, err := u.sessionRepository.Get(id)
-	if session == nil {
-		return nil, errs.New(errs.ErrInvalidSession, "cannot get session from header")
-	} else if err != nil {
+	if err != nil {
 		return nil, errs.New(errs.ErrGetSession, "cannot get session from header", err)
 	}
 	return session, nil
@@ -124,6 +118,8 @@ func (u *sessionUsecase) Validate(header string) (*domain.Session, error) {
 	session, err := u.Get(header)
 	if err != nil {
 		return nil, errs.New(errs.OverrideCode, "cannot validate session", err)
+	} else if session == nil {
+		return nil, errs.New(errs.ErrInvalidSession, "session is invalid")
 	}
 
 	if !time.Now().Before(session.ExpiredAt) {

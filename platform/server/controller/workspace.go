@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/codern-org/codern/domain"
+	errs "github.com/codern-org/codern/domain/error"
 	"github.com/codern-org/codern/platform/server/middleware"
 	"github.com/codern-org/codern/platform/server/payload"
 	"github.com/codern-org/codern/platform/server/response"
@@ -59,42 +60,6 @@ func (c *WorkspaceController) CreateWorkspace(ctx *fiber.Ctx) error {
 	})
 }
 
-// CreateSubmission godoc
-//
-// @Summary 		Create a new submission
-// @Description	Submit a submission of the assignment
-// @Tags 				workspace
-// @Accept 			json
-// @Produce 		json
-// @Param				workspaceId					path	int				true	"Workspace ID"
-// @Param				assignmentId				path	int				true	"Assignment ID"
-// @Security 		ApiKeyAuth
-// @Param 			sid header string true "Session ID"
-// @Router 			/api/workspaces/{workspaceId}/assignments/{assignmentId}/submissions [post]
-func (c *WorkspaceController) CreateSubmission(ctx *fiber.Ctx) error {
-	var body payload.CreateSubmissionBody
-	if ok, err := c.validator.ValidateBody(&body, ctx); !ok {
-		return err
-	}
-	file, err := payload.GetFile("sourcecode", ctx)
-	if err != nil {
-		return err
-	}
-
-	user := middleware.GetUserFromCtx(ctx)
-	workspaceId := middleware.GetWorkspaceIdFromCtx(ctx)
-	assignmentId, _ := ctx.ParamsInt("assignmentId")
-
-	err = c.workspaceUsecase.CreateSubmission(user.Id, assignmentId, workspaceId, body.Language, file)
-	if err != nil {
-		return err
-	}
-
-	return response.NewSuccessResponse(ctx, fiber.StatusCreated, fiber.Map{
-		"submitted_at": time.Now(),
-	})
-}
-
 // List godoc
 //
 // @Summary 		List workspaces
@@ -128,53 +93,6 @@ func (c *WorkspaceController) List(ctx *fiber.Ctx) error {
 	return response.NewSuccessResponse(ctx, fiber.StatusOK, workspaces)
 }
 
-// ListAssignment godoc
-//
-// @Summary 		List assignment
-// @Description	Get all assignment from a workspace id on path parameter
-// @Tags 				workspace
-// @Accept 			json
-// @Produce 		json
-// @Param				workspaceId					path	int				true	"Workspace ID"
-// @Security 		ApiKeyAuth
-// @Param 			sid header string true "Session ID"
-// @Router 			/api/workspaces/{workspaceId}/assignments [get]
-func (c *WorkspaceController) ListAssignment(ctx *fiber.Ctx) error {
-	user := middleware.GetUserFromCtx(ctx)
-	workspaceId := middleware.GetWorkspaceIdFromCtx(ctx)
-
-	assignments, err := c.workspaceUsecase.ListAssignment(user.Id, workspaceId)
-	if err != nil {
-		return err
-	}
-
-	return response.NewSuccessResponse(ctx, fiber.StatusOK, assignments)
-}
-
-// ListSubmission godoc
-//
-// @Summary 		List submission
-// @Description	Get all submission from a workspace id on path parameter
-// @Tags 				workspace
-// @Accept 			json
-// @Produce 		json
-// @Param				workspaceId					path	int				true	"Workspace ID"
-// @Param				assignmentId				path	int				true	"Assignment ID"
-// @Security 		ApiKeyAuth
-// @Param 			sid header string true "Session ID"
-// @Router 			/api/workspaces/{workspaceId}/assignments/{assignmentId}/submissions [get]
-func (c *WorkspaceController) ListSubmission(ctx *fiber.Ctx) error {
-	user := middleware.GetUserFromCtx(ctx)
-	assignmentId := middleware.GetAssignmentIdFromCtx(ctx)
-
-	submissions, err := c.workspaceUsecase.ListSubmission(user.Id, assignmentId)
-	if err != nil {
-		return err
-	}
-
-	return response.NewSuccessResponse(ctx, fiber.StatusOK, submissions)
-}
-
 // Get godoc
 //
 // @Summary 		Get a workspace
@@ -197,31 +115,9 @@ func (c *WorkspaceController) Get(ctx *fiber.Ctx) error {
 	}, user.Id)
 	if err != nil {
 		return err
+	} else if workspace == nil {
+		return errs.New(errs.ErrWorkspaceNotFound, "workspace id %d not found", workspaceId)
 	}
 
 	return response.NewSuccessResponse(ctx, fiber.StatusOK, workspace)
-}
-
-// GetAssignment godoc
-//
-// @Summary 		Get an assignment
-// @Description	Get an assignment from workspace id on path parameter
-// @Tags 				workspace
-// @Accept 			json
-// @Produce 		json
-// @Param				workspaceId					path	int				true	"Workspace ID"
-// @Param				assignmentId				path	int				true	"Assignment ID"
-// @Security 		ApiKeyAuth
-// @Param 			sid header string true "Session ID"
-// @Router 			/api/workspaces/{workspaceId}/assignments/{assignmentId} [get]
-func (c *WorkspaceController) GetAssignment(ctx *fiber.Ctx) error {
-	user := middleware.GetUserFromCtx(ctx)
-	assignmentId := middleware.GetAssignmentIdFromCtx(ctx)
-
-	assignment, err := c.workspaceUsecase.GetAssignment(assignmentId, user.Id)
-	if err != nil {
-		return err
-	}
-
-	return response.NewSuccessResponse(ctx, fiber.StatusOK, assignment)
 }

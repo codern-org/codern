@@ -6,7 +6,9 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func NewWorkspaceMiddleware(workspaceUsecase domain.WorkspaceUsecase) fiber.Handler {
+func NewWorkspaceMiddleware(
+	workspaceUsecase domain.WorkspaceUsecase,
+) fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 		if ctx.Params("workspaceId") == "" {
 			return ctx.Next()
@@ -18,7 +20,7 @@ func NewWorkspaceMiddleware(workspaceUsecase domain.WorkspaceUsecase) fiber.Hand
 		}
 
 		user := GetUserFromCtx(ctx)
-		ok, err := workspaceUsecase.IsUserIn(user.Id, workspaceId)
+		ok, err := workspaceUsecase.HasUser(user.Id, workspaceId)
 		if !ok {
 			return errs.New(errs.ErrWorkspaceNoPerm, "cannot access workspace id %d", workspaceId)
 		} else if err != nil {
@@ -32,7 +34,7 @@ func NewWorkspaceMiddleware(workspaceUsecase domain.WorkspaceUsecase) fiber.Hand
 				return errs.New(errs.ErrParamsValidator, "param assignmentId is invalid", err)
 			}
 
-			ok, err := workspaceUsecase.IsAssignmentIn(assignmentId, workspaceId)
+			ok, err := workspaceUsecase.HasAssignment(assignmentId, workspaceId)
 			if !ok {
 				return errs.New(errs.ErrWorkspaceNoPerm, "cannot access assignment id %d", assignmentId)
 			} else if err != nil {

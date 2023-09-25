@@ -55,7 +55,7 @@ func main() {
 	publisher := initPublisher(cfg, logger, platform)
 	usecase := initUsecase(cfg, logger, platform, repository, publisher)
 
-	startConsumer(logger, platform, usecase)
+	// startConsumer(logger, platform, usecase)
 
 	// Initialize server with gracefully shutdown
 	signals := make(chan os.Signal, 1)
@@ -132,9 +132,10 @@ func initPlatform(cfg *config.Config, logger *zap.Logger) *domain.Platform {
 
 func initRepository(mysql *sqlx.DB) *domain.Repository {
 	return &domain.Repository{
-		Session:   repository.NewSessionRepository(mysql),
-		User:      repository.NewUserRepository(mysql),
-		Workspace: repository.NewWorkspaceRepository(mysql),
+		Session:    repository.NewSessionRepository(mysql),
+		User:       repository.NewUserRepository(mysql),
+		Workspace:  repository.NewWorkspaceRepository(mysql),
+		Assignment: repository.NewAssignmentRepository(mysql),
 	}
 }
 
@@ -149,16 +150,16 @@ func initUsecase(
 	sessionUsecase := usecase.NewSessionUsecase(cfg, repository.Session)
 	userUsecase := usecase.NewUserUsecase(repository.User)
 	authUsecase := usecase.NewAuthUsecase(googleUsecase, sessionUsecase, userUsecase)
-	workspaceUsecase := usecase.NewWorkspaceUsecase(
-		cfg, platform.SeaweedFs, platform.RabbitMq, repository.Workspace, publisher.Grading,
-	)
+	workspaceUsecase := usecase.NewWorkspaceUsecase(platform.SeaweedFs, repository.Workspace)
+	assignmentUsecase := usecase.NewAssignmentUsecase(platform.SeaweedFs, repository.Assignment, publisher.Grading)
 
 	return &domain.Usecase{
-		Google:    googleUsecase,
-		Session:   sessionUsecase,
-		User:      userUsecase,
-		Auth:      authUsecase,
-		Workspace: workspaceUsecase,
+		Google:     googleUsecase,
+		Session:    sessionUsecase,
+		User:       userUsecase,
+		Auth:       authUsecase,
+		Workspace:  workspaceUsecase,
+		Assignment: assignmentUsecase,
 	}
 }
 
@@ -179,7 +180,7 @@ func startConsumer(
 	platform *domain.Platform,
 	usecase *domain.Usecase,
 ) {
-	gradingConsumer := consumer.NewGradingConsumer(logger, platform.RabbitMq, platform.WebSocketHub, usecase.Workspace)
+	gradingConsumer := consumer.NewGradingConsumer(logger, platform.RabbitMq, platform.WebSocketHub, usecase.Assignment)
 	if err := gradingConsumer.ConsumeSubmssionResult(); err != nil {
 		logger.Fatal("Cannot consume submission result", zap.Error(err))
 	}
