@@ -13,15 +13,18 @@ import (
 type workspaceUsecase struct {
 	seaweedfs           *platform.SeaweedFs
 	workspaceRepository domain.WorkspaceRepository
+	userUsecase         domain.UserUsecase
 }
 
 func NewWorkspaceUsecase(
 	seaweedfs *platform.SeaweedFs,
 	workspaceRepository domain.WorkspaceRepository,
+	userUsecase domain.UserUsecase,
 ) domain.WorkspaceUsecase {
 	return &workspaceUsecase{
 		seaweedfs:           seaweedfs,
 		workspaceRepository: workspaceRepository,
+		userUsecase:         userUsecase,
 	}
 }
 
@@ -42,6 +45,35 @@ func (u *workspaceUsecase) CreateWorkspace(userId string, name string, file io.R
 
 	if err := u.workspaceRepository.CreateWorkspace(workspace, userId); err != nil {
 		return errs.New(errs.ErrCreateWorkspace, "cannot create workspace", err)
+	}
+
+	return nil
+}
+
+func (u *workspaceUsecase) CreateParticipant(workspaceId int, userId string, role domain.WorkspaceRole) error {
+	user, err := u.userUsecase.Get(userId)
+	if err != nil {
+		return errs.New(errs.OverrideCode, "cannot get user id %s while creating participant", userId, err)
+	} else if user == nil {
+		return errs.New(errs.ErrUserNotFound, "user id %s not found while creating participant", userId)
+	}
+
+	isUserAlreadyJoined, err := u.workspaceRepository.HasUser(userId, workspaceId)
+	if err != nil {
+		return errs.New(errs.OverrideCode, "cannot validate if user id %s already exist in workspace", userId, err)
+	} else if isUserAlreadyJoined {
+		return errs.New(errs.ErrWorkspaceHasUser, "user id %s is already in workspace", userId)
+	}
+
+	participant := &domain.WorkspaceParticipant{
+		WorkspaceId: workspaceId,
+		UserId:      userId,
+		Role:        role,
+	}
+
+	err = u.workspaceRepository.CreateParticipant(participant)
+	if err != nil {
+		return errs.New(errs.ErrCreateWorkspaceParticipant, "cannot create participant", err)
 	}
 
 	return nil

@@ -65,6 +65,7 @@ type WorkspaceRepository interface {
 
 type WorkspaceUsecase interface {
 	CreateWorkspace(userId string, name string, file io.Reader) error
+	CreateParticipant(workspaceId int, userId string, role WorkspaceRole) error
 	HasUser(userId string, workspaceId int) (bool, error)
 	HasAssignment(assignmentId int, workspaceId int) (bool, error)
 	Get(id int, selector *WorkspaceSelector, userId string) (*Workspace, error)

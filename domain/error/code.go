@@ -31,26 +31,27 @@ const (
 	ErrCreateUser        = 2032
 	ErrGoogleAuth        = 2040
 
-	ErrWorkspaceNotFound       = 3000
-	ErrWorkspaceNoPerm         = 3001
-	ErrGetWorkspace            = 3002
-	ErrListWorkspace           = 3003
-	ErrWorkspaceHasUser        = 3004
-	ErrWorkspaceHasAssignment  = 3005
-	ErrWorkspaceUpdateRole     = 3006
-	ErrWorkspaceUpdateRolePerm = 3007
-	ErrCreateWorkspace         = 3008
-	ErrCreateSubmission        = 3010
-	ErrGetAssignment           = 3020
-	ErrListAssignment          = 3021
-	ErrAssignmentNotFound      = 3022
-	ErrAssignmentNoTestcase    = 3023
-	ErrCreateAssignment        = 3024
-	ErrListTestcase            = 3030
-	ErrCreateTestcase          = 3031
-	ErrGetSubmission           = 3040
-	ErrListSubmission          = 3041
-	ErrUpdateSubmissionResult  = 3042
+	ErrWorkspaceNotFound          = 3000
+	ErrWorkspaceNoPerm            = 3001
+	ErrGetWorkspace               = 3002
+	ErrListWorkspace              = 3003
+	ErrWorkspaceHasUser           = 3004
+	ErrWorkspaceHasAssignment     = 3005
+	ErrWorkspaceUpdateRole        = 3006
+	ErrWorkspaceUpdateRolePerm    = 3007
+	ErrCreateWorkspace            = 3008
+	ErrCreateWorkspaceParticipant = 3009
+	ErrCreateSubmission           = 3010
+	ErrGetAssignment              = 3020
+	ErrListAssignment             = 3021
+	ErrAssignmentNotFound         = 3022
+	ErrAssignmentNoTestcase       = 3023
+	ErrCreateAssignment           = 3024
+	ErrListTestcase               = 3030
+	ErrCreateTestcase             = 3031
+	ErrGetSubmission              = 3040
+	ErrListSubmission             = 3041
+	ErrUpdateSubmissionResult     = 3042
 
 	ErrGradingRequest = 4000
 
