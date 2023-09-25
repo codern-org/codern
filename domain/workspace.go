@@ -8,7 +8,6 @@ type Workspace struct {
 	Id         int       `json:"id" db:"id"`
 	Name       string    `json:"name" db:"name"`
 	ProfileUrl string    `json:"profileUrl" db:"profile_url"`
-	OwnerId    string    `json:"ownerId" db:"owner_id"`
 	CreatedAt  time.Time `json:"createdAt" db:"created_at"`
 
 	// Always aggregation
@@ -21,12 +20,20 @@ type Workspace struct {
 	Participants []WorkspaceParticipant `json:"participants,omitempty"`
 }
 
+type WorkspaceRole string
+
+const (
+	MemberRole WorkspaceRole = "MEMBER"
+	AdminRole  WorkspaceRole = "ADMIN"
+	OwnerRole  WorkspaceRole = "OWNER"
+)
+
 type WorkspaceParticipant struct {
-	WorkspaceId       int       `json:"-" db:"workspace_id"`
-	UserId            string    `json:"userId" db:"user_id"`
-	Role              string    `json:"role" db:"role"`
-	JoinedAt          time.Time `json:"joinedAt" db:"joined_at"`
-	RecentlyVisitedAt time.Time `json:"-" db:"recently_visited_at"`
+	WorkspaceId       int           `json:"-" db:"workspace_id"`
+	UserId            string        `json:"userId" db:"user_id"`
+	Role              WorkspaceRole `json:"role" db:"role"`
+	JoinedAt          time.Time     `json:"joinedAt" db:"joined_at"`
+	RecentlyVisitedAt time.Time     `json:"-" db:"recently_visited_at"`
 
 	// Always aggregation
 	Name       string `json:"name" db:"name"`
@@ -41,9 +48,11 @@ type WorkspaceRepository interface {
 	HasUser(userId string, workspaceId int) (bool, error)
 	HasAssignment(assignmentId int, workspaceId int) (bool, error)
 	Get(id int, selector *WorkspaceSelector) (*Workspace, error)
+	GetRole(userId string, workspaceId int) (*WorkspaceRole, error)
 	List(userId string, selector *WorkspaceSelector) ([]Workspace, error)
 	ListRecent(userId string) ([]Workspace, error)
 	UpdateRecent(userId string, workspaceId int) error
+	UpdateRole(userId string, workspaceId int, role WorkspaceRole) error
 }
 
 type WorkspaceUsecase interface {
@@ -52,4 +61,5 @@ type WorkspaceUsecase interface {
 	Get(id int, selector *WorkspaceSelector, userId string) (*Workspace, error)
 	List(userId string, selector *WorkspaceSelector) ([]Workspace, error)
 	ListRecent(userId string) ([]Workspace, error)
+	UpdateRole(updaterUserId string, targetUserId string, workspaceId int, role WorkspaceRole) error
 }

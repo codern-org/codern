@@ -55,6 +55,21 @@ func (r *workspaceRepository) Get(id int, selector *domain.WorkspaceSelector) (*
 	return &workspaces[0], nil
 }
 
+func (r *workspaceRepository) GetRole(userId string, workspaceId int) (*domain.WorkspaceRole, error) {
+	var role domain.WorkspaceRole
+	err := r.db.Get(
+		&role,
+		"SELECT role FROM workspace_participant WHERE user_id = ? AND workspace_id = ?",
+		userId, workspaceId,
+	)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	} else if err != nil {
+		return nil, fmt.Errorf("cannot query to get workspace role: %w", err)
+	}
+	return &role, nil
+}
+
 func (r *workspaceRepository) List(
 	userId string,
 	selector *domain.WorkspaceSelector,
@@ -81,7 +96,7 @@ func (r *workspaceRepository) list(ids []int, selector *domain.WorkspaceSelector
 			(SELECT COUNT(*) FROM workspace_participant wp WHERE wp.workspace_id = w.id) AS participant_count,
 			(SELECT COUNT(*) FROM assignment a WHERE a.workspace_id = w.id) AS total_assignment
 		FROM workspace w
-		INNER JOIN user ON user.id = w.owner_id
+		INNER JOIN user ON user.id = (SELECT user_id FROM workspace_participant WHERE workspace_id = w.id AND role = 'OWNER')
 		WHERE w.id IN (?)
 		LIMIT ?
 	`, ids, len(ids))
@@ -132,7 +147,7 @@ func (r *workspaceRepository) ListRecent(userId string) ([]domain.Workspace, err
 			(SELECT COUNT(*) FROM workspace_participant wp WHERE wp.workspace_id = w.id) AS participant_count,
 			(SELECT COUNT(*) FROM assignment a WHERE a.workspace_id = w.id) AS total_assignment
 		FROM workspace w
-		INNER JOIN user ON user.id = w.owner_id
+		INNER JOIN user ON user.id = (SELECT user_id FROM workspace_participant WHERE workspace_id = w.id AND role = 'OWNER')
 		INNER JOIN workspace_participant wp ON wp.workspace_id = w.id
 		WHERE wp.user_id = ? AND w.id IN (SELECT workspace_id FROM workspace_participant WHERE user_id = ?)
 		ORDER BY wp.recently_visited_at DESC
@@ -153,6 +168,21 @@ func (r *workspaceRepository) UpdateRecent(userId string, workspaceId int) error
 	`, time.Now(), userId, workspaceId)
 	if err != nil {
 		return fmt.Errorf("cannot query to update recent workspace: %w", err)
+	}
+	return nil
+}
+
+func (r *workspaceRepository) UpdateRole(
+	userId string,
+	workspaceId int,
+	role domain.WorkspaceRole,
+) error {
+	_, err := r.db.Exec(
+		"UPDATE workspace_participant SET role = ? WHERE user_id = ? AND workspace_id = ?",
+		role, userId, workspaceId,
+	)
+	if err != nil {
+		return fmt.Errorf("cannot query to update role: %w", err)
 	}
 	return nil
 }
