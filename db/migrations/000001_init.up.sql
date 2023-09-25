@@ -25,9 +25,7 @@ CREATE TABLE IF NOT EXISTS `workspace` (
   `id` BIGINT UNSIGNED PRIMARY KEY,
   `name` VARCHAR(64) NOT NULL,
   `profile_url` VARCHAR(128) NOT NULL,
-  `owner_id` VARCHAR(64) NOT NULL,
-  `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (`owner_id`) REFERENCES `user`(`id`)
+  `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS `workspace_participant` (
@@ -111,7 +109,7 @@ INSERT INTO `workspace` VALUES (
 INSERT INTO `workspace_participant` VALUES (
   '1',
   '62b870d7a68388007ba0f8ba292686c70dcb06b8',
-  'ADMIN',
+  'OWNER',
   '2023-08-20 09:30:00',
   DEFAULT
 );
@@ -154,6 +152,7 @@ INSERT INTO `workspace` VALUES (
 INSERT INTO `workspace_participant` VALUES (
   '2',
   '62b870d7a68388007ba0f8ba292686c70dcb06b8',
+  'OWNER',
   '2023-08-20 09:30:00',
   DEFAULT
 );
