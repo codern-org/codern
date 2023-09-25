@@ -109,6 +109,7 @@ func (s *FiberServer) applyRoutes() {
 	api.Get("/workspaces", authMiddleware, workspaceController.List)
 	api.Post("/workspaces", authMiddleware, workspaceController.CreateWorkspace)
 	api.Get("/workspaces/:workspaceId", authMiddleware, workspaceMiddleware, workspaceController.Get)
+	api.Post("/workspaces/:workspaceId/participants", authMiddleware, workspaceMiddleware, workspaceController.CreateParticipant)
 	api.Get("/workspaces/:workspaceId/assignments", authMiddleware, workspaceMiddleware, assignmentController.List)
 	api.Get("/workspaces/:workspaceId/assignments/:assignmentId", authMiddleware, workspaceMiddleware, assignmentController.Get)
 	api.Get("/workspaces/:workspaceId/assignments/:assignmentId/submissions", authMiddleware, workspaceMiddleware, assignmentController.ListSubmission)

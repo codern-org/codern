@@ -60,6 +60,27 @@ func (c *WorkspaceController) CreateWorkspace(ctx *fiber.Ctx) error {
 	})
 }
 
+func (c *WorkspaceController) CreateParticipant(ctx *fiber.Ctx) error {
+	var body payload.CreateWorkspaceParticipantBody
+	if ok, err := c.validator.ValidateBody(&body, ctx); !ok {
+		return err
+	}
+
+	workspaceId, err := ctx.ParamsInt("workspaceId")
+	if err != nil {
+		return err
+	}
+
+	err = c.workspaceUsecase.CreateParticipant(workspaceId, body.UserId, body.Role)
+	if err != nil {
+		return err
+	}
+
+	return response.NewSuccessResponse(ctx, fiber.StatusOK, fiber.Map{
+		"submitted_at": time.Now(),
+	})
+}
+
 // List godoc
 //
 // @Summary 		List workspaces
