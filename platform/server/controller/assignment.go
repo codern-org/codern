@@ -1,6 +1,10 @@
 package controller
 
 import (
+	"fmt"
+	"mime/multipart"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/codern-org/codern/domain"
@@ -25,6 +29,129 @@ func NewAssignmentController(
 		validator:         validator,
 		assignmentUsecase: assignmentUsecase,
 	}
+}
+
+type TestcaseFileHeader struct {
+	Input  *multipart.FileHeader
+	Output *multipart.FileHeader
+}
+
+// CreateAssignment godoc
+//
+// @Summary 		Create a new assignment
+// @Description	Create a new assignment on workspace id on path parameter
+// @Tags 				workspace
+// @Accept 			multipart/form-data
+// @Produce 		json
+// @Param				workspaceId					path	int				true	"Workspace ID"
+// @Security 		ApiKeyAuth
+// @Param 			sid header string true "Session ID"
+// @Param 			name formData string true "Assignment name"
+// @Param 			description formData string true "Assignment description"
+// @Param 			memory_limit formData int true "Assignment memory limit"
+// @Param 			time_limit formData int true "Assignment time limit"
+// @Param 			level formData int true "Assignment level"
+// @Param 			detail formData file true "Assignment detail"
+// @Param 			in formData file true "Assignment testcase input"
+// @Param 			out formData file true "Assignment testcase output"
+// @Router 			/api/workspaces/{workspaceId}/assignments [post]
+func (c *AssignmentController) CreateAssignment(ctx *fiber.Ctx) error {
+	form, err := ctx.MultipartForm()
+	if err != nil {
+		return err
+	}
+
+	testcaseHeaderByIndex := make(map[int]*TestcaseFileHeader)
+
+	for formFieldName, fileHeaders := range form.File {
+		if formFieldName != "in" && formFieldName != "out" {
+			continue
+		}
+
+		for _, fileHeader := range fileHeaders {
+			sequenceStr := strings.Split(fileHeader.Filename, ".")[0]
+			sequence, err := strconv.Atoi(sequenceStr)
+			if err != nil {
+				return response.NewSuccessResponse(ctx, fiber.StatusBadRequest, fiber.Map{
+					"message": fmt.Sprintf("testcase file name `%s` is not valid", fileHeader.Filename),
+				})
+			}
+
+			testcaseFile, found := testcaseHeaderByIndex[sequence]
+			if !found {
+				testcaseFile = &TestcaseFileHeader{}
+				testcaseHeaderByIndex[sequence] = testcaseFile
+			}
+
+			switch formFieldName {
+			case "in":
+				testcaseFile.Input = fileHeader
+			case "out":
+				testcaseFile.Output = fileHeader
+			}
+		}
+	}
+
+	for _, testcaseFileHeader := range testcaseHeaderByIndex {
+		if testcaseFileHeader.Input == nil || testcaseFileHeader.Output == nil {
+			return response.NewSuccessResponse(ctx, fiber.StatusBadRequest, fiber.Map{
+				"message": "testcase file is not complete",
+			})
+		}
+	}
+
+	for i := 1; i <= len(testcaseHeaderByIndex); i++ {
+		_, found := testcaseHeaderByIndex[i]
+		if !found {
+			return response.NewSuccessResponse(ctx, fiber.StatusBadRequest, fiber.Map{
+				"message": "testcase file is not sequential",
+			})
+		}
+	}
+
+	testcaseFiles := make([]domain.TestcaseFile, 0)
+	for _, testcaseFileHeader := range testcaseHeaderByIndex {
+		input, err := testcaseFileHeader.Input.Open()
+		if err != nil {
+			return err
+		}
+
+		output, err := testcaseFileHeader.Output.Open()
+		if err != nil {
+			return err
+		}
+
+		testcaseFiles = append(testcaseFiles, domain.TestcaseFile{
+			Input:  input,
+			Output: output,
+		})
+	}
+
+	detailFile, err := payload.GetFile("detail", ctx)
+	if err != nil {
+		return err
+	}
+
+	var body payload.CreateAssignmentBody
+	if ok, err := c.validator.ValidateBody(&body, ctx); !ok {
+		return err
+	}
+
+	workspaceId, _ := ctx.ParamsInt("workspaceId")
+
+	assignment, err := c.assignmentUsecase.CreateAssigment(workspaceId, body.Name, body.Description, body.MemoryLimit, body.TimeLimit, body.Level, detailFile)
+	if err != nil {
+		return err
+	}
+
+	err = c.assignmentUsecase.CreateTestcase(assignment.Id, testcaseFiles)
+	if err != nil {
+		return err
+	}
+
+	return response.NewSuccessResponse(ctx, fiber.StatusOK, fiber.Map{
+		"submitted_at": time.Now(),
+	})
 }
 
 // CreateSubmission godoc
