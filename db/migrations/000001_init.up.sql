@@ -102,7 +102,6 @@ INSERT INTO `workspace` VALUES (
   '1',
   'Codern Playground',
   '',
-  '62b870d7a68388007ba0f8ba292686c70dcb06b8',
   '2023-08-20 09:30:00'
 );
 
@@ -145,7 +144,6 @@ INSERT INTO `workspace` VALUES (
   '2',
   'Codern Playground 2',
   '',
-  '62b870d7a68388007ba0f8ba292686c70dcb06b8',
   '2023-08-20 09:30:00'
 );
 
