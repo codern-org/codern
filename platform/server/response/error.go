@@ -10,13 +10,11 @@ var DomainErrCodeToHttpStatus = map[int]int{
 	errs.ErrRoute:      fiber.StatusNotFound,
 	errs.ErrFileSystem: fiber.StatusInternalServerError,
 
-	errs.ErrAuthHeader:      fiber.StatusBadRequest,
-	errs.ErrBodyParser:      fiber.StatusUnprocessableEntity,
-	errs.ErrBodyValidator:   fiber.StatusBadRequest,
-	errs.ErrQueryParser:     fiber.StatusUnprocessableEntity,
-	errs.ErrQueryValidator:  fiber.StatusBadRequest,
-	errs.ErrParamsParser:    fiber.StatusUnprocessableEntity,
-	errs.ErrParamsValidator: fiber.StatusBadRequest,
+	errs.ErrAuthHeader:       fiber.StatusBadRequest,
+	errs.ErrPayloadValidator: fiber.StatusBadRequest,
+	errs.ErrBodyParser:       fiber.StatusUnprocessableEntity,
+	errs.ErrQueryParser:      fiber.StatusUnprocessableEntity,
+	errs.ErrParamsParser:     fiber.StatusUnprocessableEntity,
 
 	errs.ErrSessionPrefix:     fiber.StatusUnauthorized,
 	errs.ErrSignatureMismatch: fiber.StatusUnauthorized,

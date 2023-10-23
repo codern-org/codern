@@ -40,20 +40,15 @@ func NewAssignmentController(
 // @Param 			sid header string true "Session ID"
 // @Router 			/api/workspaces/{workspaceId}/assignments/{assignmentId}/submissions [post]
 func (c *AssignmentController) CreateSubmission(ctx *fiber.Ctx) error {
-	var body payload.CreateSubmissionBody
-	if ok, err := c.validator.ValidateBody(&body, ctx); !ok {
-		return err
-	}
-	file, err := payload.GetFile("sourcecode", ctx)
-	if err != nil {
+	var pl payload.CreateSubmissionPayload
+	if ok, err := c.validator.Validate(&pl, ctx); !ok {
 		return err
 	}
 
 	user := middleware.GetUserFromCtx(ctx)
 	workspaceId := middleware.GetWorkspaceIdFromCtx(ctx)
-	assignmentId, _ := ctx.ParamsInt("assignmentId")
 
-	err = c.assignmentUsecase.CreateSubmission(user.Id, assignmentId, workspaceId, body.Language, file)
+	err := c.assignmentUsecase.CreateSubmission(user.Id, pl.AssignmentId, workspaceId, pl.Language, pl.SourceCode)
 	if err != nil {
 		return err
 	}

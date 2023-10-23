@@ -62,14 +62,15 @@ func (c *AuthController) Me(ctx *fiber.Ctx) error {
 // @Param				credentials	body	payload.SignInBody true "Email and password for authentication"
 // @Router 			/api/auth/signin [post]
 func (c *AuthController) SignIn(ctx *fiber.Ctx) error {
-	var body payload.SignInBody
-	if ok, err := c.validator.ValidateBody(&body, ctx); !ok {
+	var payload payload.SignInPayload
+	if ok, err := c.validator.Validate(&payload, ctx); !ok {
 		return err
 	}
+
 	ipAddress := ctx.IP()
 	userAgent := ctx.Context().UserAgent()
 
-	cookie, err := c.authUsecase.SignIn(body.Email, body.Password, ipAddress, string(userAgent))
+	cookie, err := c.authUsecase.SignIn(payload.Email, payload.Password, ipAddress, string(userAgent))
 	if err != nil {
 		return err
 	}
@@ -105,16 +106,16 @@ func (c *AuthController) SignInWithGoogle(ctx *fiber.Ctx) error {
 	ipAddress := ctx.IP()
 	userAgent := ctx.Context().UserAgent()
 
+	url, err := url.JoinPath(c.cfg.Client.Frontend.BaseUrl, c.cfg.Client.Frontend.Path.SignIn)
+	if err != nil {
+		return errs.New(errs.ErrCreateUrlPath, "invalid google callback url", err)
+	}
+
 	cookie, err := c.authUsecase.SignInWithGoogle(code, ipAddress, string(userAgent))
 	if err != nil {
 		return err
 	}
 	ctx.Cookie(cookie)
-
-	url, err := url.JoinPath(c.cfg.Client.Frontend.BaseUrl, c.cfg.Client.Frontend.Path.SignIn)
-	if err != nil {
-		return errs.New(errs.ErrCreateUrlPath, "invalid google callback url", err)
-	}
 
 	return ctx.Redirect(url)
 }

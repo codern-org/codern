@@ -7,13 +7,11 @@ const (
 	ErrRoute      = 2
 	ErrFileSystem = 3
 
-	ErrAuthHeader      = 1000
-	ErrBodyParser      = 1001
-	ErrBodyValidator   = 1002
-	ErrQueryParser     = 1003
-	ErrQueryValidator  = 1004
-	ErrParamsParser    = 1005
-	ErrParamsValidator = 1006
+	ErrAuthHeader       = 1000
+	ErrPayloadValidator = 1001
+	ErrBodyParser       = 1002
+	ErrQueryParser      = 1003
+	ErrParamsParser     = 1004
 
 	ErrSessionPrefix     = 2000
 	ErrSignatureMismatch = 2001
