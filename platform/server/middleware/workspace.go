@@ -16,7 +16,7 @@ func NewWorkspaceMiddleware(
 
 		workspaceId, err := ctx.ParamsInt("workspaceId")
 		if err != nil {
-			return errs.New(errs.ErrParamsValidator, "param workspaceId is invalid")
+			return errs.New(errs.ErrPayloadValidator, "param workspaceId is invalid")
 		}
 
 		user := GetUserFromCtx(ctx)
@@ -31,7 +31,7 @@ func NewWorkspaceMiddleware(
 		if ctx.Params("assignmentId") != "" {
 			assignmentId, err = ctx.ParamsInt("assignmentId")
 			if err != nil {
-				return errs.New(errs.ErrParamsValidator, "param assignmentId is invalid", err)
+				return errs.New(errs.ErrPayloadValidator, "param assignmentId is invalid", err)
 			}
 
 			ok, err := workspaceUsecase.HasAssignment(assignmentId, workspaceId)

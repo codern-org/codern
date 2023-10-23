@@ -75,9 +75,11 @@ func (c *WorkspaceController) Get(ctx *fiber.Ctx) error {
 	workspaceId := middleware.GetWorkspaceIdFromCtx(ctx)
 	selector := payload.GetFieldSelector(ctx)
 
-	workspace, err := c.workspaceUsecase.Get(workspaceId, &domain.WorkspaceSelector{
-		Participants: selector.Has("participants"),
-	}, user.Id)
+	workspace, err := c.workspaceUsecase.Get(
+		workspaceId,
+		&domain.WorkspaceSelector{Participants: selector.Has("participants")},
+		user.Id,
+	)
 	if err != nil {
 		return err
 	} else if workspace == nil {
