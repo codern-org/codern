@@ -38,7 +38,7 @@ func NewAssignmentController(
 // @Param				assignmentId				path	int				true	"Assignment ID"
 // @Security 		ApiKeyAuth
 // @Param 			sid header string true "Session ID"
-// @Router 			/api/workspaces/{workspaceId}/assignments/{assignmentId}/submissions [post]
+// @Router 			/workspaces/{workspaceId}/assignments/{assignmentId}/submissions [post]
 func (c *AssignmentController) CreateSubmission(ctx *fiber.Ctx) error {
 	var pl payload.CreateSubmissionPayload
 	if ok, err := c.validator.Validate(&pl, ctx); !ok {
@@ -68,7 +68,7 @@ func (c *AssignmentController) CreateSubmission(ctx *fiber.Ctx) error {
 // @Param				workspaceId					path	int				true	"Workspace ID"
 // @Security 		ApiKeyAuth
 // @Param 			sid header string true "Session ID"
-// @Router 			/api/workspaces/{workspaceId}/assignments [get]
+// @Router 			/workspaces/{workspaceId}/assignments [get]
 func (c *AssignmentController) List(ctx *fiber.Ctx) error {
 	user := middleware.GetUserFromCtx(ctx)
 	workspaceId := middleware.GetWorkspaceIdFromCtx(ctx)
@@ -92,7 +92,7 @@ func (c *AssignmentController) List(ctx *fiber.Ctx) error {
 // @Param				assignmentId				path	int				true	"Assignment ID"
 // @Security 		ApiKeyAuth
 // @Param 			sid header string true "Session ID"
-// @Router 			/api/workspaces/{workspaceId}/assignments/{assignmentId}/submissions [get]
+// @Router 			/workspaces/{workspaceId}/assignments/{assignmentId}/submissions [get]
 func (c *AssignmentController) ListSubmission(ctx *fiber.Ctx) error {
 	user := middleware.GetUserFromCtx(ctx)
 	assignmentId := middleware.GetAssignmentIdFromCtx(ctx)
@@ -116,7 +116,7 @@ func (c *AssignmentController) ListSubmission(ctx *fiber.Ctx) error {
 // @Param				assignmentId				path	int				true	"Assignment ID"
 // @Security 		ApiKeyAuth
 // @Param 			sid header string true "Session ID"
-// @Router 			/api/workspaces/{workspaceId}/assignments/{assignmentId} [get]
+// @Router 			/workspaces/{workspaceId}/assignments/{assignmentId} [get]
 func (c *AssignmentController) Get(ctx *fiber.Ctx) error {
 	user := middleware.GetUserFromCtx(ctx)
 	assignmentId := middleware.GetAssignmentIdFromCtx(ctx)

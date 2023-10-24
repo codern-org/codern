@@ -35,7 +35,7 @@ func NewWorkspaceController(
 // @Param				fields			query []string	false	"Specific fields to include in the response"	collectionFormat(csv)	Enums(participants)
 // @Security 		ApiKeyAuth
 // @Param 			sid header string true "Session ID"
-// @Router 			/api/workspaces [get]
+// @Router 			/workspaces [get]
 func (c *WorkspaceController) List(ctx *fiber.Ctx) error {
 	user := middleware.GetUserFromCtx(ctx)
 	selector := payload.GetFieldSelector(ctx)
@@ -69,7 +69,7 @@ func (c *WorkspaceController) List(ctx *fiber.Ctx) error {
 // @Param				fields			query []string	false	"Specific fields to include in the response"	collectionFormat(csv)	Enums(participants)
 // @Security 		ApiKeyAuth
 // @Param 			sid header string true "Session ID"
-// @Router 			/api/workspaces/{workspaceId} [get]
+// @Router 			/workspaces/{workspaceId} [get]
 func (c *WorkspaceController) Get(ctx *fiber.Ctx) error {
 	user := middleware.GetUserFromCtx(ctx)
 	workspaceId := middleware.GetWorkspaceIdFromCtx(ctx)

@@ -7,13 +7,14 @@ client:
     url: http://influxdb:8086
     token: token
     org: codern
-    bucket: api
+    bucket: backend
   mysql:
     uri: root:password@(mysql:3306)/codern?parseTime=true
   seaweedfs:
     masterUrl: http://seaweedfs-master:9333
     filerUrls:
       - http://seaweedfs-filer:8888
+      - http://public-ip:8888
   rabbitmq:
     url: amqp://root:password@rabbitmq:5672
   fiber:
@@ -25,7 +26,7 @@ client:
 google:
   clientId: replace_with_your_google_client_id
   clientSecret: replace_with_your_google_client_secret
-  redirectUri: http://localhost:3000/api/auth/google/callback
+  redirectUri: http://localhost:3000/auth/google/callback
 auth:
   session:
     prefix: $
