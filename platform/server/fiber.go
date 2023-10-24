@@ -99,7 +99,7 @@ func (s *FiberServer) applyRoutes() {
 	assignmentController := controller.NewAssignmentController(validator, s.usecase.Assignment)
 
 	// Initialize Routes
-	api := s.app.Group("/api")
+	api := s.app.Group("/")
 
 	api.Get("/health", healtController.Check)
 
