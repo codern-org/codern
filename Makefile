@@ -1,14 +1,11 @@
 BINARY_NAME=codern
 
 build:
-	GOARCH=amd64 GOOS=linux go build -o dist/${BINARY_NAME} main.go
+	GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o dist/${BINARY_NAME} main.go
 
 clean:
 	go clean
 	rm -rf dist/${BINARY_NAME}
-
-deps:
-	go mod download
 
 dev:
 	ENVIRONMENT=development go run .
