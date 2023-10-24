@@ -15,7 +15,7 @@ import (
 	"github.com/gofiber/swagger"
 	"go.uber.org/zap"
 
-	_ "github.com/codern-org/codern/docs"
+	_ "github.com/codern-org/codern/other/swagger"
 )
 
 type FiberServer struct {

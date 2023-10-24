@@ -76,17 +76,6 @@
                     "auth"
                 ],
                 "summary": "Sign in with self provider",
-                "parameters": [
-                    {
-                        "description": "Email and password for authentication",
-                        "name": "credentials",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/payload.SignInBody"
-                        }
-                    }
-                ],
                 "responses": {}
             }
         },
@@ -490,23 +479,6 @@
                     }
                 ],
                 "responses": {}
-            }
-        }
-    },
-    "definitions": {
-        "payload.SignInBody": {
-            "type": "object",
-            "required": [
-                "email",
-                "password"
-            ],
-            "properties": {
-                "email": {
-                    "type": "string"
-                },
-                "password": {
-                    "type": "string"
-                }
             }
         }
     },
