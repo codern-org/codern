@@ -32,15 +32,23 @@ func NewLogger(logger *zap.Logger, influxdb *platform.InfluxDb) fiber.Handler {
 		}
 		statusCode := ctx.Response().StatusCode()
 
+		pathType, ok := ctx.Locals("pathType").(string)
+		if !ok {
+			pathType = "unknown"
+		}
+
 		influxdb.WritePoint(
 			"httpRequest",
 			map[string]string{
 				"method":     method,
-				"path":       path,
+				"pathType":   pathType,
 				"statusCode": strconv.Itoa(statusCode),
 			},
 			map[string]interface{}{
+				"path":          path,
 				"executionTime": executionTime.Nanoseconds(),
+				"ipAddress":     ip,
+				"userAgent":     string(userAgent),
 			},
 		)
 
