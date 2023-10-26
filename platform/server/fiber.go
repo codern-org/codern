@@ -89,7 +89,7 @@ func (s *FiberServer) applyRoutes() {
 	workspaceMiddleware := middleware.NewWorkspaceMiddleware(s.usecase.Workspace)
 
 	// Initialize Controllers
-	healtController := controller.NewHealthController()
+	healtController := controller.NewHealthController(s.cfg)
 	webSocketController := controller.NewWebSocketController(s.platform.WebSocketHub)
 	fileController := controller.NewFileController(s.cfg)
 	authController := controller.NewAuthController(
@@ -101,6 +101,7 @@ func (s *FiberServer) applyRoutes() {
 	// Initialize Routes
 	api := s.app.Group("/")
 
+	api.Get("/", middleware.PathType("healthcheck"), healtController.Index)
 	api.Get("/health", middleware.PathType("healthcheck"), healtController.Check)
 
 	auth := api.Group("/auth", middleware.PathType("auth"))
