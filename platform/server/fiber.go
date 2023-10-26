@@ -110,18 +110,15 @@ func (s *FiberServer) applyRoutes() {
 	auth.Get("/google", authController.GetGoogleAuthUrl)
 	auth.Get("/google/callback", authController.SignInWithGoogle)
 
-	workspace := api.Group(
-		"/workspaces",
-		middleware.PathType("workspace"),
-		authMiddleware,
-		workspaceMiddleware,
-	)
-	workspace.Get("/", workspaceController.List)
-	workspace.Get("/:workspaceId", workspaceController.Get)
-	workspace.Get("/:workspaceId/assignments", assignmentController.List)
-	workspace.Get("/:workspaceId/assignments/:assignmentId", assignmentController.Get)
-	workspace.Get("/:workspaceId/assignments/:assignmentId/submissions", assignmentController.ListSubmission)
-	workspace.Post("/:workspaceId/assignments/:assignmentId/submissions", assignmentController.CreateSubmission)
+	workspace := api.Group("/workspaces", middleware.PathType("workspace"))
+	workspace.Get("/", authMiddleware, workspaceMiddleware, workspaceController.List)
+	workspace.Get("/:workspaceId", authMiddleware, workspaceMiddleware, workspaceController.Get)
+
+	assignment := workspace.Group("/:workspaceId/assignments")
+	assignment.Get("/", authMiddleware, workspaceMiddleware, assignmentController.List)
+	assignment.Get("/:assignmentId", authMiddleware, workspaceMiddleware, assignmentController.Get)
+	assignment.Get("/:assignmentId/submissions", authMiddleware, workspaceMiddleware, assignmentController.ListSubmission)
+	assignment.Post("/:assignmentId/submissions", authMiddleware, workspaceMiddleware, assignmentController.CreateSubmission)
 
 	// File proxy from SeaweedFS
 	fs := s.app.Group("/file", middleware.PathType("file"), authMiddleware, fileMiddleware)
