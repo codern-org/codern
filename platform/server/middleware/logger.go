@@ -62,7 +62,9 @@ func NewLogger(logger *zap.Logger, influxdb *platform.InfluxDb) fiber.Handler {
 
 		// Log with info level if status code is 2xx (successfull) or 1xx (informational)
 		if strings.HasPrefix(fmt.Sprint(statusCode), "2") || strings.HasPrefix(fmt.Sprint(statusCode), "1") {
-			logger.Info(logMessage, logFields...)
+			if path != "/health" { // Ignore health check path
+				logger.Info(logMessage, logFields...)
+			}
 		} else {
 			logFields = append(logFields, zap.Error(chainErr))
 			logger.Error(logMessage, logFields...)
