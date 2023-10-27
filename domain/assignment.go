@@ -79,6 +79,11 @@ type Testcase struct {
 	OutputFileUrl string `json:"outputFileUrl" db:"output_file_url"`
 }
 
+type SubmissionFilter struct {
+	AssignmentId *int
+	UserId       *string
+}
+
 type AssignmentRepository interface {
 	CreateAssigment(assignment *Assignment) error
 	CreateTestcases(testcases []Testcase) error
@@ -86,7 +91,7 @@ type AssignmentRepository interface {
 	Get(id int, userId string) (*Assignment, error)
 	GetSubmission(id int) (*Submission, error)
 	List(userId string, workspaceId int) ([]Assignment, error)
-	ListSubmission(userId string, assignmentId int) ([]Submission, error)
+	ListSubmission(filter *SubmissionFilter) ([]Submission, error)
 	UpdateSubmissionResults(submissionId int, compilationLog string, results []SubmissionResult) error
 }
 

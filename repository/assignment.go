@@ -3,6 +3,7 @@ package repository
 import (
 	"database/sql"
 	"fmt"
+	"strings"
 
 	"github.com/codern-org/codern/domain"
 	"github.com/jmoiron/sqlx"
@@ -207,9 +208,29 @@ func (r *assignmentRepository) listTestcase(assignmentIds []int) ([]domain.Testc
 	return testcases, nil
 }
 
-func (r *assignmentRepository) ListSubmission(userId string, assignmentId int) ([]domain.Submission, error) {
+func (r *assignmentRepository) ListSubmission(filter *domain.SubmissionFilter) ([]domain.Submission, error) {
 	submissions := make([]domain.Submission, 0)
-	err := r.db.Select(&submissions, "SELECT * FROM submission WHERE assignment_id = ? AND user_id = ?", assignmentId, userId)
+
+	query := "SELECT * FROM submission "
+	args := make([]interface{}, 0)
+
+	conditions := make([]string, 0)
+
+	if filter.AssignmentId != nil {
+		conditions = append(conditions, "assignment_id = ?")
+		args = append(args, *filter.AssignmentId)
+	}
+	if filter.UserId != nil {
+		conditions = append(conditions, "user_id = ?")
+		args = append(args, *filter.UserId)
+	}
+
+	where := strings.Join(conditions, " AND ")
+	if where != "" {
+		query += "WHERE " + where
+	}
+
+	err := r.db.Select(&submissions, query, args...)
 	if err != nil {
 		return nil, fmt.Errorf("cannot query to list submission: %w", err)
 	}

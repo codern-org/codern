@@ -13,17 +13,20 @@ import (
 type assignmentUsecase struct {
 	seaweedfs            *platform.SeaweedFs
 	assignmentRepository domain.AssignmentRepository
+	workspaceUsecase     domain.WorkspaceUsecase
 	gradingPublisher     domain.GradingPublisher
 }
 
 func NewAssignmentUsecase(
 	seaweedfs *platform.SeaweedFs,
 	assignmentRepository domain.AssignmentRepository,
+	workspaceUsecase domain.WorkspaceUsecase,
 	gradingPublisher domain.GradingPublisher,
 ) domain.AssignmentUsecase {
 	return &assignmentUsecase{
 		seaweedfs:            seaweedfs,
 		assignmentRepository: assignmentRepository,
+		workspaceUsecase:     workspaceUsecase,
 		gradingPublisher:     gradingPublisher,
 	}
 }
@@ -179,7 +182,28 @@ func (u *assignmentUsecase) List(userId string, workspaceId int) ([]domain.Assig
 }
 
 func (u *assignmentUsecase) ListSubmission(userId string, assignmentId int) ([]domain.Submission, error) {
-	submissions, err := u.assignmentRepository.ListSubmission(userId, assignmentId)
+	assignment, err := u.Get(assignmentId, userId)
+	if err != nil {
+		return nil, errs.New(errs.ErrGetAssignment, "cannot get assignment id %d to list submission", assignmentId, err)
+	} else if assignment == nil {
+		return nil, errs.New(errs.ErrAssignmentNotFound, "assignment id %d not found", assignmentId)
+	}
+
+	role, err := u.workspaceUsecase.GetRole(userId, assignment.WorkspaceId)
+	if err != nil {
+		return nil, errs.New(errs.ErrGetWorkspaceRole, "cannot get workspace role to list submission", err)
+	}
+
+	var userIdToFilter *string
+	if *role != domain.OwnerRole {
+		userIdToFilter = &userId
+	}
+
+	submissions, err := u.assignmentRepository.ListSubmission(&domain.SubmissionFilter{
+		AssignmentId: &assignmentId,
+		UserId:       userIdToFilter,
+	})
+
 	if err != nil {
 		return nil, errs.New(errs.ErrListSubmission, "cannot list submission", err)
 	}
