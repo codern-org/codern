@@ -186,7 +186,7 @@ func (r *assignmentRepository) listTestcase(assignmentIds []int) ([]domain.Testc
 
 func (r *assignmentRepository) ListSubmission(userId string, assignmentId int) ([]domain.Submission, error) {
 	submissions := make([]domain.Submission, 0)
-	err := r.db.Select(&submissions, "SELECT * FROM submission WHERE assignment_id = ?", assignmentId)
+	err := r.db.Select(&submissions, "SELECT * FROM submission WHERE assignment_id = ? AND user_id = ?", assignmentId, userId)
 	if err != nil {
 		return nil, fmt.Errorf("cannot query to list submission: %w", err)
 	}
