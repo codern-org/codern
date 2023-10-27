@@ -1,21 +1,10 @@
-definitions:
-  payload.SignInBody:
-    properties:
-      email:
-        type: string
-      password:
-        type: string
-    required:
-    - email
-    - password
-    type: object
 info:
   contact: {}
   description: The API Server of Codern
   title: Codern API Server
   version: 0.0.0
 paths:
-  /api/auth/google:
+  /auth/google:
     get:
       description: Get an url to signin with the Google account
       produces:
@@ -24,7 +13,7 @@ paths:
       summary: Get Google auth URL
       tags:
       - auth
-  /api/auth/google/callback:
+  /auth/google/callback:
     get:
       description: A callback route for Google OAuth to redirect to after signing
         in
@@ -34,7 +23,7 @@ paths:
       summary: Sign in with Google
       tags:
       - auth
-  /api/auth/me:
+  /auth/me:
     get:
       consumes:
       - application/json
@@ -53,25 +42,18 @@ paths:
       summary: Get an user data
       tags:
       - auth
-  /api/auth/signin:
+  /auth/signin:
     post:
       consumes:
       - application/json
       description: Sign in with email & password provided by the user
-      parameters:
-      - description: Email and password for authentication
-        in: body
-        name: credentials
-        required: true
-        schema:
-          $ref: '#/definitions/payload.SignInBody'
       produces:
       - application/json
       responses: {}
       summary: Sign in with self provider
       tags:
       - auth
-  /api/auth/signout:
+  /auth/signout:
     get:
       description: Sign out and remove a sid cookie header
       parameters:
@@ -88,177 +70,6 @@ paths:
       summary: Sign out
       tags:
       - auth
-  /api/workspaces:
-    get:
-      consumes:
-      - application/json
-      description: Get all workspaces
-      parameters:
-      - collectionFormat: csv
-        description: Specific fields to include in the response
-        in: query
-        items:
-          enum:
-          - participants
-          type: string
-        name: fields
-        type: array
-      - description: Session ID
-        in: header
-        name: sid
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses: {}
-      security:
-      - ApiKeyAuth: []
-      summary: List workspaces
-      tags:
-      - workspace
-  /api/workspaces/{workspaceId}:
-    get:
-      consumes:
-      - application/json
-      description: Get a workspace from workspace id on path parameter
-      parameters:
-      - description: Workspace ID
-        in: path
-        name: workspaceId
-        required: true
-        type: integer
-      - collectionFormat: csv
-        description: Specific fields to include in the response
-        in: query
-        items:
-          enum:
-          - participants
-          type: string
-        name: fields
-        type: array
-      - description: Session ID
-        in: header
-        name: sid
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses: {}
-      security:
-      - ApiKeyAuth: []
-      summary: Get a workspace
-      tags:
-      - workspace
-  /api/workspaces/{workspaceId}/assignments:
-    get:
-      consumes:
-      - application/json
-      description: Get all assignment from a workspace id on path parameter
-      parameters:
-      - description: Workspace ID
-        in: path
-        name: workspaceId
-        required: true
-        type: integer
-      - description: Session ID
-        in: header
-        name: sid
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses: {}
-      security:
-      - ApiKeyAuth: []
-      summary: List assignment
-      tags:
-      - workspace
-  /api/workspaces/{workspaceId}/assignments/{assignmentId}:
-    get:
-      consumes:
-      - application/json
-      description: Get an assignment from workspace id on path parameter
-      parameters:
-      - description: Workspace ID
-        in: path
-        name: workspaceId
-        required: true
-        type: integer
-      - description: Assignment ID
-        in: path
-        name: assignmentId
-        required: true
-        type: integer
-      - description: Session ID
-        in: header
-        name: sid
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses: {}
-      security:
-      - ApiKeyAuth: []
-      summary: Get an assignment
-      tags:
-      - workspace
-  /api/workspaces/{workspaceId}/assignments/{assignmentId}/submissions:
-    get:
-      consumes:
-      - application/json
-      description: Get all submission from a workspace id on path parameter
-      parameters:
-      - description: Workspace ID
-        in: path
-        name: workspaceId
-        required: true
-        type: integer
-      - description: Assignment ID
-        in: path
-        name: assignmentId
-        required: true
-        type: integer
-      - description: Session ID
-        in: header
-        name: sid
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses: {}
-      security:
-      - ApiKeyAuth: []
-      summary: List submission
-      tags:
-      - workspace
-    post:
-      consumes:
-      - application/json
-      description: Submit a submission of the assignment
-      parameters:
-      - description: Workspace ID
-        in: path
-        name: workspaceId
-        required: true
-        type: integer
-      - description: Assignment ID
-        in: path
-        name: assignmentId
-        required: true
-        type: integer
-      - description: Session ID
-        in: header
-        name: sid
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses: {}
-      security:
-      - ApiKeyAuth: []
-      summary: Create a new submission
-      tags:
-      - workspace
   /file/user/{userId}/profile:
     get:
       description: Get an user profile image from internal file system by proxy
@@ -336,6 +147,177 @@ paths:
       summary: Get a workspace profile image
       tags:
       - file
+  /workspaces:
+    get:
+      consumes:
+      - application/json
+      description: Get all workspaces
+      parameters:
+      - collectionFormat: csv
+        description: Specific fields to include in the response
+        in: query
+        items:
+          enum:
+          - participants
+          type: string
+        name: fields
+        type: array
+      - description: Session ID
+        in: header
+        name: sid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - ApiKeyAuth: []
+      summary: List workspaces
+      tags:
+      - workspace
+  /workspaces/{workspaceId}:
+    get:
+      consumes:
+      - application/json
+      description: Get a workspace from workspace id on path parameter
+      parameters:
+      - description: Workspace ID
+        in: path
+        name: workspaceId
+        required: true
+        type: integer
+      - collectionFormat: csv
+        description: Specific fields to include in the response
+        in: query
+        items:
+          enum:
+          - participants
+          type: string
+        name: fields
+        type: array
+      - description: Session ID
+        in: header
+        name: sid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Get a workspace
+      tags:
+      - workspace
+  /workspaces/{workspaceId}/assignments:
+    get:
+      consumes:
+      - application/json
+      description: Get all assignment from a workspace id on path parameter
+      parameters:
+      - description: Workspace ID
+        in: path
+        name: workspaceId
+        required: true
+        type: integer
+      - description: Session ID
+        in: header
+        name: sid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - ApiKeyAuth: []
+      summary: List assignment
+      tags:
+      - workspace
+  /workspaces/{workspaceId}/assignments/{assignmentId}:
+    get:
+      consumes:
+      - application/json
+      description: Get an assignment from workspace id on path parameter
+      parameters:
+      - description: Workspace ID
+        in: path
+        name: workspaceId
+        required: true
+        type: integer
+      - description: Assignment ID
+        in: path
+        name: assignmentId
+        required: true
+        type: integer
+      - description: Session ID
+        in: header
+        name: sid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Get an assignment
+      tags:
+      - workspace
+  /workspaces/{workspaceId}/assignments/{assignmentId}/submissions:
+    get:
+      consumes:
+      - application/json
+      description: Get all submission from a workspace id on path parameter
+      parameters:
+      - description: Workspace ID
+        in: path
+        name: workspaceId
+        required: true
+        type: integer
+      - description: Assignment ID
+        in: path
+        name: assignmentId
+        required: true
+        type: integer
+      - description: Session ID
+        in: header
+        name: sid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - ApiKeyAuth: []
+      summary: List submission
+      tags:
+      - workspace
+    post:
+      consumes:
+      - application/json
+      description: Submit a submission of the assignment
+      parameters:
+      - description: Workspace ID
+        in: path
+        name: workspaceId
+        required: true
+        type: integer
+      - description: Assignment ID
+        in: path
+        name: assignmentId
+        required: true
+        type: integer
+      - description: Session ID
+        in: header
+        name: sid
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses: {}
+      security:
+      - ApiKeyAuth: []
+      summary: Create a new submission
+      tags:
+      - workspace
 securityDefinitions:
   ApiKeyAuth:
     in: header

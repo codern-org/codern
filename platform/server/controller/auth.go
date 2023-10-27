@@ -47,7 +47,7 @@ func NewAuthController(
 // @Produce 		json
 // @Security 		ApiKeyAuth
 // @Param 			sid header string true "Session ID"
-// @Router 			/api/auth/me [get]
+// @Router 			/auth/me [get]
 func (c *AuthController) Me(ctx *fiber.Ctx) error {
 	return response.NewSuccessResponse(ctx, fiber.StatusOK, middleware.GetUserFromCtx(ctx))
 }
@@ -59,17 +59,17 @@ func (c *AuthController) Me(ctx *fiber.Ctx) error {
 // @Tags 				auth
 // @Accept 			json
 // @Produce 		json
-// @Param				credentials	body	payload.SignInBody true "Email and password for authentication"
-// @Router 			/api/auth/signin [post]
+// @Router 			/auth/signin [post]
 func (c *AuthController) SignIn(ctx *fiber.Ctx) error {
-	var body payload.SignInBody
-	if ok, err := c.validator.ValidateBody(&body, ctx); !ok {
+	var payload payload.SignInPayload
+	if ok, err := c.validator.Validate(&payload, ctx); !ok {
 		return err
 	}
+
 	ipAddress := ctx.IP()
 	userAgent := ctx.Context().UserAgent()
 
-	cookie, err := c.authUsecase.SignIn(body.Email, body.Password, ipAddress, string(userAgent))
+	cookie, err := c.authUsecase.SignIn(payload.Email, payload.Password, ipAddress, string(userAgent))
 	if err != nil {
 		return err
 	}
@@ -86,7 +86,7 @@ func (c *AuthController) SignIn(ctx *fiber.Ctx) error {
 // @Description Get an url to signin with the Google account
 // @Tags 				auth
 // @Produce 		json
-// @Router 			/api/auth/google [get]
+// @Router 			/auth/google [get]
 func (c *AuthController) GetGoogleAuthUrl(ctx *fiber.Ctx) error {
 	return response.NewSuccessResponse(ctx, fiber.StatusOK, fiber.Map{
 		"url": c.googleUsecase.GetOAuthUrl(),
@@ -99,22 +99,22 @@ func (c *AuthController) GetGoogleAuthUrl(ctx *fiber.Ctx) error {
 // @Description A callback route for Google OAuth to redirect to after signing in
 // @Tags 				auth
 // @Produce 		json
-// @Router 			/api/auth/google/callback [get]
+// @Router 			/auth/google/callback [get]
 func (c *AuthController) SignInWithGoogle(ctx *fiber.Ctx) error {
 	code := ctx.Query("code")
 	ipAddress := ctx.IP()
 	userAgent := ctx.Context().UserAgent()
+
+	url, err := url.JoinPath(c.cfg.Client.Frontend.BaseUrl, c.cfg.Client.Frontend.Path.SignIn)
+	if err != nil {
+		return errs.New(errs.ErrCreateUrlPath, "invalid google callback url", err)
+	}
 
 	cookie, err := c.authUsecase.SignInWithGoogle(code, ipAddress, string(userAgent))
 	if err != nil {
 		return err
 	}
 	ctx.Cookie(cookie)
-
-	url, err := url.JoinPath(c.cfg.Client.Frontend.BaseUrl, c.cfg.Client.Frontend.Path.SignIn)
-	if err != nil {
-		return errs.New(errs.ErrCreateUrlPath, "invalid google callback url", err)
-	}
 
 	return ctx.Redirect(url)
 }
@@ -127,7 +127,7 @@ func (c *AuthController) SignInWithGoogle(ctx *fiber.Ctx) error {
 // @Produce 		json
 // @Security 		ApiKeyAuths
 // @param 			sid header string true "Session ID"
-// @Router 			/api/auth/signout [get]
+// @Router 			/auth/signout [get]
 func (c *AuthController) SignOut(ctx *fiber.Ctx) error {
 	sid := ctx.Cookies(payload.AuthCookieKey)
 

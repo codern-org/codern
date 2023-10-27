@@ -127,19 +127,14 @@ func (c *AssignmentController) CreateAssignment(ctx *fiber.Ctx) error {
 		})
 	}
 
-	detailFile, err := payload.GetFile("detail", ctx)
-	if err != nil {
-		return err
-	}
-
-	var body payload.CreateAssignmentBody
-	if ok, err := c.validator.ValidateBody(&body, ctx); !ok {
+	var payload payload.CreateAssignmentPayload
+	if ok, err := c.validator.Validate(&payload, ctx); !ok {
 		return err
 	}
 
 	workspaceId, _ := ctx.ParamsInt("workspaceId")
 
-	assignment, err := c.assignmentUsecase.CreateAssigment(workspaceId, body.Name, body.Description, body.MemoryLimit, body.TimeLimit, body.Level, detailFile)
+	assignment, err := c.assignmentUsecase.CreateAssigment(workspaceId, payload.Name, payload.Description, payload.MemoryLimit, payload.TimeLimit, payload.Level, payload.DetailFile)
 	if err != nil {
 		return err
 	}
@@ -165,22 +160,17 @@ func (c *AssignmentController) CreateAssignment(ctx *fiber.Ctx) error {
 // @Param				assignmentId				path	int				true	"Assignment ID"
 // @Security 		ApiKeyAuth
 // @Param 			sid header string true "Session ID"
-// @Router 			/api/workspaces/{workspaceId}/assignments/{assignmentId}/submissions [post]
+// @Router 			/workspaces/{workspaceId}/assignments/{assignmentId}/submissions [post]
 func (c *AssignmentController) CreateSubmission(ctx *fiber.Ctx) error {
-	var body payload.CreateSubmissionBody
-	if ok, err := c.validator.ValidateBody(&body, ctx); !ok {
-		return err
-	}
-	file, err := payload.GetFile("sourcecode", ctx)
-	if err != nil {
+	var pl payload.CreateSubmissionPayload
+	if ok, err := c.validator.Validate(&pl, ctx); !ok {
 		return err
 	}
 
 	user := middleware.GetUserFromCtx(ctx)
 	workspaceId := middleware.GetWorkspaceIdFromCtx(ctx)
-	assignmentId, _ := ctx.ParamsInt("assignmentId")
 
-	err = c.assignmentUsecase.CreateSubmission(user.Id, assignmentId, workspaceId, body.Language, file)
+	err := c.assignmentUsecase.CreateSubmission(user.Id, pl.AssignmentId, workspaceId, pl.Language, pl.SourceCode)
 	if err != nil {
 		return err
 	}
@@ -200,7 +190,7 @@ func (c *AssignmentController) CreateSubmission(ctx *fiber.Ctx) error {
 // @Param				workspaceId					path	int				true	"Workspace ID"
 // @Security 		ApiKeyAuth
 // @Param 			sid header string true "Session ID"
-// @Router 			/api/workspaces/{workspaceId}/assignments [get]
+// @Router 			/workspaces/{workspaceId}/assignments [get]
 func (c *AssignmentController) List(ctx *fiber.Ctx) error {
 	user := middleware.GetUserFromCtx(ctx)
 	workspaceId := middleware.GetWorkspaceIdFromCtx(ctx)
@@ -224,7 +214,7 @@ func (c *AssignmentController) List(ctx *fiber.Ctx) error {
 // @Param				assignmentId				path	int				true	"Assignment ID"
 // @Security 		ApiKeyAuth
 // @Param 			sid header string true "Session ID"
-// @Router 			/api/workspaces/{workspaceId}/assignments/{assignmentId}/submissions [get]
+// @Router 			/workspaces/{workspaceId}/assignments/{assignmentId}/submissions [get]
 func (c *AssignmentController) ListSubmission(ctx *fiber.Ctx) error {
 	user := middleware.GetUserFromCtx(ctx)
 	assignmentId := middleware.GetAssignmentIdFromCtx(ctx)
@@ -248,7 +238,7 @@ func (c *AssignmentController) ListSubmission(ctx *fiber.Ctx) error {
 // @Param				assignmentId				path	int				true	"Assignment ID"
 // @Security 		ApiKeyAuth
 // @Param 			sid header string true "Session ID"
-// @Router 			/api/workspaces/{workspaceId}/assignments/{assignmentId} [get]
+// @Router 			/workspaces/{workspaceId}/assignments/{assignmentId} [get]
 func (c *AssignmentController) Get(ctx *fiber.Ctx) error {
 	user := middleware.GetUserFromCtx(ctx)
 	assignmentId := middleware.GetAssignmentIdFromCtx(ctx)

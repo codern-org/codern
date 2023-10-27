@@ -39,18 +39,13 @@ func NewWorkspaceController(
 // @Param 			sid header string true "Session ID"
 // @Router 			/api/workspaces [post]
 func (c *WorkspaceController) CreateWorkspace(ctx *fiber.Ctx) error {
-	var body payload.CreateWorkspaceBody
-	if ok, err := c.validator.ValidateBody(&body, ctx); !ok {
-		return err
-	}
-
-	file, err := payload.GetFile("workspace-image", ctx)
-	if err != nil {
+	var payload payload.CreateWorkspacePayload
+	if ok, err := c.validator.Validate(&payload, ctx); !ok {
 		return err
 	}
 
 	user := middleware.GetUserFromCtx(ctx)
-	err = c.workspaceUsecase.CreateWorkspace(user.Id, body.Name, file)
+	err := c.workspaceUsecase.CreateWorkspace(user.Id, payload.Name, payload.WorkspaceImage)
 	if err != nil {
 		return err
 	}
@@ -61,8 +56,8 @@ func (c *WorkspaceController) CreateWorkspace(ctx *fiber.Ctx) error {
 }
 
 func (c *WorkspaceController) CreateParticipant(ctx *fiber.Ctx) error {
-	var body payload.CreateWorkspaceParticipantBody
-	if ok, err := c.validator.ValidateBody(&body, ctx); !ok {
+	var payload payload.CreateWorkspaceParticipantPayload
+	if ok, err := c.validator.Validate(&payload, ctx); !ok {
 		return err
 	}
 
@@ -71,7 +66,7 @@ func (c *WorkspaceController) CreateParticipant(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	err = c.workspaceUsecase.CreateParticipant(workspaceId, body.UserId, body.Role)
+	err = c.workspaceUsecase.CreateParticipant(workspaceId, payload.UserId, payload.Role)
 	if err != nil {
 		return err
 	}
@@ -91,7 +86,7 @@ func (c *WorkspaceController) CreateParticipant(ctx *fiber.Ctx) error {
 // @Param				fields			query []string	false	"Specific fields to include in the response"	collectionFormat(csv)	Enums(participants)
 // @Security 		ApiKeyAuth
 // @Param 			sid header string true "Session ID"
-// @Router 			/api/workspaces [get]
+// @Router 			/workspaces [get]
 func (c *WorkspaceController) List(ctx *fiber.Ctx) error {
 	user := middleware.GetUserFromCtx(ctx)
 	selector := payload.GetFieldSelector(ctx)
@@ -125,15 +120,17 @@ func (c *WorkspaceController) List(ctx *fiber.Ctx) error {
 // @Param				fields			query []string	false	"Specific fields to include in the response"	collectionFormat(csv)	Enums(participants)
 // @Security 		ApiKeyAuth
 // @Param 			sid header string true "Session ID"
-// @Router 			/api/workspaces/{workspaceId} [get]
+// @Router 			/workspaces/{workspaceId} [get]
 func (c *WorkspaceController) Get(ctx *fiber.Ctx) error {
 	user := middleware.GetUserFromCtx(ctx)
 	workspaceId := middleware.GetWorkspaceIdFromCtx(ctx)
 	selector := payload.GetFieldSelector(ctx)
 
-	workspace, err := c.workspaceUsecase.Get(workspaceId, &domain.WorkspaceSelector{
-		Participants: selector.Has("participants"),
-	}, user.Id)
+	workspace, err := c.workspaceUsecase.Get(
+		workspaceId,
+		&domain.WorkspaceSelector{Participants: selector.Has("participants")},
+		user.Id,
+	)
 	if err != nil {
 		return err
 	} else if workspace == nil {

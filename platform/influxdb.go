@@ -27,10 +27,7 @@ func NewInfluxDb(
 	writeApi := client.WriteAPI(org, bucket)
 
 	writeApi.SetWriteFailedCallback(func(batch string, err http2.Error, retryAttempts uint) bool {
-		if retryAttempts == 3 {
-			logger.Warn("InfluxDB write failed", zap.String("batch", batch), zap.Error(&err))
-			return false
-		}
+		logger.Warn("InfluxDB write failed", zap.String("batch", batch), zap.Error(&err), zap.Int("retry", int(retryAttempts)))
 		return true
 	})
 

@@ -1,0 +1,15 @@
+.git
+.devcontainer
+.github
+
+config
+db
+dist
+
+other
+!other/swagger
+
+.editorconfig
+README.md
+
+**/.DS_Store

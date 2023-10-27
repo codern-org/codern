@@ -29,7 +29,7 @@ func main() {
 
 	// Initialize migrator
 	m, err := migrate.New(
-		"file:///workspace/db/migrations/",
+		"file:///workspace/other/db/migrations/",
 		"mysql://"+cfg.Client.MySql.Uri,
 	)
 	if err != nil {

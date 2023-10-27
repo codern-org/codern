@@ -2,6 +2,7 @@ package platform
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/gofiber/contrib/websocket"
 )
@@ -14,6 +15,7 @@ type WebSocketPayload struct {
 type WebSocketChannelHandler func(message interface{})
 
 type WebSocketHub struct {
+	mu       sync.Mutex
 	connPool map[string]*websocket.Conn
 	handlers map[string]WebSocketChannelHandler
 }
@@ -25,7 +27,10 @@ func NewWebSocketHub() *WebSocketHub {
 }
 
 func (h *WebSocketHub) RegisterUser(userId string, conn *websocket.Conn) {
+	// Call from fiber which need to be thread-safe
+	h.mu.Lock()
 	h.connPool[userId] = conn
+	h.mu.Unlock()
 }
 
 func (h *WebSocketHub) RegisterHandler(channel string, handler WebSocketChannelHandler) {

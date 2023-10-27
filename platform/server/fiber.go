@@ -15,7 +15,7 @@ import (
 	"github.com/gofiber/swagger"
 	"go.uber.org/zap"
 
-	_ "github.com/codern-org/codern/docs"
+	_ "github.com/codern-org/codern/other/swagger"
 )
 
 type FiberServer struct {
@@ -89,6 +89,7 @@ func (s *FiberServer) applyRoutes() {
 	workspaceMiddleware := middleware.NewWorkspaceMiddleware(s.usecase.Workspace)
 
 	// Initialize Controllers
+	healtController := controller.NewHealthController(s.cfg)
 	webSocketController := controller.NewWebSocketController(s.platform.WebSocketHub)
 	fileController := controller.NewFileController(s.cfg)
 	authController := controller.NewAuthController(
@@ -98,29 +99,34 @@ func (s *FiberServer) applyRoutes() {
 	assignmentController := controller.NewAssignmentController(validator, s.usecase.Assignment)
 
 	// Initialize Routes
-	api := s.app.Group("/api")
+	api := s.app.Group("/")
 
-	api.Get("/auth/me", authMiddleware, authController.Me)
-	api.Get("/auth/signout", authMiddleware, authController.SignOut)
-	api.Post("/auth/signin", authController.SignIn)
-	api.Get("/auth/google", authController.GetGoogleAuthUrl)
-	api.Get("/auth/google/callback", authController.SignInWithGoogle)
+	api.Get("/", middleware.PathType("healthcheck"), healtController.Index)
+	api.Get("/health", middleware.PathType("healthcheck"), healtController.Check)
 
-	api.Get("/workspaces", authMiddleware, workspaceController.List)
-	api.Post("/workspaces", authMiddleware, workspaceController.CreateWorkspace)
-	api.Get("/workspaces/:workspaceId", authMiddleware, workspaceMiddleware, workspaceController.Get)
-	api.Post("/workspaces/:workspaceId/participants", authMiddleware, workspaceMiddleware, workspaceController.CreateParticipant)
-	api.Get("/workspaces/:workspaceId/assignments", authMiddleware, workspaceMiddleware, assignmentController.List)
-	api.Post("/workspaces/:workspaceId/assignments", authMiddleware, workspaceMiddleware, assignmentController.CreateAssignment)
-	api.Get("/workspaces/:workspaceId/assignments/:assignmentId", authMiddleware, workspaceMiddleware, assignmentController.Get)
-	api.Get("/workspaces/:workspaceId/assignments/:assignmentId/submissions", authMiddleware, workspaceMiddleware, assignmentController.ListSubmission)
-	api.Post("/workspaces/:workspaceId/assignments/:assignmentId/submissions", authMiddleware, workspaceMiddleware, assignmentController.CreateSubmission)
+	auth := api.Group("/auth", middleware.PathType("auth"))
+	auth.Get("/me", authMiddleware, authController.Me)
+	auth.Get("/signout", authMiddleware, authController.SignOut)
+	auth.Post("/signin", authController.SignIn)
+	auth.Get("/google", authController.GetGoogleAuthUrl)
+	auth.Get("/google/callback", authController.SignInWithGoogle)
+
+	workspace := api.Group("/workspaces", middleware.PathType("workspace"))
+	workspace.Get("/", authMiddleware, workspaceController.List)
+	workspace.Post("/", authMiddleware, workspaceController.CreateWorkspace)
+	workspace.Get("/:workspaceId", authMiddleware, workspaceMiddleware, workspaceController.Get)
+	workspace.Post("/:workspaceId/participants", authMiddleware, workspaceMiddleware, workspaceController.CreateParticipant)
+
+	assignment := workspace.Group("/:workspaceId/assignments")
+	assignment.Get("/", authMiddleware, workspaceMiddleware, assignmentController.List)
+	assignment.Post("/", authMiddleware, workspaceMiddleware, assignmentController.CreateAssignment)
+	assignment.Get("/:assignmentId", authMiddleware, workspaceMiddleware, assignmentController.Get)
+	assignment.Get("/:assignmentId/submissions", authMiddleware, workspaceMiddleware, assignmentController.ListSubmission)
+	assignment.Post("/:assignmentId/submissions", authMiddleware, workspaceMiddleware, assignmentController.CreateSubmission)
 
 	// File proxy from SeaweedFS
-	fs := s.app.Group("/file", authMiddleware, fileMiddleware)
-
+	fs := s.app.Group("/file", middleware.PathType("file"), authMiddleware, fileMiddleware)
 	fs.Get("/user/:userId/profile", fileController.GetUserProfile)
-
 	fs.Get("/workspaces/:workspaceId/profile", workspaceMiddleware, fileController.GetWorkspaceProfile)
 	fs.Get("/workspaces/:workspaceId/assignments/:assignmentId/detail", workspaceMiddleware, fileController.GetAssignmentDetail)
 
