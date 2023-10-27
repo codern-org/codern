@@ -40,6 +40,7 @@ const (
 	ErrCreateWorkspace            = 3008
 	ErrCreateWorkspaceParticipant = 3009
 	ErrCreateSubmission           = 3010
+	ErrGetWorkspaceRole           = 3011
 	ErrGetAssignment              = 3020
 	ErrListAssignment             = 3021
 	ErrAssignmentNotFound         = 3022

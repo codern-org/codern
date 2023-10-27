@@ -114,6 +114,14 @@ func (u *workspaceUsecase) Get(
 	return workspace, nil
 }
 
+func (u *workspaceUsecase) GetRole(userId string, workspaceId int) (*domain.WorkspaceRole, error) {
+	role, err := u.workspaceRepository.GetRole(userId, workspaceId)
+	if err != nil {
+		return nil, errs.New(errs.ErrGetWorkspaceRole, "cannot get role from user id %s in workspace id %d", userId, workspaceId, err)
+	}
+	return role, nil
+}
+
 func (u *workspaceUsecase) List(
 	userId string,
 	selector *domain.WorkspaceSelector,
