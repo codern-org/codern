@@ -1,10 +1,12 @@
 package server
 
 import (
+	"encoding/json"
 	"errors"
 
 	errs "github.com/codern-org/codern/domain/error"
 	"github.com/codern-org/codern/platform/server/response"
+	"github.com/gofiber/contrib/websocket"
 	"github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
 )
@@ -22,9 +24,23 @@ func errorHandler(logger *zap.Logger) fiber.ErrorHandler {
 			}
 		}
 
+		// Handle websocket
+		if websocket.IsWebSocketUpgrade(ctx) {
+			msg, err := json.Marshal(fiber.Map{"error": err})
+			if err != nil {
+				logger.Error("Cannot handle websocket connection", zap.NamedError("error", err))
+				return err
+			}
+
+			if err := wsErrHandler(string(msg))(ctx); err != nil {
+				logger.Error("Cannot handle websocket connection", zap.NamedError("error", err))
+				return err
+			}
+			return nil
+		}
+
 		// Mostly JSON format
-		jsonErr := response.NewErrorResponse(ctx, resStatus, err)
-		if jsonErr != nil {
+		if jsonErr := response.NewErrorResponse(ctx, resStatus, err); jsonErr != nil {
 			logger.Error(
 				"Cannot marshal json response",
 				zap.String("request_id", requestId),
@@ -37,4 +53,11 @@ func errorHandler(logger *zap.Logger) fiber.ErrorHandler {
 
 		return nil
 	}
+}
+
+var wsErrHandler = func(message string) fiber.Handler {
+	return websocket.New(func(conn *websocket.Conn) {
+		closeMsg := websocket.FormatCloseMessage(websocket.ClosePolicyViolation, message)
+		conn.WriteMessage(websocket.CloseMessage, closeMsg)
+	})
 }
