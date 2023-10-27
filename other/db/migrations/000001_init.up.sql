@@ -101,7 +101,7 @@ INSERT INTO `user` VALUES (
 INSERT INTO `workspace` VALUES (
   '1',
   'Codern Playground',
-  '',
+  '/workspaces/1/profile',
   '2023-08-20 09:30:00'
 );
 
@@ -143,7 +143,7 @@ INSERT INTO `testcase` VALUES (
 INSERT INTO `workspace` VALUES (
   '2',
   'Codern Playground 2',
-  '',
+  '/workspaces/2/profile',
   '2023-08-20 09:30:00'
 );
 
