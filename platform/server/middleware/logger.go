@@ -3,7 +3,6 @@ package middleware
 import (
 	"fmt"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/codern-org/codern/platform"
@@ -57,16 +56,15 @@ func NewLogger(logger *zap.Logger, influxdb *platform.InfluxDb) fiber.Handler {
 			zap.String("ip_address", ip),
 			zap.String("user_agent", string(userAgent)),
 			zap.String("execution_time", executionTime.String()),
+			zap.Error(chainErr),
 		}
 		logMessage := fmt.Sprintf("Request %s %s %d", method, path, statusCode)
 
-		// Log with info level if status code is 2xx (successfull) or 1xx (informational)
-		if strings.HasPrefix(fmt.Sprint(statusCode), "2") || strings.HasPrefix(fmt.Sprint(statusCode), "1") {
+		if chainErr == nil {
 			if path != "/health" { // Ignore health check path
 				logger.Info(logMessage, logFields...)
 			}
 		} else {
-			logFields = append(logFields, zap.Error(chainErr))
 			logger.Error(logMessage, logFields...)
 		}
 
