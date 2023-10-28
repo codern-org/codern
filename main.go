@@ -55,7 +55,7 @@ func main() {
 	publisher := initPublisher(cfg, logger, platform)
 	usecase := initUsecase(cfg, logger, platform, repository, publisher)
 
-	// startConsumer(logger, platform, usecase)
+	startConsumer(logger, platform, usecase)
 
 	// Initialize server with gracefully shutdown
 	signals := make(chan os.Signal, 1)
