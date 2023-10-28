@@ -87,6 +87,7 @@ func (s *FiberServer) applyRoutes() {
 	fileMiddleware := middleware.NewFileMiddleware()
 	authMiddleware := middleware.NewAuthMiddleware(validator, s.usecase.Auth)
 	workspaceMiddleware := middleware.NewWorkspaceMiddleware(s.usecase.Workspace)
+	workspaceRoleMiddleware := middleware.NewWorkspaceRoleMiddleware(s.usecase.Workspace)
 
 	// Initialize Controllers
 	healtController := controller.NewHealthController(s.cfg)
@@ -113,9 +114,9 @@ func (s *FiberServer) applyRoutes() {
 
 	workspace := api.Group("/workspaces", middleware.PathType("workspace"))
 	workspace.Get("/", authMiddleware, workspaceController.List)
-	workspace.Post("/", authMiddleware, workspaceController.CreateWorkspace)
+	// workspace.Post("/", authMiddleware, workspaceController.CreateWorkspace)
 	workspace.Get("/:workspaceId", authMiddleware, workspaceMiddleware, workspaceController.Get)
-	workspace.Post("/:workspaceId/participants", authMiddleware, workspaceMiddleware, workspaceController.CreateParticipant)
+	workspace.Post("/:workspaceId/participants", authMiddleware, workspaceMiddleware, workspaceRoleMiddleware(domain.OwnerRole, domain.AdminRole), workspaceController.CreateParticipant)
 
 	assignment := workspace.Group("/:workspaceId/assignments")
 	assignment.Get("/", authMiddleware, workspaceMiddleware, assignmentController.List)

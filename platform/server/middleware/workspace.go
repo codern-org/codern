@@ -49,6 +49,31 @@ func NewWorkspaceMiddleware(
 	}
 }
 
+func NewWorkspaceRoleMiddleware(workspaceUsecase domain.WorkspaceUsecase) func(expectedRoles ...domain.WorkspaceRole) func(*fiber.Ctx) error {
+	return func(expectedRoles ...domain.WorkspaceRole) fiber.Handler {
+		return func(ctx *fiber.Ctx) error {
+			user := GetUserFromCtx(ctx)
+			workspaceId := GetWorkspaceIdFromCtx(ctx)
+
+			role, err := workspaceUsecase.GetRole(user.Id, workspaceId)
+			if err != nil {
+				return errs.New(errs.ErrGetWorkspaceRole, "cannot get workspace role to list submission", err)
+			}
+			if role == nil {
+				return errs.New(errs.ErrWorkspaceNoPerm, "user %s does not have role and permission to access workspace id %d", user.Id, workspaceId)
+			}
+
+			for _, expectedRole := range expectedRoles {
+				if *role == expectedRole {
+					return ctx.Next()
+				}
+			}
+
+			return errs.New(errs.ErrWorkspaceNoPerm, "user %s does not have permission to access workspace id %d", user.Id, workspaceId)
+		}
+	}
+}
+
 func GetWorkspaceIdFromCtx(ctx *fiber.Ctx) int {
 	return ctx.Locals("workspaceId").(int)
 }
