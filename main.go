@@ -105,7 +105,7 @@ func initPlatform(cfg *config.Config, logger *zap.Logger) *domain.Platform {
 	start = time.Now()
 	seaweedfs, err := platform.NewSeaweedFs(
 		cfg.Client.SeaweedFs.MasterUrl,
-		cfg.Client.SeaweedFs.FilerUrls,
+		cfg.Client.SeaweedFs.FilerUrls.Internal,
 	)
 	if err != nil {
 		logger.Fatal("Cannot open SeaweedFs connection", zap.Error(err))

@@ -42,8 +42,13 @@ type ConfigMySql struct {
 }
 
 type ConfigSeaweedFs struct {
-	MasterUrl string   `yaml:"masterUrl" validate:"url,required"`
-	FilerUrls []string `yaml:"filerUrls" validate:"dive,url,required"`
+	MasterUrl string                  `yaml:"masterUrl" validate:"url,required"`
+	FilerUrls ConfigSeaweedFSFilerUrl `yaml:"filerUrls" validate:"required"`
+}
+
+type ConfigSeaweedFSFilerUrl struct {
+	Internal string `yaml:"internal" validate:"url,required"`
+	External string `yaml:"external" validate:"url,required"`
 }
 
 type ConfigRabbitMq struct {
@@ -56,7 +61,7 @@ type ConfigFiber struct {
 
 type ConfigFrontend struct {
 	BaseUrl string             `yaml:"baseUrl" vallidate:"url,required"`
-	Path    ConfigFrontendPath `yaml:"path"`
+	Path    ConfigFrontendPath `yaml:"path" validate:"required"`
 }
 
 type ConfigFrontendPath struct {
