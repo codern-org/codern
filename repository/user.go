@@ -3,9 +3,11 @@ package repository
 import (
 	"database/sql"
 	"fmt"
+	"strings"
 
 	"github.com/codern-org/codern/domain"
 	"github.com/jmoiron/sqlx"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type userRepository struct {
@@ -70,4 +72,43 @@ func (r *userRepository) GetByEmail(
 		return nil, fmt.Errorf("cannot query to get user by email: %w", err)
 	}
 	return &user, nil
+}
+
+// TODO: what if the user field we want to update is number 🤔
+func (r *userRepository) Update(user *domain.User) error {
+	setQueries := make([]string, 0)
+	args := make([]interface{}, 0)
+
+	if user.Password != "" {
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), 10)
+		if err != nil {
+			return fmt.Errorf("cannot hash password while update user %s", err)
+		}
+
+		setQueries = append(setQueries, "password = ?")
+		args = append(args, hashedPassword)
+	}
+
+	if user.DisplayName != "" {
+		setQueries = append(setQueries, "display_name = ?")
+		args = append(args, user.DisplayName)
+	}
+
+	if user.Email != "" {
+		setQueries = append(setQueries, "email = ?")
+		args = append(args, user.Email)
+	}
+
+	if len(setQueries) == 0 {
+		return nil
+	}
+
+	updateUserQuery := "UPDATE user SET " + strings.Join(setQueries, ", ") + " WHERE id = ?"
+
+	_, err := r.db.Exec(updateUserQuery, append(args, user.Id)...)
+	if err != nil {
+		return fmt.Errorf("cannot query to update user: %w", err)
+	}
+
+	return nil
 }

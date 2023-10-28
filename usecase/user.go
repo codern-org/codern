@@ -12,10 +12,17 @@ import (
 
 type userUsecase struct {
 	userRepository domain.UserRepository
+	sessionUsecase domain.SessionUsecase
 }
 
-func NewUserUsecase(userRepository domain.UserRepository) domain.UserUsecase {
-	return &userUsecase{userRepository: userRepository}
+func NewUserUsecase(
+	userRepository domain.UserRepository,
+	sessionUsecase domain.SessionUsecase,
+) domain.UserUsecase {
+	return &userUsecase{
+		userRepository: userRepository,
+		sessionUsecase: sessionUsecase,
+	}
 }
 
 func (u *userUsecase) Create(email string, password string) (*domain.User, error) {
@@ -102,4 +109,19 @@ func (u *userUsecase) GetByEmail(email string, provider domain.AuthProvider) (*d
 		return nil, errs.New(errs.ErrGetUser, "cannot get user by email %s", email, err)
 	}
 	return user, nil
+}
+
+func (u *userUsecase) Update(user *domain.User) error {
+	if err := u.userRepository.Update(user); err != nil {
+		return errs.New(errs.ErrUpdateUser, "cannot update user %s", user.Id, err)
+	}
+
+	if user.Password != "" {
+		_, err := u.sessionUsecase.DestroyByUserId(user.Id)
+		if err != nil {
+			return errs.New(errs.OverrideCode, "cannot destroy session while update user", err)
+		}
+	}
+
+	return nil
 }
