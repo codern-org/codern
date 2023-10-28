@@ -1,6 +1,8 @@
 package domain
 
-import "time"
+import (
+	"time"
+)
 
 type AuthProvider string
 
@@ -32,7 +34,7 @@ type UserRepository interface {
 	Get(id string) (*User, error)
 	GetBySessionId(id string) (*User, error)
 	GetByEmail(email string, provider AuthProvider) (*User, error)
-	Update(user *User) error
+	Update(user *User) (bool, error)
 }
 
 type UserUsecase interface {
@@ -41,5 +43,5 @@ type UserUsecase interface {
 	Get(id string) (*User, error)
 	GetBySessionId(id string) (*User, error)
 	GetByEmail(email string, provider AuthProvider) (*User, error)
-	Update(user *User) error
+	Update(user *User) (bool, error)
 }

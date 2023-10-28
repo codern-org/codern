@@ -111,17 +111,19 @@ func (u *userUsecase) GetByEmail(email string, provider domain.AuthProvider) (*d
 	return user, nil
 }
 
-func (u *userUsecase) Update(user *domain.User) error {
-	if err := u.userRepository.Update(user); err != nil {
-		return errs.New(errs.ErrUpdateUser, "cannot update user %s", user.Id, err)
+func (u *userUsecase) Update(user *domain.User) (bool, error) {
+	isModified, err := u.userRepository.Update(user)
+
+	if err != nil {
+		return isModified, errs.New(errs.ErrUpdateUser, "cannot update user %s", user.Id, err)
 	}
 
 	if user.Password != "" {
 		_, err := u.sessionUsecase.DestroyByUserId(user.Id)
 		if err != nil {
-			return errs.New(errs.OverrideCode, "cannot destroy session while update user", err)
+			return isModified, errs.New(errs.OverrideCode, "cannot destroy session while update user", err)
 		}
 	}
 
-	return nil
+	return isModified, nil
 }

@@ -75,14 +75,14 @@ func (r *userRepository) GetByEmail(
 }
 
 // TODO: what if the user field we want to update is number 🤔
-func (r *userRepository) Update(user *domain.User) error {
+func (r *userRepository) Update(user *domain.User) (bool, error) {
 	setQueries := make([]string, 0)
 	args := make([]interface{}, 0)
 
 	if user.Password != "" {
 		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), 10)
 		if err != nil {
-			return fmt.Errorf("cannot hash password while update user %s", err)
+			return false, fmt.Errorf("cannot hash password while update user %s", err)
 		}
 
 		setQueries = append(setQueries, "password = ?")
@@ -100,15 +100,15 @@ func (r *userRepository) Update(user *domain.User) error {
 	}
 
 	if len(setQueries) == 0 {
-		return nil
+		return false, nil
 	}
 
 	updateUserQuery := "UPDATE user SET " + strings.Join(setQueries, ", ") + " WHERE id = ?"
 
 	_, err := r.db.Exec(updateUserQuery, append(args, user.Id)...)
 	if err != nil {
-		return fmt.Errorf("cannot query to update user: %w", err)
+		return false, fmt.Errorf("cannot query to update user: %w", err)
 	}
 
-	return nil
+	return true, nil
 }

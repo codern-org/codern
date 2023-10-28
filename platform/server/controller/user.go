@@ -34,14 +34,19 @@ func (c *UserController) Update(ctx *fiber.Ctx) error {
 
 	user := middleware.GetUserFromCtx(ctx)
 
-	err := c.userUsecase.Update(&domain.User{
+	isModified, err := c.userUsecase.Update(&domain.User{
 		Id:          user.Id,
 		Email:       payload.Email,
 		DisplayName: payload.DisplayName,
 		Password:    payload.Password,
 	})
+
 	if err != nil {
 		return err
+	}
+
+	if !isModified {
+		return response.NewSuccessResponse(ctx, fiber.StatusOK, "no change")
 	}
 
 	return response.NewSuccessResponse(ctx, fiber.StatusAccepted, fiber.Map{
