@@ -13,9 +13,9 @@ type SeaweedFs struct {
 	client *goseaweedfs.Seaweed
 }
 
-func NewSeaweedFs(url string, filerUrl []string) (*SeaweedFs, error) {
+func NewSeaweedFs(url string, filerUrl string) (*SeaweedFs, error) {
 	httpClient := &http.Client{Timeout: 1 * time.Minute}
-	client, err := goseaweedfs.NewSeaweed(url, filerUrl, 4096, httpClient)
+	client, err := goseaweedfs.NewSeaweed(url, []string{filerUrl}, 4096, httpClient)
 	if err != nil {
 		return nil, err
 	}

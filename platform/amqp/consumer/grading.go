@@ -59,8 +59,8 @@ func (c *gradingConsumer) ConsumeSubmssionResult() error {
 					SubmissionId: submissionId,
 					TestcaseId:   message.Metadata.TestcaseIds[i],
 					Status:       status,
-					StatusDetail: nil,
-					MemoryUsage:  nil,
+					StatusDetail: &message.Status,
+					MemoryUsage:  &message.Results[i].Memory,
 					TimeUsage:    &message.Results[i].Time,
 				})
 			}

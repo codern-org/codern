@@ -30,15 +30,29 @@ func (p *gradingPublisher) Grade(assignment *domain.Assignment, submission *doma
 	testcases := make([]payload.GradeTestMessage, 0)
 
 	for i := range assignment.Testcases {
+		inputUrl, err := url.JoinPath(
+			p.cfg.Client.SeaweedFs.FilerUrls.External,
+			assignment.Testcases[i].InputFileUrl,
+		)
+		if err != nil {
+			return errs.New(errs.ErrCreateUrlPath, "invalid testcase input url", err)
+		}
+		outputUrl, err := url.JoinPath(
+			p.cfg.Client.SeaweedFs.FilerUrls.External,
+			assignment.Testcases[i].OutputFileUrl,
+		)
+		if err != nil {
+			return errs.New(errs.ErrCreateUrlPath, "invalid testcase output url", err)
+		}
+
 		testcases = append(testcases, payload.GradeTestMessage{
-			InputUrl:  assignment.Testcases[i].InputFileUrl,
-			OutputUrl: assignment.Testcases[i].OutputFileUrl,
+			InputUrl:  inputUrl,
+			OutputUrl: outputUrl,
 		})
 		testcaseIds = append(testcaseIds, assignment.Testcases[i].Id)
 	}
 
-	// TODO: hardcoded filer url
-	sourceUrl, err := url.JoinPath(p.cfg.Client.SeaweedFs.FilerUrls[1], submission.FileUrl)
+	sourceUrl, err := url.JoinPath(p.cfg.Client.SeaweedFs.FilerUrls.External, submission.FileUrl)
 	if err != nil {
 		return errs.New(errs.ErrCreateUrlPath, "invalid submission url", err)
 	}
@@ -47,6 +61,10 @@ func (p *gradingPublisher) Grade(assignment *domain.Assignment, submission *doma
 		Language:  submission.Language,
 		SourceUrl: sourceUrl,
 		Test:      testcases,
+		Settings: payload.GradeSettingsMessage{
+			TimeLimit:   assignment.TimeLimit,
+			MemoryLimit: assignment.MemoryLimit,
+		},
 		Metadata: payload.GradeMetadataMessage{
 			SubmissionId: submission.Id,
 			TestcaseIds:  testcaseIds,

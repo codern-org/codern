@@ -16,7 +16,7 @@ type FileController struct {
 }
 
 func NewFileController(cfg *config.Config) *FileController {
-	return &FileController{filerUrl: cfg.Client.SeaweedFs.FilerUrls[0]}
+	return &FileController{filerUrl: cfg.Client.SeaweedFs.FilerUrls.Internal}
 }
 
 // GetUserProfile godoc

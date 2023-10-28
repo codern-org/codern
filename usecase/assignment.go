@@ -158,6 +158,7 @@ func (u *assignmentUsecase) CreateSubmission(
 		return errs.New(errs.ErrFileSystem, "cannot upload file", err)
 	}
 
+	// TODO: inform submission on grading publisher error
 	return u.gradingPublisher.Grade(assignment, submission)
 }
 
