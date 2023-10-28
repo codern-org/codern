@@ -61,6 +61,10 @@ func (p *gradingPublisher) Grade(assignment *domain.Assignment, submission *doma
 		Language:  submission.Language,
 		SourceUrl: sourceUrl,
 		Test:      testcases,
+		Settings: payload.GradeSettingsMessage{
+			TimeLimit:   assignment.TimeLimit,
+			MemoryLimit: assignment.MemoryLimit,
+		},
 		Metadata: payload.GradeMetadataMessage{
 			SubmissionId: submission.Id,
 			TestcaseIds:  testcaseIds,
