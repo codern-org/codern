@@ -18,8 +18,7 @@ type CreateWorkspacePayload struct {
 }
 
 type CreateWorkspaceParticipantPayload struct {
-	UserId string               `json:"user_id" validate:"required"`
-	Role   domain.WorkspaceRole `json:"role" validate:"required"`
+	UserId string `json:"user_id" validate:"required"`
 }
 
 type CreateAssignmentPayload struct {

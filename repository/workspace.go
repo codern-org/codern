@@ -52,7 +52,7 @@ func (r *workspaceRepository) CreateWorkspace(workspace *domain.Workspace, userI
 }
 
 func (r *workspaceRepository) CreateParticipant(participant *domain.WorkspaceParticipant) error {
-	_, err := r.db.Exec("INSERT INTO workspace_participant (workspace_id, user_id, role) VALUES (?, ?, ?)", participant.WorkspaceId, participant.UserId, domain.OwnerRole)
+	_, err := r.db.Exec("INSERT INTO workspace_participant (workspace_id, user_id, role) VALUES (?, ?, ?)", participant.WorkspaceId, participant.UserId, participant.Role)
 	if err != nil {
 		return fmt.Errorf("cannot query to insert workspace participant: %w", err)
 	}

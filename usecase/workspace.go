@@ -50,7 +50,7 @@ func (u *workspaceUsecase) CreateWorkspace(userId string, name string, file io.R
 	return nil
 }
 
-func (u *workspaceUsecase) CreateParticipant(workspaceId int, userId string, role domain.WorkspaceRole) error {
+func (u *workspaceUsecase) CreateParticipant(workspaceId int, userId string) error {
 	user, err := u.userUsecase.Get(userId)
 	if err != nil {
 		return errs.New(errs.OverrideCode, "cannot get user id %s while creating participant", userId, err)
@@ -68,7 +68,7 @@ func (u *workspaceUsecase) CreateParticipant(workspaceId int, userId string, rol
 	participant := &domain.WorkspaceParticipant{
 		WorkspaceId: workspaceId,
 		UserId:      userId,
-		Role:        role,
+		Role:        domain.MemberRole, // TODO: can add another role instead of member
 	}
 
 	err = u.workspaceRepository.CreateParticipant(participant)

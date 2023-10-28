@@ -66,7 +66,7 @@ func (c *WorkspaceController) CreateParticipant(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	err = c.workspaceUsecase.CreateParticipant(workspaceId, payload.UserId, payload.Role)
+	err = c.workspaceUsecase.CreateParticipant(workspaceId, payload.UserId)
 	if err != nil {
 		return err
 	}
