@@ -42,7 +42,7 @@ func (u *assignmentUsecase) CreateAssigment(
 ) (*domain.Assignment, error) {
 	id := generator.GetId()
 	filePath := fmt.Sprintf(
-		"/workspaces/%d/assignments/%d/detail",
+		"/workspaces/%d/assignments/%d/detail/problem.md",
 		workspaceId, id,
 	)
 
@@ -70,6 +70,10 @@ func (u *assignmentUsecase) CreateAssigment(
 }
 
 func (u *assignmentUsecase) CreateTestcase(assignmentId int, testcaseFiles []domain.TestcaseFile) error {
+	if len(testcaseFiles) == 0 {
+		return errs.New(errs.ErrCreateTestcase, "cannot create testcase, testcase files is empty")
+	}
+
 	assignment, err := u.assignmentRepository.Get(assignmentId, "")
 	if err != nil {
 		return errs.New(errs.ErrGetAssignment, "cannot get assignment id %d", assignmentId, err)
