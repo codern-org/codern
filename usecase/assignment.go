@@ -86,12 +86,12 @@ func (u *assignmentUsecase) CreateTestcase(assignmentId int, testcaseFiles []dom
 
 		inputFilePath := fmt.Sprintf(
 			"/workspaces/%d/assignments/%d/testcase/%d.in",
-			assignment.WorkspaceId, assignmentId, i,
+			assignment.WorkspaceId, assignmentId, i+1,
 		)
 
 		outputFilePath := fmt.Sprintf(
 			"/workspaces/%d/assignments/%d/testcase/%d.out",
-			assignment.WorkspaceId, assignmentId, i,
+			assignment.WorkspaceId, assignmentId, i+1,
 		)
 
 		testcases[i] = domain.Testcase{
