@@ -74,14 +74,13 @@ func (c *gradingConsumer) ConsumeSubmssionResult() error {
 
 			submission, err := c.assignmentUsecase.GetSubmission(submissionId)
 			if err != nil || submission == nil {
-				delivery.Reject(true)
+				delivery.Reject(false)
 				c.logger.Error("Cannot get submission data when consuming submission result", zap.Error(err))
 				continue
 			}
-
 			err = c.wsHub.SendMessage(submission.UserId, "onSubmissionUpdate", submission)
 			if err != nil {
-				delivery.Reject(true)
+				delivery.Reject(false)
 				c.logger.Error("Cannot send websocket message after consuming submission result", zap.Error(err))
 				continue
 			}
