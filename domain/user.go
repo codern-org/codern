@@ -32,6 +32,7 @@ type UserRepository interface {
 	Get(id string) (*User, error)
 	GetBySessionId(id string) (*User, error)
 	GetByEmail(email string, provider AuthProvider) (*User, error)
+	UpdatePassword(id string, newHashedPassword string) error
 }
 
 type UserUsecase interface {
@@ -40,4 +41,5 @@ type UserUsecase interface {
 	Get(id string) (*User, error)
 	GetBySessionId(id string) (*User, error)
 	GetByEmail(email string, provider AuthProvider) (*User, error)
+	UpdatePassword(id string, oldPlainPassword string, newPlainPassword string) error
 }

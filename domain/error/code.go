@@ -27,6 +27,7 @@ const (
 	ErrUserNotFound      = 2030
 	ErrGetUser           = 2031
 	ErrCreateUser        = 2032
+	ErrUpdateUser        = 2033
 	ErrGoogleAuth        = 2040
 
 	ErrWorkspaceNotFound       = 3000
