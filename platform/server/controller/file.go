@@ -69,14 +69,23 @@ func (c *FileController) GetWorkspaceProfile(ctx *fiber.Ctx) error {
 // @Produce			png,jpeg,gif
 // @Param				workspaceId			path number true "Workspace ID"
 // @Param				assignmentId		path number true "Assignment ID"
+// @Param				subPath					path string false "Sub path"
 // @Security 		ApiKeyAuth
 // @Param 			sid header string true "Session ID"
-// @Router			/file/workspaces/{workspaceId}/assignments/{assignmentId}/detail [get]
+// @Router			/file/workspaces/{workspaceId}/assignments/{assignmentId}/{subPath} [get]
 func (c *FileController) GetAssignmentDetail(ctx *fiber.Ctx) error {
 	workspaceId := middleware.GetWorkspaceIdFromCtx(ctx)
 	assignmentId := middleware.GetAssignmentIdFromCtx(ctx)
 
-	path := fmt.Sprintf("/workspaces/%d/assignments/%d/problem.md", workspaceId, assignmentId)
+	subPath := ctx.Params("*")
+	if subPath == "" {
+		return ctx.Status(fiber.StatusNotFound).Send(nil)
+	}
+
+	path := fmt.Sprintf(
+		"/workspaces/%d/assignments/%d/detail/%s",
+		workspaceId, assignmentId, subPath,
+	)
 	url, err := url.JoinPath(c.filerUrl, path)
 	if err != nil {
 		return errs.New(errs.ErrCreateUrlPath, "invalid url", err)
