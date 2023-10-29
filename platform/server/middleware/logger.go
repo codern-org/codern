@@ -26,7 +26,9 @@ func NewLogger(logger *zap.Logger, influxdb *platform.InfluxDb) fiber.Handler {
 		// Manually call error handler
 		if chainErr != nil {
 			if err := ctx.App().ErrorHandler(ctx, chainErr); err != nil {
+				// Maybe deadcode
 				ctx.SendStatus(fiber.StatusInternalServerError)
+				logger.Error("Unable to handle error", zap.Error(err))
 			}
 		}
 		statusCode := ctx.Response().StatusCode()
