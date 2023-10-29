@@ -111,32 +111,29 @@ func (u *userUsecase) GetByEmail(email string, provider domain.AuthProvider) (*d
 	return user, nil
 }
 
-func (u *userUsecase) UpdatePassword(userId string, oldPlainPassword string, newPlainPassword string) error {
+func (u *userUsecase) UpdatePassword(userId string, oldPassword string, newPassword string) error {
 	user, err := u.Get(userId)
 	if err != nil {
-		return errs.New(errs.OverrideCode, "cannot find user id %s while update password", userId, err)
+		return errs.New(errs.OverrideCode, "cannot get user data to update password", userId, err)
+	} else if user == nil {
+		return errs.New(errs.ErrUserNotFound, "cannot get user data to update password", userId)
 	}
 
-	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(oldPlainPassword)); err != nil {
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(oldPassword)); err != nil {
 		return errs.New(errs.ErrUserPassword, "cannot update password due to invalid old password", err)
 	}
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newPlainPassword), 10)
-
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), 10)
 	if err != nil {
-		return errs.New(errs.ErrUpdateUser, "cannot update password due to invalid new password", err)
+		return errs.New(errs.ErrUpdateUser, "cannot generate new password", err)
 	}
 
-	user.Password = string(hashedPassword)
-
-	err = u.userRepository.UpdatePassword(userId, user.Password)
-	if err != nil {
+	if err := u.userRepository.UpdatePassword(userId, string(hashedPassword)); err != nil {
 		return errs.New(errs.OverrideCode, "cannot update password", err)
 	}
 
-	_, err = u.sessionUsecase.DestroyByUserId(userId)
-	if err != nil {
-		return errs.New(errs.OverrideCode, "cannot destroy session while update password", err)
+	if _, err = u.sessionUsecase.DestroyByUserId(userId); err != nil {
+		return errs.New(errs.OverrideCode, "cannot destroy session while updating the password", err)
 	}
 
 	return nil

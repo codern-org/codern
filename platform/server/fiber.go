@@ -113,7 +113,7 @@ func (s *FiberServer) applyRoutes() {
 	auth.Get("/google/callback", authController.SignInWithGoogle)
 
 	user := api.Group("/users", middleware.PathType("user"))
-	user.Patch("/", authMiddleware, userController.Update)
+	user.Patch("/password", authMiddleware, userController.UpdatePassword)
 
 	workspace := api.Group("/workspaces", middleware.PathType("workspace"))
 	workspace.Get("/", authMiddleware, workspaceMiddleware, workspaceController.List)

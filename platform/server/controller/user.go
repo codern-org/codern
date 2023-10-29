@@ -26,7 +26,7 @@ func NewUserController(
 	}
 }
 
-func (c *UserController) Update(ctx *fiber.Ctx) error {
+func (c *UserController) UpdatePassword(ctx *fiber.Ctx) error {
 	var payload payload.UpdateUserPayload
 	if ok, err := c.validator.Validate(&payload, ctx); !ok {
 		return err
@@ -35,12 +35,11 @@ func (c *UserController) Update(ctx *fiber.Ctx) error {
 	user := middleware.GetUserFromCtx(ctx)
 
 	err := c.userUsecase.UpdatePassword(user.Id, payload.OldPassword, payload.NewPassword)
-
 	if err != nil {
 		return err
 	}
 
-	return response.NewSuccessResponse(ctx, fiber.StatusAccepted, fiber.Map{
+	return response.NewSuccessResponse(ctx, fiber.StatusOK, fiber.Map{
 		"updated_at": time.Now(),
 	})
 }
