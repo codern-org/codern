@@ -125,7 +125,7 @@ func (s *FiberServer) applyRoutes() {
 	fs := s.app.Group("/file", middleware.PathType("file"), authMiddleware, fileMiddleware)
 	fs.Get("/user/:userId/profile", fileController.GetUserProfile)
 	fs.Get("/workspaces/:workspaceId/profile", workspaceMiddleware, fileController.GetWorkspaceProfile)
-	fs.Get("/workspaces/:workspaceId/assignments/:assignmentId/detail", workspaceMiddleware, fileController.GetAssignmentDetail)
+	fs.Get("/workspaces/:workspaceId/assignments/:assignmentId/detail/*", workspaceMiddleware, fileController.GetAssignmentDetail)
 
 	// WebSocket
 	ws := s.app.Group("/ws", authMiddleware, webSocketController.Upgrade)

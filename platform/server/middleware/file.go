@@ -6,6 +6,7 @@ import (
 
 func NewFileMiddleware() fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
+		requestId := ctx.Locals("requestid").(string)
 		chainErr := ctx.Next()
 
 		// Manually call error handler
@@ -17,6 +18,7 @@ func NewFileMiddleware() fiber.Handler {
 
 		ctx.Response().Header.Set("Server", "Codern File System 1.0")
 		Cors(ctx)
+		ctx.Response().Header.Set(fiber.HeaderXRequestID, requestId)
 
 		return nil
 	}
