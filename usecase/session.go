@@ -114,6 +114,14 @@ func (u *sessionUsecase) Destroy(id string) (*fiber.Cookie, error) {
 	}, u.sessionRepository.Delete(id)
 }
 
+func (u *sessionUsecase) DestroyByUserId(userId string) (*fiber.Cookie, error) {
+	return &fiber.Cookie{
+		Name:     "sid",
+		HTTPOnly: true,
+		Expires:  time.Unix(0, 0),
+	}, u.sessionRepository.DeleteByUserId(userId)
+}
+
 func (u *sessionUsecase) Validate(header string) (*domain.Session, error) {
 	session, err := u.Get(header)
 	if err != nil {
