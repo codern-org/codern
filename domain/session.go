@@ -19,6 +19,7 @@ type SessionRepository interface {
 	Create(session *Session) error
 	Get(id string) (*Session, error)
 	Delete(id string) error
+	DeleteByUserId(userId string) error
 	DeleteDuplicates(userId string, ipAddress string, userAgent string) error
 }
 
@@ -28,5 +29,6 @@ type SessionUsecase interface {
 	Create(userId string, ipAddress string, userAgent string) (*fiber.Cookie, error)
 	Get(header string) (*Session, error)
 	Destroy(id string) (*fiber.Cookie, error)
+	DestroyByUserId(userId string) (*fiber.Cookie, error)
 	Validate(header string) (*Session, error)
 }

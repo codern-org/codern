@@ -97,6 +97,7 @@ func (s *FiberServer) applyRoutes() {
 	)
 	workspaceController := controller.NewWorkspaceController(validator, s.usecase.Workspace)
 	assignmentController := controller.NewAssignmentController(validator, s.usecase.Assignment)
+	userController := controller.NewUserController(validator, s.usecase.User)
 
 	// Initialize Routes
 	api := s.app.Group("/")
@@ -110,6 +111,9 @@ func (s *FiberServer) applyRoutes() {
 	auth.Post("/signin", authController.SignIn)
 	auth.Get("/google", authController.GetGoogleAuthUrl)
 	auth.Get("/google/callback", authController.SignInWithGoogle)
+
+	user := api.Group("/users", middleware.PathType("user"))
+	user.Patch("/password", authMiddleware, userController.UpdatePassword)
 
 	workspace := api.Group("/workspaces", middleware.PathType("workspace"))
 	workspace.Get("/", authMiddleware, workspaceMiddleware, workspaceController.List)

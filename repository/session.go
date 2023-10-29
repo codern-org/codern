@@ -46,6 +46,14 @@ func (r *sessionRepository) Delete(id string) error {
 	return nil
 }
 
+func (r *sessionRepository) DeleteByUserId(userId string) error {
+	_, err := r.db.Exec("DELETE FROM session WHERE user_id = ?", userId)
+	if err != nil {
+		return fmt.Errorf("cannot query to delete session: %w", err)
+	}
+	return nil
+}
+
 func (r *sessionRepository) DeleteDuplicates(userId string, ipAddress string, userAgent string) error {
 	_, err := r.db.Exec(
 		"DELETE FROM session WHERE user_id = ? AND user_agent = ? AND ip_address = ?",
