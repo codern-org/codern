@@ -48,7 +48,11 @@ func (s *FiberServer) Start() {
 		AppName:               s.cfg.Metadata.Name,
 		DisableStartupMessage: true,
 		ErrorHandler:          errorHandler(s.logger),
-		BodyLimit:             25 * 1024 * 1024, // 25 MB
+
+		BodyLimit:    25 * 1024 * 1024, // 25 MB
+		ServerHeader: "codern",
+
+		ProxyHeader: fiber.HeaderXForwardedFor,
 	})
 	s.app = app
 	app.Hooks().OnListen(func(ld fiber.ListenData) error {
