@@ -19,6 +19,9 @@ client:
     url: amqp://root:password@rabbitmq:5672
   fiber:
     address: :3000
+    trustedProxies:
+      - "0.0.0.0"
+    proxyHeader: X-Forwarded-For
   frontend:
     baseUrl: http://localhost:5555
     path:
