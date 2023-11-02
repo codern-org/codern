@@ -56,7 +56,9 @@ type ConfigRabbitMq struct {
 }
 
 type ConfigFiber struct {
-	Address string `yaml:"address" validate:"required"`
+	Address        string   `yaml:"address" validate:"required"`
+	TrustedProxies []string `yaml:"trustedProxies"`
+	ProxyHeader    string   `yaml:"proxyHeader"`
 }
 
 type ConfigFrontend struct {
