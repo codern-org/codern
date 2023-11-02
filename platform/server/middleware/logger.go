@@ -23,6 +23,8 @@ func NewLogger(logger *zap.Logger, influxdb *platform.InfluxDb) fiber.Handler {
 		requestId := ctx.Locals("requestid").(string)
 		userAgent := ctx.Context().UserAgent()
 
+		user := GetUserFromCtx(ctx)
+
 		// Manually call error handler
 		if chainErr != nil {
 			if err := ctx.App().ErrorHandler(ctx, chainErr); err != nil {
@@ -61,6 +63,10 @@ func NewLogger(logger *zap.Logger, influxdb *platform.InfluxDb) fiber.Handler {
 			zap.Error(chainErr),
 		}
 		logMessage := fmt.Sprintf("Request %s %s %d", method, path, statusCode)
+
+		if user != nil {
+			logFields = append(logFields, zap.String("user_id", user.Id))
+		}
 
 		if chainErr == nil {
 			if path != "/health" { // Ignore health check path
