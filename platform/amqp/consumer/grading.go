@@ -51,24 +51,20 @@ func (c *gradingConsumer) ConsumeSubmssionResult() error {
 			results := make([]domain.SubmissionResult, 0)
 
 			for i := range message.Results {
-				status := domain.SubmissionResultError
-				if message.Results[i].Pass {
-					status = domain.SubmissionResultDone
-				}
 				results = append(results, domain.SubmissionResult{
 					SubmissionId: submissionId,
 					TestcaseId:   message.Metadata.TestcaseIds[i],
-					Status:       status,
-					StatusDetail: &message.Status,
+					IsPassed:     message.Results[i].Pass,
+					Status:       message.Status,
 					MemoryUsage:  &message.Results[i].Memory,
 					TimeUsage:    &message.Results[i].Time,
 				})
 			}
 
-			err = c.assignmentUsecase.UpdateSubmissionResults(submissionId, message.CompileOutput, results)
+			err = c.assignmentUsecase.CreateSubmissionResults(submissionId, message.CompileOutput, results)
 			if err != nil {
 				delivery.Reject(true)
-				c.logger.Error("Cannot update submission results", zap.Error(err))
+				c.logger.Error("Cannot create submission results", zap.Error(err))
 				continue
 			}
 

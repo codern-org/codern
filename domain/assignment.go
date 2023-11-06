@@ -16,10 +16,10 @@ const (
 type AssignmentStatus string
 
 const (
-	AssignmentStatusTodo    AssignmentStatus = "TODO"
-	AssignmentStatusGrading AssignmentStatus = "GRADING"
-	AssignmentStatusError   AssignmentStatus = "ERROR"
-	AssignmentStatusDone    AssignmentStatus = "DONE"
+	AssignmentStatusTodo        AssignmentStatus = "TODO"
+	AssignmentStatusGrading     AssignmentStatus = "GRADING"
+	AssignmentStatusIncompleted AssignmentStatus = "INCOMPLETED"
+	AssignmentStatusComplete    AssignmentStatus = "COMPLETED"
 )
 
 type Assignment struct {
@@ -41,35 +41,27 @@ type Assignment struct {
 }
 
 type Submission struct {
-	Id             int       `json:"id" db:"id"`
-	AssignmentId   int       `json:"-" db:"assignment_id"`
-	UserId         string    `json:"-" db:"user_id"`
-	Language       string    `json:"language" db:"language"`
-	FileUrl        string    `json:"-" db:"file_url"`
-	SubmittedAt    time.Time `json:"submittedAt" db:"submitted_at"`
-	CompilationLog *string   `json:"compilationLog" db:"compilation_log"`
+	Id             int              `json:"id" db:"id"`
+	AssignmentId   int              `json:"-" db:"assignment_id"`
+	UserId         string           `json:"-" db:"user_id"`
+	Language       string           `json:"language" db:"language"`
+	Status         AssignmentStatus `json:"status" db:"status"`
+	Score          int              `json:"score" db:"score"`
+	FileUrl        string           `json:"-" db:"file_url"`
+	SubmittedAt    time.Time        `json:"submittedAt" db:"submitted_at"`
+	CompilationLog *string          `json:"compilationLog,omitempty" db:"compilation_log"`
 
 	// Always aggregation
-	Results []SubmissionResult `json:"results"`
+	Results []SubmissionResult `json:"results,omitempty"`
 }
 
-type SubmissionResultStatus string
-
-const (
-	SubmissionResultGrading SubmissionResultStatus = "GRADING"
-	SubmissionResultError   SubmissionResultStatus = "ERROR"
-	SubmissionResultDone    SubmissionResultStatus = "DONE"
-)
-
 type SubmissionResult struct {
-	SubmissionId int                    `json:"-" db:"submission_id"`
-	TestcaseId   int                    `json:"-" db:"testcase_id"`
-	Status       SubmissionResultStatus `json:"status" db:"status"`
-
-	// Can be null if status is `GRADING`
-	StatusDetail *string `json:"statusDetail" db:"status_detail"`
-	MemoryUsage  *int    `json:"memoryUsage" db:"memory_usage"`
-	TimeUsage    *int    `json:"timeUsage" db:"time_usage"`
+	SubmissionId int    `json:"-" db:"submission_id"`
+	TestcaseId   int    `json:"-" db:"testcase_id"`
+	IsPassed     bool   `json:"isPassed" db:"is_passed"`
+	Status       string `json:"status" db:"status"`
+	MemoryUsage  *int   `json:"memoryUsage" db:"memory_usage"`
+	TimeUsage    *int   `json:"timeUsage" db:"time_usage"`
 }
 
 type Testcase struct {
@@ -81,18 +73,18 @@ type Testcase struct {
 
 type AssignmentRepository interface {
 	CreateSubmission(submission *Submission, testcases []Testcase) error
+	CreateSubmissionResults(submissionId int, compilationLog string, status AssignmentStatus, score int, results []SubmissionResult) error
 	Get(id int, userId string) (*Assignment, error)
 	GetSubmission(id int) (*Submission, error)
 	List(userId string, workspaceId int) ([]Assignment, error)
 	ListSubmission(userId string, assignmentId int) ([]Submission, error)
-	UpdateSubmissionResults(submissionId int, compilationLog string, results []SubmissionResult) error
 }
 
 type AssignmentUsecase interface {
 	CreateSubmission(userId string, assignmentId int, workspaceId int, language string, file io.Reader) error
+	CreateSubmissionResults(submissionId int, compilationLog string, results []SubmissionResult) error
 	Get(id int, userId string) (*Assignment, error)
 	GetSubmission(id int) (*Submission, error)
 	List(userId string, workspaceId int) ([]Assignment, error)
 	ListSubmission(userId string, assignmentId int) ([]Submission, error)
-	UpdateSubmissionResults(submissionId int, compilationLog string, results []SubmissionResult) error
 }

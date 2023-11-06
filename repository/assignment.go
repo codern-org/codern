@@ -19,10 +19,27 @@ func NewAssignmentRepository(db *sqlx.DB) domain.AssignmentRepository {
 func (r *assignmentRepository) CreateSubmission(
 	submission *domain.Submission,
 	testcases []domain.Testcase,
+) error {
+	_, err := r.db.NamedExec(`
+		INSERT INTO submission (id, assignment_id, user_id, language, status, score, file_url)
+		VALUES (:id, :assignment_id, :user_id, :language, 'GRADING', 0, :file_url)
+	`, submission)
+	if err != nil {
+		return fmt.Errorf("cannot query to create submission: %w", err)
+	}
+	return nil
+}
+
+func (r *assignmentRepository) CreateSubmissionResults(
+	submissionId int,
+	compilationLog string,
+	status domain.AssignmentStatus,
+	score int,
+	results []domain.SubmissionResult,
 ) (retErr error) {
 	tx, err := r.db.Beginx()
 	if err != nil {
-		return fmt.Errorf("cannot begin transaction to create submission: %w", err)
+		return fmt.Errorf("cannot begin transaction to update submission result: %w", err)
 	}
 
 	defer func() {
@@ -35,23 +52,29 @@ func (r *assignmentRepository) CreateSubmission(
 		}
 	}()
 
-	_, err = tx.NamedExec("INSERT INTO submission (id, assignment_id, user_id, language, file_url) VALUES (:id, :assignment_id, :user_id, :language, :file_url)", submission)
+	_, err = tx.Exec(
+		"UPDATE submission SET compilation_log = ?, status = ?, score = ? WHERE id = ?",
+		compilationLog, status, score, submissionId,
+	)
 	if err != nil {
-		panic(fmt.Errorf("cannot query to insert submission: %w", err))
+		panic(fmt.Errorf("cannot query to update submission from submission result: %w", err))
 	}
 
-	query := "INSERT INTO submission_result (submission_id, testcase_id, status) VALUES "
-	for i := range testcases {
-		query += fmt.Sprintf("('%d', '%d', '%s'),", submission.Id, testcases[i].Id, "GRADING")
+	query := "INSERT INTO submission_result (submission_id, testcase_id, is_passed, status, memory_usage, time_usage) VALUES "
+	for _, result := range results {
+		query += fmt.Sprintf(
+			"('%d', '%d', %t, '%s', '%d', '%d'),",
+			result.SubmissionId, result.TestcaseId, result.IsPassed, result.Status,
+			*result.MemoryUsage, *result.TimeUsage,
+		)
 	}
-	query = query[:len(query)-1]
-
+	query = query[:len(query)-1] // Remove trailing comma
 	if _, err := tx.Exec(query); err != nil {
-		panic(fmt.Errorf("cannot execute transaction to create submission: %w", err))
+		panic(fmt.Errorf("cannot query to create submission result: %w", err))
 	}
 
 	if err = tx.Commit(); err != nil {
-		panic(fmt.Errorf("cannot commit transaction to create submission: %w", err))
+		panic(fmt.Errorf("cannot commit transaction to update submission result: %w", err))
 	}
 
 	return
@@ -84,7 +107,6 @@ func (r *assignmentRepository) GetSubmission(id int) (*domain.Submission, error)
 	if err = r.db.Select(&results, query, args...); err != nil {
 		return nil, fmt.Errorf("cannot query to list submission result: %w", err)
 	}
-
 	submission.Results = results
 	return &submission, nil
 }
@@ -103,36 +125,22 @@ func (r *assignmentRepository) list(
 	query := `
 		SELECT
 			a.*,
-			t2.last_submitted_at,
-			IFNULL(t2.status, 'TODO') AS status
+			t1.last_submitted_at,
+			IFNULL(t1.status, 'TODO') AS status
 		FROM (
 			SELECT
-				a.*,
-				MAX(t1.submitted_at) AS last_submitted_at,
+				s.assignment_id,
+				MAX(s.submitted_at) AS last_submitted_at,
 				CASE
-					WHEN SUM(CASE WHEN t1.status = "GRADING" THEN 1 ELSE 0 END) > 0 THEN "GRADING"
-					WHEN SUM(CASE WHEN t1.status = "DONE" THEN 1 ELSE 0 END) > 0 THEN 'DONE'
-					ELSE "ERROR"
-				END as status
-			FROM (
-				SELECT
-					s.id,
-					s.assignment_id,
-					s.submitted_at,
-					CASE
-						WHEN SUM(CASE WHEN sr.status = "GRADING" THEN 1 ELSE 0 END) > 0 THEN "GRADING"
-						WHEN COUNT(DISTINCT sr.status) = 1 AND MIN(sr.status) = 'DONE' THEN 'DONE'
-						ELSE "ERROR"
-					END as status
-				FROM submission s
-				INNER JOIN submission_result sr ON sr.submission_id = s.id
-				WHERE s.user_id = ? AND s.assignment_id %[1]s
-				GROUP BY sr.submission_id
-			) t1
-			INNER JOIN assignment a ON a.id = t1.assignment_id
-			GROUP BY a.id
-		) t2
-		RIGHT JOIN assignment a ON a.id = t2.id
+					WHEN SUM(CASE WHEN s.status = 'GRADING' THEN 1 ELSE 0 END) > 0 THEN 'GRADING'
+					WHEN COUNT(DISTINCT s.status) = 1 AND MIN(s.status) = 'COMPLETED' THEN 'COMPLETED'
+					ELSE 'INCOMPLETED'
+				END AS status
+			FROM submission s
+			WHERE s.user_id = ? AND s.assignment_id %[1]s
+			GROUP BY s.assignment_id
+		) t1
+		RIGHT JOIN assignment a ON a.id = t1.assignment_id
 		WHERE a.id %[1]s
 	`
 
@@ -216,52 +224,4 @@ func (r *assignmentRepository) ListSubmission(userId string, assignmentId int) (
 	}
 
 	return submissions, nil
-}
-
-func (r *assignmentRepository) UpdateSubmissionResults(
-	submissionId int,
-	compilationLog string,
-	results []domain.SubmissionResult,
-) (retErr error) {
-	tx, err := r.db.Beginx()
-	if err != nil {
-		return fmt.Errorf("cannot begin transaction to update submission result: %w", err)
-	}
-
-	defer func() {
-		if err := recover(); err != nil {
-			if rbErr := tx.Rollback(); rbErr != nil {
-				retErr = fmt.Errorf("cannot rollback transaction: %w", err.(error))
-			} else {
-				retErr = err.(error)
-			}
-		}
-	}()
-
-	_, err = tx.Exec("UPDATE submission SET compilation_log = ? WHERE id = ?", compilationLog, submissionId)
-	if err != nil {
-		panic(fmt.Errorf("cannot query to update submission from submission result: %w", err))
-	}
-
-	// TODO: optimization
-	for i := range results {
-		_, err := tx.NamedExec(`
-			UPDATE submission_result
-			SET
-				status = :status,
-				status_detail = :status_detail,
-				memory_usage = :memory_usage,
-				time_usage = :time_usage
-			WHERE submission_id = :submission_id AND testcase_id = :testcase_id;
-		`, results[i])
-		if err != nil {
-			panic(fmt.Errorf("cannot query to update submission result: %w", err))
-		}
-	}
-
-	if err = tx.Commit(); err != nil {
-		panic(fmt.Errorf("cannot commit transaction to update submission result: %w", err))
-	}
-
-	return
 }

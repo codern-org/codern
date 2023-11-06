@@ -72,6 +72,29 @@ func (u *assignmentUsecase) CreateSubmission(
 	return u.gradingPublisher.Grade(assignment, submission)
 }
 
+func (u *assignmentUsecase) CreateSubmissionResults(
+	submissionId int,
+	compilationLog string,
+	results []domain.SubmissionResult,
+) error {
+	status := domain.AssignmentStatusComplete
+	score := 0
+
+	for _, result := range results {
+		if result.IsPassed {
+			score += 1
+		} else {
+			status = domain.AssignmentStatusIncompleted
+		}
+	}
+
+	err := u.assignmentRepository.CreateSubmissionResults(submissionId, compilationLog, status, score, results)
+	if err != nil {
+		return errs.New(errs.ErrCreateSubmissionResult, "cannot update submission result", err)
+	}
+	return nil
+}
+
 func (u *assignmentUsecase) Get(id int, userId string) (*domain.Assignment, error) {
 	assignment, err := u.assignmentRepository.Get(id, userId)
 	if err != nil {
@@ -102,15 +125,4 @@ func (u *assignmentUsecase) ListSubmission(userId string, assignmentId int) ([]d
 		return nil, errs.New(errs.ErrListSubmission, "cannot list submission", err)
 	}
 	return submissions, nil
-}
-
-func (u *assignmentUsecase) UpdateSubmissionResults(
-	submissionId int,
-	compilationLog string,
-	results []domain.SubmissionResult) error {
-	err := u.assignmentRepository.UpdateSubmissionResults(submissionId, compilationLog, results)
-	if err != nil {
-		return errs.New(errs.ErrUpdateSubmissionResult, "cannot update submission result", err)
-	}
-	return nil
 }
