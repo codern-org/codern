@@ -94,6 +94,10 @@ func (h *WebSocketHub) SendMessage(userId string, channel string, message interf
 	}
 
 	for i := range connInfos {
+		if connInfos[i].conn == nil {
+			continue
+		}
+
 		err := connInfos[i].conn.WriteJSON(WebSocketPayload{
 			Channel: channel,
 			Message: message,
