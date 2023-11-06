@@ -91,9 +91,10 @@ func initPlatform(cfg *config.Config, logger *zap.Logger) *domain.Platform {
 		logger,
 	)
 	if err != nil {
-		logger.Fatal("Cannot create a InfluxDB connection", zap.Error(err))
+		logger.Error("Cannot create a InfluxDB connection", zap.Error(err))
+	} else {
+		logger.Info("Connected to InfluxDB", zap.String("connection_time", time.Since(start).String()))
 	}
-	logger.Info("Connected to InfluxDB", zap.String("connection_time", time.Since(start).String()))
 
 	start = time.Now()
 	mysql, err := platform.NewMySql(cfg.Client.MySql.Uri)
@@ -182,6 +183,6 @@ func startConsumer(
 ) {
 	gradingConsumer := consumer.NewGradingConsumer(logger, platform.RabbitMq, platform.WebSocketHub, usecase.Assignment)
 	if err := gradingConsumer.ConsumeSubmssionResult(); err != nil {
-		logger.Fatal("Cannot consume submission result", zap.Error(err))
+		logger.Fatal("Cannot start grading consumer", zap.Error(err))
 	}
 }
