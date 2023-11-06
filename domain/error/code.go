@@ -46,7 +46,7 @@ const (
 	ErrListTestcase            = 3030
 	ErrGetSubmission           = 3040
 	ErrListSubmission          = 3041
-	ErrUpdateSubmissionResult  = 3042
+	ErrCreateSubmissionResult  = 3042
 
 	ErrGradingRequest = 4000
 

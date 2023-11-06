@@ -21,7 +21,7 @@ func (r *workspaceRepository) HasUser(userId string, workspaceId int) (bool, err
 	var result domain.WorkspaceParticipant
 	err := r.db.Get(
 		&result,
-		"SELECT workspace_id FROM workspace_participant WHERE workspace_id = ? AND user_id = ? LIMIT 1",
+		"SELECT workspace_id FROM workspace_participant WHERE workspace_id = ? AND user_id = ?",
 		workspaceId, userId,
 	)
 	if err == sql.ErrNoRows {
@@ -36,7 +36,7 @@ func (r *workspaceRepository) HasAssignment(assignmentId int, workspaceId int) (
 	var result domain.Assignment
 	err := r.db.Get(
 		&result,
-		"SELECT id FROM assignment WHERE id = ? AND workspace_id = ? LIMIT 1",
+		"SELECT id FROM assignment WHERE id = ? AND workspace_id = ?",
 		assignmentId, workspaceId,
 	)
 	if err == sql.ErrNoRows {
@@ -47,8 +47,12 @@ func (r *workspaceRepository) HasAssignment(assignmentId int, workspaceId int) (
 	return true, nil
 }
 
-func (r *workspaceRepository) Get(id int, selector *domain.WorkspaceSelector) (*domain.Workspace, error) {
-	workspaces, err := r.list([]int{id}, selector)
+func (r *workspaceRepository) Get(
+	id int,
+	userId string,
+	selector *domain.WorkspaceSelector,
+) (*domain.Workspace, error) {
+	workspaces, err := r.list([]int{id}, userId, selector)
 	if err != nil {
 		return nil, fmt.Errorf("cannot query to get workspace: %w", err)
 	} else if len(workspaces) == 0 {
@@ -77,14 +81,22 @@ func (r *workspaceRepository) List(
 	selector *domain.WorkspaceSelector,
 ) ([]domain.Workspace, error) {
 	var workspaceIds []int
-	err := r.db.Select(&workspaceIds, "SELECT workspace_id FROM workspace_participant WHERE user_id = ?", userId)
+	err := r.db.Select(
+		&workspaceIds,
+		"SELECT workspace_id FROM workspace_participant WHERE user_id = ?",
+		userId,
+	)
 	if err != nil {
 		return nil, fmt.Errorf("cannot query to list workspace id: %w", err)
 	}
-	return r.list(workspaceIds, selector)
+	return r.list(workspaceIds, userId, selector)
 }
 
-func (r *workspaceRepository) list(ids []int, selector *domain.WorkspaceSelector) ([]domain.Workspace, error) {
+func (r *workspaceRepository) list(
+	ids []int,
+	userId string,
+	selector *domain.WorkspaceSelector,
+) ([]domain.Workspace, error) {
 	workspaces := make([]domain.Workspace, 0)
 	if len(ids) == 0 {
 		return workspaces, nil
@@ -96,12 +108,13 @@ func (r *workspaceRepository) list(ids []int, selector *domain.WorkspaceSelector
 			user.display_name AS owner_name,
 			user.profile_url AS owner_profile_url,
 			(SELECT COUNT(*) FROM workspace_participant wp WHERE wp.workspace_id = w.id) AS participant_count,
-			(SELECT COUNT(*) FROM assignment a WHERE a.workspace_id = w.id) AS total_assignment
+			(SELECT COUNT(*) FROM assignment a WHERE a.workspace_id = w.id) AS total_assignment,
+			wp.role, wp.favorite, wp.joined_at, wp.recently_visited_at
 		FROM workspace w
 		INNER JOIN user ON user.id = (SELECT user_id FROM workspace_participant WHERE workspace_id = w.id AND role = 'OWNER')
+		INNER JOIN workspace_participant wp ON wp.workspace_id = w.id AND wp.user_id = ?
 		WHERE w.id IN (?)
-		LIMIT ?
-	`, ids, len(ids))
+	`, userId, ids)
 	if err != nil {
 		return nil, fmt.Errorf("cannot query to create query to list workspace: %w", err)
 	}
@@ -137,30 +150,6 @@ func (r *workspaceRepository) list(ids []int, selector *domain.WorkspaceSelector
 		}
 	}
 
-	return workspaces, nil
-}
-
-func (r *workspaceRepository) ListRecent(userId string) ([]domain.Workspace, error) {
-	workspaces := make([]domain.Workspace, 0)
-	query, args, err := sqlx.In(`
-		SELECT
-			w.*,
-			user.display_name AS owner_name,
-			(SELECT COUNT(*) FROM workspace_participant wp WHERE wp.workspace_id = w.id) AS participant_count,
-			(SELECT COUNT(*) FROM assignment a WHERE a.workspace_id = w.id) AS total_assignment
-		FROM workspace w
-		INNER JOIN user ON user.id = (SELECT user_id FROM workspace_participant WHERE workspace_id = w.id AND role = 'OWNER')
-		INNER JOIN workspace_participant wp ON wp.workspace_id = w.id
-		WHERE wp.user_id = ? AND w.id IN (SELECT workspace_id FROM workspace_participant WHERE user_id = ?)
-		ORDER BY wp.recently_visited_at DESC
-		LIMIT 4
-	`, userId, userId)
-	if err != nil {
-		return nil, fmt.Errorf("cannot query to create query to list recent workspace: %w", err)
-	}
-	if err := r.db.Select(&workspaces, query, args...); err != nil {
-		return nil, fmt.Errorf("cannot query to list recent workspace: %w", err)
-	}
 	return workspaces, nil
 }
 

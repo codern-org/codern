@@ -32,6 +32,7 @@ CREATE TABLE IF NOT EXISTS `workspace_participant` (
   `workspace_id` BIGINT UNSIGNED NOT NULL,
   `user_id` VARCHAR(64) NOT NULL,
   `role` VARCHAR(32) NOT NULL,
+  `favorite` BOOLEAN NOT NULL,
   `joined_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
   `recently_visited_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`workspace_id`, `user_id`),
@@ -66,6 +67,8 @@ CREATE TABLE IF NOT EXISTS `submission` (
   `assignment_id` BIGINT UNSIGNED NOT NULL,
   `user_id` VARCHAR(64) NOT NULL,
   `language` VARCHAR(64) NOT NULL,
+  `status` VARCHAR(32) NOT NULL,
+  `score` SMALLINT UNSIGNED NOT NULL,
   `file_url` VARCHAR(128) NOT NULL,
   `submitted_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
   `compilation_log` LONGTEXT,
@@ -76,8 +79,8 @@ CREATE TABLE IF NOT EXISTS `submission` (
 CREATE TABLE IF NOT EXISTS `submission_result` (
   `submission_id` BIGINT UNSIGNED NOT NULL,
   `testcase_id` BIGINT UNSIGNED NOT NULL,
-  `status` VARCHAR(32) NOT NULL,
-  `status_detail` VARCHAR(32),
+  `is_passed` BOOLEAN NOT NULL,
+  `status` VARCHAR(32),
   `memory_usage` INTEGER,
   `time_usage` INTEGER,
   PRIMARY KEY (`submission_id`, `testcase_id`),
@@ -109,6 +112,7 @@ INSERT INTO `workspace_participant` VALUES (
   '1',
   '62b870d7a68388007ba0f8ba292686c70dcb06b8',
   'OWNER',
+  '0',
   '2023-08-20 09:30:00',
   DEFAULT
 );
@@ -151,6 +155,7 @@ INSERT INTO `workspace_participant` VALUES (
   '2',
   '62b870d7a68388007ba0f8ba292686c70dcb06b8',
   'OWNER',
+  '0',
   '2023-08-20 09:30:00',
   DEFAULT
 );

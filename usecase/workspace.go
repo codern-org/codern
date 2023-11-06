@@ -42,7 +42,7 @@ func (u *workspaceUsecase) Get(
 	selector *domain.WorkspaceSelector,
 	userId string,
 ) (*domain.Workspace, error) {
-	workspace, err := u.workspaceRepository.Get(id, selector)
+	workspace, err := u.workspaceRepository.Get(id, userId, selector)
 	if err != nil {
 		return nil, errs.New(errs.ErrGetWorkspace, "cannot get workspace id %d", id, err)
 	}
@@ -59,14 +59,6 @@ func (u *workspaceUsecase) List(
 	workspaces, err := u.workspaceRepository.List(userId, selector)
 	if err != nil {
 		return nil, errs.New(errs.ErrListWorkspace, "cannot list workspace", err)
-	}
-	return workspaces, nil
-}
-
-func (u *workspaceUsecase) ListRecent(userId string) ([]domain.Workspace, error) {
-	workspaces, err := u.workspaceRepository.ListRecent(userId)
-	if err != nil {
-		return nil, errs.New(errs.ErrListWorkspace, "cannot list recent workspace", err)
 	}
 	return workspaces, nil
 }

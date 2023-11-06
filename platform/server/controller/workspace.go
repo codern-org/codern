@@ -39,18 +39,10 @@ func NewWorkspaceController(
 func (c *WorkspaceController) List(ctx *fiber.Ctx) error {
 	user := middleware.GetUserFromCtx(ctx)
 	selector := payload.GetFieldSelector(ctx)
-	order := ctx.Query("order")
 
-	var workspaces []domain.Workspace
-	var err error
-
-	if order == "recent" {
-		workspaces, err = c.workspaceUsecase.ListRecent(user.Id)
-	} else {
-		workspaces, err = c.workspaceUsecase.List(user.Id, &domain.WorkspaceSelector{
-			Participants: selector.Has("participants"),
-		})
-	}
+	workspaces, err := c.workspaceUsecase.List(user.Id, &domain.WorkspaceSelector{
+		Participants: selector.Has("participants"),
+	})
 	if err != nil {
 		return err
 	}
