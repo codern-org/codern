@@ -1,7 +1,7 @@
 package errs
 
 const (
-	OverrideCode = 0
+	SameCode = 0
 
 	ErrInternal   = 1
 	ErrRoute      = 2

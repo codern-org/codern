@@ -12,6 +12,7 @@ import (
 	"github.com/codern-org/codern/domain"
 	errs "github.com/codern-org/codern/domain/error"
 	"github.com/codern-org/codern/internal/config"
+	"github.com/codern-org/codern/internal/constant"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 )
@@ -85,7 +86,7 @@ func (u *sessionUsecase) Create(
 	}
 
 	cookie := &fiber.Cookie{
-		Name:     "sid",
+		Name:     constant.SessionCookieName,
 		Value:    signedId,
 		HTTPOnly: true,
 		Expires:  expiredAt,
@@ -96,7 +97,7 @@ func (u *sessionUsecase) Create(
 func (u *sessionUsecase) Get(header string) (*domain.Session, error) {
 	id, err := u.Unsign(header)
 	if err != nil {
-		return nil, errs.New(errs.OverrideCode, "cannot unsign session", err)
+		return nil, errs.New(errs.SameCode, "cannot unsign session", err)
 	}
 
 	session, err := u.sessionRepository.Get(id)
@@ -108,7 +109,7 @@ func (u *sessionUsecase) Get(header string) (*domain.Session, error) {
 
 func (u *sessionUsecase) Destroy(id string) (*fiber.Cookie, error) {
 	return &fiber.Cookie{
-		Name:     "sid",
+		Name:     constant.SessionCookieName,
 		HTTPOnly: true,
 		Expires:  time.Unix(0, 0),
 	}, u.sessionRepository.Delete(id)
@@ -116,7 +117,7 @@ func (u *sessionUsecase) Destroy(id string) (*fiber.Cookie, error) {
 
 func (u *sessionUsecase) DestroyByUserId(userId string) (*fiber.Cookie, error) {
 	return &fiber.Cookie{
-		Name:     "sid",
+		Name:     constant.SessionCookieName,
 		HTTPOnly: true,
 		Expires:  time.Unix(0, 0),
 	}, u.sessionRepository.DeleteByUserId(userId)
@@ -125,7 +126,7 @@ func (u *sessionUsecase) DestroyByUserId(userId string) (*fiber.Cookie, error) {
 func (u *sessionUsecase) Validate(header string) (*domain.Session, error) {
 	session, err := u.Get(header)
 	if err != nil {
-		return nil, errs.New(errs.OverrideCode, "cannot validate session", err)
+		return nil, errs.New(errs.SameCode, "cannot validate session", err)
 	} else if session == nil {
 		return nil, errs.New(errs.ErrInvalidSession, "session is invalid")
 	}

@@ -28,12 +28,12 @@ func NewAuthUsecase(
 func (u *authUsecase) Authenticate(header string) (*domain.User, error) {
 	session, err := u.sessionUsecase.Validate(header)
 	if err != nil {
-		return nil, errs.New(errs.OverrideCode, "cannot authenticate user", err)
+		return nil, errs.New(errs.SameCode, "cannot authenticate user", err)
 	}
 
 	user, err := u.userUsecase.GetBySessionId(session.Id)
 	if err != nil {
-		return nil, errs.New(errs.OverrideCode, "cannot get user to authenticate", err)
+		return nil, errs.New(errs.SameCode, "cannot get user to authenticate", err)
 	}
 	return user, nil
 }
@@ -43,7 +43,7 @@ func (u *authUsecase) SignIn(
 ) (*fiber.Cookie, error) {
 	user, err := u.userUsecase.GetByEmail(email, domain.SelfAuth)
 	if err != nil {
-		return nil, errs.New(errs.OverrideCode, "cannot get user data to sign in", err)
+		return nil, errs.New(errs.SameCode, "cannot get user data to sign in", err)
 	} else if user == nil {
 		return nil, errs.New(errs.ErrUserNotFound, "account with email %s is not registered", email)
 	}
@@ -54,7 +54,7 @@ func (u *authUsecase) SignIn(
 
 	cookie, err := u.sessionUsecase.Create(user.Id, ipAddress, userAgent)
 	if err != nil {
-		return nil, errs.New(errs.OverrideCode, "cannot create session to sign in", err)
+		return nil, errs.New(errs.SameCode, "cannot create session to sign in", err)
 	}
 	return cookie, nil
 }
@@ -64,28 +64,28 @@ func (u *authUsecase) SignInWithGoogle(
 ) (*fiber.Cookie, error) {
 	token, err := u.googleUsecase.GetToken(code)
 	if err != nil {
-		return nil, errs.New(errs.OverrideCode, "cannot sign in with google", err)
+		return nil, errs.New(errs.SameCode, "cannot sign in with google", err)
 	}
 	googleUser, err := u.googleUsecase.GetUser(token)
 	if err != nil {
-		return nil, errs.New(errs.OverrideCode, "cannot sign in with google", err)
+		return nil, errs.New(errs.SameCode, "cannot sign in with google", err)
 	}
 
 	user, err := u.userUsecase.GetByEmail(googleUser.Email, domain.GoogleAuth)
 	if err != nil {
-		return nil, errs.New(errs.OverrideCode, "cannot get user data to sign in with google", err)
+		return nil, errs.New(errs.SameCode, "cannot get user data to sign in with google", err)
 	}
 
 	if user == nil {
 		user, err = u.userUsecase.CreateFromGoogle(googleUser.Id, googleUser.Email, googleUser.Name)
 		if err != nil {
-			return nil, errs.New(errs.OverrideCode, "cannot create user to sign in with google", err)
+			return nil, errs.New(errs.SameCode, "cannot create user to sign in with google", err)
 		}
 	}
 
 	cookie, err := u.sessionUsecase.Create(user.Id, ipAddress, userAgent)
 	if err != nil {
-		return nil, errs.New(errs.OverrideCode, "cannot create session to sign in with google", err)
+		return nil, errs.New(errs.SameCode, "cannot create session to sign in with google", err)
 	}
 	return cookie, nil
 }
@@ -93,12 +93,12 @@ func (u *authUsecase) SignInWithGoogle(
 func (u *authUsecase) SignOut(header string) (*fiber.Cookie, error) {
 	session, err := u.sessionUsecase.Validate(header)
 	if err != nil {
-		return nil, errs.New(errs.OverrideCode, "cannot validate session to sign out", err)
+		return nil, errs.New(errs.SameCode, "cannot validate session to sign out", err)
 	}
 
 	cookie, err := u.sessionUsecase.Destroy(session.Id)
 	if err != nil {
-		return nil, errs.New(errs.OverrideCode, "cannot destroy session to sign out", err)
+		return nil, errs.New(errs.SameCode, "cannot destroy session to sign out", err)
 	}
 	return cookie, nil
 }

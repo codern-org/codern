@@ -6,8 +6,8 @@ import (
 
 	"github.com/codern-org/codern/domain"
 	errs "github.com/codern-org/codern/domain/error"
+	"github.com/codern-org/codern/internal/constant"
 	"github.com/codern-org/codern/platform"
-	"github.com/codern-org/codern/platform/server/payload"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 )
@@ -25,7 +25,7 @@ func NewPayloadValidator(influxdb *platform.InfluxDb) domain.PayloadValidator {
 }
 
 func (v *payloadValidator) ValidateAuth(ctx *fiber.Ctx) (string, error) {
-	sid := ctx.Cookies(payload.AuthCookieKey)
+	sid := ctx.Cookies(constant.SessionCookieName)
 	if sid == "" {
 		return "", errs.New(errs.ErrAuthHeader, "missing auth header")
 	}

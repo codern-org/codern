@@ -50,7 +50,7 @@ func (u *assignmentUsecase) CreateSubmission(
 
 	assignment, err := u.Get(assignmentId, userId)
 	if err != nil {
-		return errs.New(errs.OverrideCode, "cannot get assignment id %d", assignmentId, err)
+		return errs.New(errs.SameCode, "cannot get assignment id %d", assignmentId, err)
 	} else if assignment == nil {
 		return errs.New(errs.ErrAssignmentNotFound, "assignment id %d not found", id)
 	}

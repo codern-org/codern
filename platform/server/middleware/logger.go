@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/codern-org/codern/internal/constant"
 	"github.com/codern-org/codern/platform"
 	"github.com/gofiber/fiber/v2"
 	"go.uber.org/zap"
@@ -35,7 +36,7 @@ func NewLogger(logger *zap.Logger, influxdb *platform.InfluxDb) fiber.Handler {
 		}
 		statusCode := ctx.Response().StatusCode()
 
-		pathType, ok := ctx.Locals("pathType").(string)
+		pathType, ok := ctx.Locals(constant.PathTypeCtxLocal).(string)
 		if !ok {
 			pathType = "unknown"
 		}

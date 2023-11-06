@@ -30,7 +30,7 @@ func (r *userRepository) Create(user *domain.User) error {
 
 func (r *userRepository) Get(id string) (*domain.User, error) {
 	var user domain.User
-	err := r.db.Get(&user, "SELECT * FROM user WHERE id = ? LIMIT 1", id)
+	err := r.db.Get(&user, "SELECT * FROM user WHERE id = ?", id)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	} else if err != nil {
@@ -43,7 +43,7 @@ func (r *userRepository) GetBySessionId(id string) (*domain.User, error) {
 	var user domain.User
 	err := r.db.Get(
 		&user,
-		"SELECT user.* FROM user JOIN session ON user.id = session.user_id WHERE session.id = ? LIMIT 1",
+		"SELECT user.* FROM user JOIN session ON user.id = session.user_id WHERE session.id = ?",
 		id,
 	)
 	if err == sql.ErrNoRows {
@@ -61,7 +61,7 @@ func (r *userRepository) GetByEmail(
 	var user domain.User
 	err := r.db.Get(
 		&user,
-		"SELECT * FROM user WHERE email = ? AND provider = ? LIMIT 1",
+		"SELECT * FROM user WHERE email = ? AND provider = ?",
 		email, provider,
 	)
 	if err == sql.ErrNoRows {

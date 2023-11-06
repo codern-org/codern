@@ -26,14 +26,14 @@ func New(code int, message string, args ...interface{}) *DomainError {
 			i = 1
 			// Override code by inner domain error code
 			var domainErr *DomainError
-			if (code == OverrideCode) && errors.As(err, &domainErr) {
+			if (code == SameCode) && errors.As(err, &domainErr) {
 				code = domainErr.Code
 			}
 		}
 	}
 	message = fmt.Sprintf(message, args[:len(args)-i]...)
 
-	if code == OverrideCode {
+	if code == SameCode {
 		code = ErrInternal
 	}
 
