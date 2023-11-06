@@ -109,12 +109,17 @@ func (r *workspaceRepository) list(
 			user.profile_url AS owner_profile_url,
 			(SELECT COUNT(*) FROM workspace_participant wp WHERE wp.workspace_id = w.id) AS participant_count,
 			(SELECT COUNT(*) FROM assignment a WHERE a.workspace_id = w.id) AS total_assignment,
-			wp.role, wp.favorite, wp.joined_at, wp.recently_visited_at
+			wp.role, wp.favorite, wp.joined_at, wp.recently_visited_at,
+			(SELECT
+				COUNT(DISTINCT(s.status))
+				FROM submission s
+				WHERE s.assignment_id = w.id AND s.user_id = ? AND s.status = 'COMPLETED'
+			) AS completed_assignment
 		FROM workspace w
 		INNER JOIN user ON user.id = (SELECT user_id FROM workspace_participant WHERE workspace_id = w.id AND role = 'OWNER')
 		INNER JOIN workspace_participant wp ON wp.workspace_id = w.id AND wp.user_id = ?
 		WHERE w.id IN (?)
-	`, userId, ids)
+	`, userId, userId, ids)
 	if err != nil {
 		return nil, fmt.Errorf("cannot query to create query to list workspace: %w", err)
 	}

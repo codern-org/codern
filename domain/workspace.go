@@ -11,14 +11,15 @@ type Workspace struct {
 	CreatedAt  time.Time `json:"createdAt" db:"created_at"`
 
 	// Always aggregation
-	OwnerName         string    `json:"ownerName" db:"owner_name"`
-	OwnerProfileUrl   string    `json:"ownerProfileUrl" db:"owner_profile_url"`
-	ParticipantCount  int       `json:"participantCount" db:"participant_count"`
-	TotalAssignment   int       `json:"totalAssignment" db:"total_assignment"`
-	Role              string    `json:"role" db:"role"`
-	Favorite          bool      `json:"favorite" db:"favorite"`
-	JoinedAt          time.Time `json:"joinedAt" db:"joined_at"`
-	RecentlyVisitedAt time.Time `json:"recentlyVisitedAt" db:"recently_visited_at"`
+	OwnerName           string    `json:"ownerName" db:"owner_name"`
+	OwnerProfileUrl     string    `json:"ownerProfileUrl" db:"owner_profile_url"`
+	ParticipantCount    int       `json:"participantCount" db:"participant_count"`
+	TotalAssignment     int       `json:"totalAssignment" db:"total_assignment"`
+	CompletedAssignment int       `json:"completedAssignment" db:"completed_assignment"`
+	Role                string    `json:"role" db:"role"`
+	Favorite            bool      `json:"favorite" db:"favorite"`
+	JoinedAt            time.Time `json:"joinedAt" db:"joined_at"`
+	RecentlyVisitedAt   time.Time `json:"recentlyVisitedAt" db:"recently_visited_at"`
 
 	// Optional aggregation
 	Participants []WorkspaceParticipant `json:"participants,omitempty"`
