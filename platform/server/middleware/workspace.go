@@ -3,6 +3,7 @@ package middleware
 import (
 	"github.com/codern-org/codern/domain"
 	errs "github.com/codern-org/codern/domain/error"
+	"github.com/codern-org/codern/internal/constant"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -42,17 +43,17 @@ func NewWorkspaceMiddleware(
 			}
 		}
 
-		ctx.Locals("workspaceId", workspaceId)
-		ctx.Locals("assignmentId", assignmentId)
+		ctx.Locals(constant.WorkspaceIdCtxLocal, workspaceId)
+		ctx.Locals(constant.AssignmentIdCtxLocal, assignmentId)
 
 		return ctx.Next()
 	}
 }
 
 func GetWorkspaceIdFromCtx(ctx *fiber.Ctx) int {
-	return ctx.Locals("workspaceId").(int)
+	return ctx.Locals(constant.WorkspaceIdCtxLocal).(int)
 }
 
 func GetAssignmentIdFromCtx(ctx *fiber.Ctx) int {
-	return ctx.Locals("assignmentId").(int)
+	return ctx.Locals(constant.AssignmentIdCtxLocal).(int)
 }

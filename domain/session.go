@@ -9,7 +9,7 @@ import (
 type Session struct {
 	Id        string    `json:"id" db:"id"`
 	UserId    string    `json:"userId" db:"user_id"`
-	IpAddress string    `json:"ipAddress" db:"ip_address"`
+	IpAddress string    `json:"-" db:"ip_address"`
 	UserAgent string    `json:"userAgent" db:"user_agent"`
 	ExpiredAt time.Time `json:"expiredAt" db:"expired_at"`
 	CreatedAt time.Time `json:"createdAt" db:"created_at"`

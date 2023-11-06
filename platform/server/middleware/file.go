@@ -1,12 +1,13 @@
 package middleware
 
 import (
+	"github.com/codern-org/codern/internal/constant"
 	"github.com/gofiber/fiber/v2"
 )
 
 func NewFileMiddleware() fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
-		requestId := ctx.Locals("requestid").(string)
+		requestId := ctx.Locals(constant.RequestIdCtxLocal).(string)
 
 		if err := ctx.Next(); err != nil {
 			return err

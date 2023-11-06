@@ -36,7 +36,7 @@ func (u *userUsecase) Create(email string, password string) (*domain.User, error
 
 	user, err := u.GetByEmail(email, domain.SelfAuth)
 	if err != nil {
-		return nil, errs.New(errs.OverrideCode, "cannot create user %s", email)
+		return nil, errs.New(errs.SameCode, "cannot create user with email %s", email, err)
 	} else if user != nil {
 		return nil, errs.New(errs.ErrDupEmail,
 			"cannot create user due to email %s being already registered", email,
@@ -62,7 +62,7 @@ func (u *userUsecase) Create(email string, password string) (*domain.User, error
 	}
 
 	if err = u.userRepository.Create(user); err != nil {
-		return nil, errs.New(errs.ErrCreateUser, "cannot create user with this email and password", err)
+		return nil, errs.New(errs.ErrCreateUser, "cannot create user with email %s", email, err)
 	}
 	return user, nil
 }
@@ -82,7 +82,7 @@ func (u *userUsecase) CreateFromGoogle(id string, email string, name string) (*d
 	}
 
 	if err := u.userRepository.Create(user); err != nil {
-		return nil, errs.New(errs.ErrCreateUser, "cannot create user from google auth", err)
+		return nil, errs.New(errs.ErrCreateUser, "cannot create user from google auth email %s", email, err)
 	}
 	return user, nil
 }
@@ -114,9 +114,9 @@ func (u *userUsecase) GetByEmail(email string, provider domain.AuthProvider) (*d
 func (u *userUsecase) UpdatePassword(userId string, oldPassword string, newPassword string) error {
 	user, err := u.Get(userId)
 	if err != nil {
-		return errs.New(errs.OverrideCode, "cannot get user data to update password", userId, err)
+		return errs.New(errs.SameCode, "cannot get user id %s to update password", userId, err)
 	} else if user == nil {
-		return errs.New(errs.ErrUserNotFound, "cannot get user data to update password", userId)
+		return errs.New(errs.ErrUserNotFound, "cannot get user id %s to update password", userId)
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(oldPassword)); err != nil {
@@ -129,11 +129,11 @@ func (u *userUsecase) UpdatePassword(userId string, oldPassword string, newPassw
 	}
 
 	if err := u.userRepository.UpdatePassword(userId, string(hashedPassword)); err != nil {
-		return errs.New(errs.OverrideCode, "cannot update password", err)
+		return errs.New(errs.SameCode, "cannot update password", err)
 	}
 
 	if _, err = u.sessionUsecase.DestroyByUserId(userId); err != nil {
-		return errs.New(errs.OverrideCode, "cannot destroy session while updating the password", err)
+		return errs.New(errs.SameCode, "cannot destroy session while updating the password", err)
 	}
 
 	return nil

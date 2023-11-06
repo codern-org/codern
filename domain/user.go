@@ -12,8 +12,8 @@ const (
 type AccountType string
 
 const (
-	FreeAccount    AccountType = "FREE"
-	PremiumAccount AccountType = "PREMIUM"
+	FreeAccount AccountType = "FREE"
+	ProAccount  AccountType = "PRO"
 )
 
 type User struct {

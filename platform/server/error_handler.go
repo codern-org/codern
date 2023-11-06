@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	errs "github.com/codern-org/codern/domain/error"
+	"github.com/codern-org/codern/internal/constant"
 	"github.com/codern-org/codern/platform/server/response"
 	"github.com/gofiber/contrib/websocket"
 	"github.com/gofiber/fiber/v2"
@@ -14,7 +15,7 @@ import (
 func errorHandler(logger *zap.Logger) fiber.ErrorHandler {
 	return func(ctx *fiber.Ctx, err error) error {
 		resStatus := fiber.StatusInternalServerError
-		requestId := ctx.Locals("requestid").(string)
+		requestId := ctx.Locals(constant.RequestIdCtxLocal).(string)
 
 		var domainError *errs.DomainError
 		if errors.As(err, &domainError) {

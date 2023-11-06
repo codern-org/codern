@@ -5,6 +5,7 @@ import (
 
 	"github.com/codern-org/codern/domain"
 	"github.com/codern-org/codern/internal/config"
+	"github.com/codern-org/codern/internal/constant"
 	"github.com/codern-org/codern/platform/server/middleware"
 	"github.com/codern-org/codern/platform/server/payload"
 	"github.com/codern-org/codern/platform/server/response"
@@ -124,7 +125,7 @@ func (c *AuthController) SignInWithGoogle(ctx *fiber.Ctx) error {
 // @param 			sid header string true "Session ID"
 // @Router 			/auth/signout [get]
 func (c *AuthController) SignOut(ctx *fiber.Ctx) error {
-	sid := ctx.Cookies(payload.AuthCookieKey)
+	sid := ctx.Cookies(constant.SessionCookieName)
 
 	cookie, err := c.authUsecase.SignOut(sid)
 	if err != nil {
