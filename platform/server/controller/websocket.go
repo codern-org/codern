@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/codern-org/codern/domain"
+	"github.com/codern-org/codern/internal/constant"
 	"github.com/codern-org/codern/platform"
 	"github.com/gofiber/contrib/websocket"
 	"github.com/gofiber/fiber/v2"
@@ -31,14 +32,14 @@ func (c *WebSocketController) Upgrade(ctx *fiber.Ctx) error {
 
 func (c *WebSocketController) Portal() fiber.Handler {
 	return websocket.New(func(conn *websocket.Conn) {
-		user := conn.Locals("user").(*domain.User)
+		user := conn.Locals(constant.UserCtxLocal).(*domain.User)
 		c.wsHub.RegisterUser(user.Id, conn)
 
 		for {
 			_, msg, err := conn.ReadMessage()
 			if err != nil {
 				// Error `websocket: close 1001 (going away)` = client disconnected
-				c.wsHub.RegisterUser(user.Id, nil)
+				c.wsHub.UnregisterUser(user.Id, conn)
 				return
 			}
 
