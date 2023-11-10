@@ -5,10 +5,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/codern-org/codern/internal/constant"
 	"github.com/gofiber/contrib/websocket"
 )
-
-var MaxWebSocketConnPerUser = 4
 
 type wsConnInfo struct {
 	conn        *websocket.Conn
@@ -40,7 +39,7 @@ func (h *WebSocketHub) RegisterUser(userId string, conn *websocket.Conn) {
 	h.mu.Lock()
 
 	if h.connPool[userId] == nil {
-		h.connPool[userId] = make([]wsConnInfo, MaxWebSocketConnPerUser)
+		h.connPool[userId] = make([]wsConnInfo, constant.MaxWebSocketConnPerUser)
 		for i := range h.connPool[userId] {
 			h.connPool[userId][i].createdTime = time.Now()
 		}
