@@ -17,7 +17,6 @@ type Config struct {
 
 type ConfigMetadata struct {
 	Name     string `yaml:"name" validate:"required"`
-	Version  string `yaml:"version" validate:"required"`
 	LogLevel string `yaml:"logLevel" validate:"required"`
 }
 

@@ -33,6 +33,8 @@ func main() {
 	logger := logger.NewLogger()
 	defer logger.Sync()
 
+	logger.Sugar().Infof("Codern API server %s", constant.Version)
+
 	if constant.IsDevelopment {
 		logger.Warn("Running in development mode")
 	}

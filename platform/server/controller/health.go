@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"github.com/codern-org/codern/internal/config"
+	"github.com/codern-org/codern/internal/constant"
 	"github.com/codern-org/codern/platform/server/response"
 	"github.com/gofiber/fiber/v2"
 )
@@ -19,7 +20,7 @@ func NewHealthController(cfg *config.Config) *HealthController {
 func (c *HealthController) Index(ctx *fiber.Ctx) error {
 	return response.NewSuccessResponse(ctx, fiber.StatusOK, fiber.Map{
 		"name":    c.cfg.Metadata.Name,
-		"version": c.cfg.Metadata.Version,
+		"version": constant.Version,
 	})
 }
 

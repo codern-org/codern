@@ -3,6 +3,7 @@ package constant
 import "os"
 
 var (
+	Version       = "0.0.0" // Load from LDFLAGS for versioning
 	IsDevelopment = os.Getenv("ENVIRONMENT") == "development"
 
 	SessionCookieName = "sid"
