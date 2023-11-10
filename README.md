@@ -4,12 +4,10 @@
     <p><b>An open-source Coding Platform</b></p>
 </div>
 
-**Codern** is an open-source coding platform that focuses on providing a seamless setup for coding event organizers and end-users, enabling them to enhance their programming skills through interactive coding experiences.
+**Codern** is an open-source coding platform that focuses on providing a seamless setup for coding event organizers and participants, enabling them to enhance their programming skills through interactive coding experiences.
 
 > [!NOTE]
-> This repository contains the API Server of Codern only. If you are interested in exploring how the Codern user interface was created, please visit the link [here](https://github.com/codern-org/ui).
-
-> This project also serves as an experimental playground for the founders of Codern, allowing them to learn and develop a robust system as part of their Computer Engineering senior project.
+> This repository contains the API server of Codern only. If you are interested in exploring how the Codern user interface was created, please visit the link [here](https://github.com/codern-org/ui).
 
 ## Proposal
 
@@ -98,9 +96,10 @@ This project utilizes [InfluxDB](https://www.influxdata.com/), [Prometheus](http
 
 ## Contribution
 
-### Prerequisite
+There are many ways in which you can participate in this project, for example:
 
-We highly recommended [Visual Studio Code](https://code.visualstudio.com/) for development with a [Dev Containers](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) extension.
+- [Submit bugs and feature requests](https://github.com/codern-org/codern/issues).
+- Fixing issues and contributing directly to the code base by [submitting pull requests](https://github.com/codern-org/codern/pulls).
 
 ## License
 
