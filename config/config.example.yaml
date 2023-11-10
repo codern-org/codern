@@ -20,7 +20,7 @@ client:
   fiber:
     address: :3000
     trustedProxies:
-      - "0.0.0.0"
+      - "0.0.0.0/32"
     proxyHeader: X-Forwarded-For
   frontend:
     baseUrl: http://localhost:5555
