@@ -1,7 +1,6 @@
 # Build stage
-FROM golang:1.20-alpine AS builder
+FROM golang:1.20 AS builder
 WORKDIR /app
-RUN apk add make && apk add ca-certificates
 
 COPY ./ ./
 RUN go mod download
