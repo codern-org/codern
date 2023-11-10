@@ -11,6 +11,7 @@ import (
 	"github.com/codern-org/codern/platform/server/controller"
 	"github.com/codern-org/codern/platform/server/middleware"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/favicon"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
 	"github.com/gofiber/swagger"
 	"go.uber.org/zap"
@@ -69,6 +70,7 @@ func (s *FiberServer) Start() {
 
 	// Apply middlewares
 	app.Use(middleware.Cors)
+	app.Use(favicon.New())
 	app.Use(requestid.New())
 	app.Use(middleware.NewLogger(s.logger, s.platform.InfluxDb))
 
