@@ -1,6 +1,5 @@
 metadata:
   name: Codern API Server
-  version: 0.0.0
   logLevel: info
 client:
   influxdb:

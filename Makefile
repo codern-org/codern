@@ -1,7 +1,11 @@
-BINARY_NAME=codern
+BINARY_NAME = codern
+VERSION = "0.0.0"
 
 build:
-	GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o dist/${BINARY_NAME} main.go
+	GOOS=linux GOARCH=amd64 \
+	go build \
+	-ldflags="-s -w -X 'github.com/codern-org/codern/internal/constant.Version=${VERSION}'" \
+	-o dist/${BINARY_NAME} main.go
 
 clean:
 	go clean
