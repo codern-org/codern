@@ -12,4 +12,7 @@ var (
 	UserCtxLocal         = "user"
 	WorkspaceIdCtxLocal  = "workspaceId"
 	AssignmentIdCtxLocal = "assignmentId"
+
+	MaxWebSocketConnPerUser = 4
+	SeaweedFsChunkSize      = 1048576 // 1 MiB
 )

@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/codern-org/codern/internal/constant"
 	"github.com/linxGnu/goseaweedfs"
 )
 
@@ -15,7 +16,11 @@ type SeaweedFs struct {
 
 func NewSeaweedFs(url string, filerUrl string) (*SeaweedFs, error) {
 	httpClient := &http.Client{Timeout: 1 * time.Minute}
-	client, err := goseaweedfs.NewSeaweed(url, []string{filerUrl}, 4096, httpClient)
+	client, err := goseaweedfs.NewSeaweed(
+		url, []string{filerUrl},
+		int64(constant.SeaweedFsChunkSize),
+		httpClient,
+	)
 	if err != nil {
 		return nil, err
 	}
