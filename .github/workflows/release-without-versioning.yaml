@@ -1,0 +1,34 @@
+name: Release without versioning
+
+on:
+  push:
+    branches:
+      - dev
+
+jobs:
+  create-image-tag:
+    name: Create image tag
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.create-image-tag.outputs.tag }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Generate metadata
+        id: metadata
+        env:
+          COMMIT_SHA: ${{ github.sha }}
+        run: |
+          TAG=${{ github.ref_name }}-${COMMIT_SHA::7}
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "tag=$TAG"
+
+  build-and-push:
+    name: Build and publish image
+    needs:
+      - create-image-tag
+    uses: ./.github/workflows/publish-image.yaml
+    with:
+      name: ${{ github.repository }}
+      tag: ${{ needs.create-image-tag.outputs.tag }}
