@@ -1,10 +1,15 @@
 # Build stage
 FROM golang:1.20 AS builder
+ARG VERSION
 WORKDIR /app
 
 COPY ./ ./
 RUN go mod download
-RUN make build
+RUN if [ -z "$VERSION" ]; then \
+      make build; \
+    else \
+      make VERSION=${VERSION} build; \
+    fi
 
 # Runner stage
 FROM scratch AS runner

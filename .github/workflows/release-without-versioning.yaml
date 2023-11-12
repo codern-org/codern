@@ -4,6 +4,10 @@ on:
   push:
     branches:
       - dev
+  workflow_dispatch:
+
+permissions:
+  packages: write
 
 jobs:
   create-image-tag:
