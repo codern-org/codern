@@ -14,7 +14,7 @@ jobs:
     name: Create image tag
     runs-on: ubuntu-latest
     outputs:
-      tag: ${{ steps.create-image-tag.outputs.tag }}
+      tag: ${{ steps.metadata.outputs.tag }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -36,3 +36,4 @@ jobs:
     with:
       name: ${{ github.repository }}
       tag: ${{ needs.create-image-tag.outputs.tag }}
+      ref: ${{ github.ref }}
