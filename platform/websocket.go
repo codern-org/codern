@@ -37,6 +37,7 @@ func NewWebSocketHub() *WebSocketHub {
 func (h *WebSocketHub) RegisterUser(userId string, conn *websocket.Conn) {
 	// Call from fiber which need to be thread-safe
 	h.mu.Lock()
+	defer h.mu.Unlock()
 
 	if h.connPool[userId] == nil {
 		h.connPool[userId] = make([]wsConnInfo, constant.MaxWebSocketConnPerUser)
@@ -61,12 +62,12 @@ func (h *WebSocketHub) RegisterUser(userId string, conn *websocket.Conn) {
 	oldest.conn = conn
 	oldest.createdTime = time.Now()
 
-	h.mu.Unlock()
 }
 
 func (h *WebSocketHub) UnregisterUser(userId string, conn *websocket.Conn) {
 	// Call from fiber which need to be thread-safe
 	h.mu.Lock()
+	defer h.mu.Unlock()
 
 	for i := range h.connPool[userId] {
 		if h.connPool[userId][i].conn == conn {
@@ -75,7 +76,6 @@ func (h *WebSocketHub) UnregisterUser(userId string, conn *websocket.Conn) {
 		}
 	}
 
-	h.mu.Unlock()
 }
 
 func (h *WebSocketHub) RegisterHandler(channel string, handler WebSocketChannelHandler) {
