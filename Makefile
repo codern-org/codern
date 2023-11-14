@@ -1,9 +1,8 @@
 BINARY_NAME = codern
 VERSION			:= $(shell git describe --tags --abbrev=0)
 
-$(info Build version $(VERSION))
-
 build:
+	$(info Build version $(VERSION))
 	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 \
 	go build \
 	-ldflags="-s -w -X 'github.com/codern-org/codern/internal/constant.Version=$(VERSION)'" \
