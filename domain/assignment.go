@@ -33,6 +33,7 @@ type Assignment struct {
 	Level       AssignmentLevel `json:"level" db:"level"`
 	CreatedAt   time.Time       `json:"createdAt" db:"created_at"`
 	UpdatedAt   time.Time       `json:"updatedAt" db:"updated_at"`
+	DueDate     *time.Time      `json:"dueDate" db:"due_date"`
 
 	// Always aggregation
 	Testcases       []Testcase       `json:"-"`
