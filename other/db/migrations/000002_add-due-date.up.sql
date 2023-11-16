@@ -1,9 +1,6 @@
 ALTER TABLE `assignment`
 ADD `due_date` DATETIME NULL AFTER `level`;
 
-ALTER TABLE `submission`
-ADD `is_late` BOOLEAN DEFAULT 0 NOT NULL `submitted_at`;
-
 -- Seeding
 
 INSERT INTO `assignment`
@@ -19,7 +16,7 @@ VALUES (
     'HARD',
     '2023-08-20 09:30:00',
     '2023-08-20 09:30:00',
-    '2024-12-25 23:59:00'
+    '2024-05-29 08:00:00'
 );
 
 INSERT INTO `testcase`
