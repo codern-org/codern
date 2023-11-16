@@ -51,7 +51,6 @@ CREATE TABLE IF NOT EXISTS `assignment` (
   `level` VARCHAR(32) NOT NULL,
   `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
   `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
-  `due_date` DATETIME NULL,
   FOREIGN KEY (`workspace_id`) REFERENCES `workspace`(`id`)
 );
 
