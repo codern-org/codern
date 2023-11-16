@@ -35,10 +35,12 @@ type Assignment struct {
 	UpdatedAt   time.Time       `json:"updatedAt" db:"updated_at"`
 	DueDate     *time.Time      `json:"dueDate" db:"due_date"`
 
+	// TODO: add late status field in assignment
 	// Always aggregation
 	Testcases       []Testcase       `json:"-"`
 	LastSubmittedAt *time.Time       `json:"lastSubmittedAt" db:"last_submitted_at"`
 	Status          AssignmentStatus `json:"status" db:"status"`
+	// IsLate       bool      `json:"isLate"`
 }
 
 type Submission struct {
@@ -53,6 +55,7 @@ type Submission struct {
 	CompilationLog *string          `json:"compilationLog,omitempty" db:"compilation_log"`
 
 	// Always aggregation
+	IsLate  bool               `json:"isLate"`
 	Results []SubmissionResult `json:"results,omitempty"`
 }
 

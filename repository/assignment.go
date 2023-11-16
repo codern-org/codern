@@ -214,9 +214,25 @@ func (r *assignmentRepository) ListSubmission(userId string, assignmentId int) (
 		}
 
 		submissionById := make(map[int]*domain.Submission)
+		assignment, err := r.Get(assignmentId, userId)
+		if assignment == nil {
+			return nil, fmt.Errorf("cannot get assignment due date to determine late flag: assignment not found")
+		}
+		if err != nil {
+			return nil, fmt.Errorf("cannot get assignment due date to determine late flag: %w", err)
+		}
 		for i := range submissions {
 			submissionById[submissions[i].Id] = &submissions[i]
+			submission := submissionById[submissions[i].Id]
+			if assignment.DueDate == nil {
+				submission.IsLate = false
+			} else if submission.SubmittedAt.After(*assignment.DueDate) {
+				submission.IsLate = true
+			} else {
+				submission.IsLate = false
+			}
 		}
+
 		for i := range results {
 			submission := submissionById[results[i].SubmissionId]
 			submission.Results = append(submission.Results, results[i])
