@@ -33,8 +33,10 @@ func (v *payloadValidator) ValidateAuth(ctx *fiber.Ctx) (string, error) {
 }
 
 func (v *payloadValidator) Validate(payload interface{}, ctx *fiber.Ctx) (bool, error) {
-	if err := ctx.BodyParser(payload); err != nil {
-		return false, errs.New(errs.ErrBodyParser, err.Error())
+	if len(ctx.Body()) != 0 { // Prevent ErrUnprocessableEntity when body is empty
+		if err := ctx.BodyParser(payload); err != nil {
+			return false, errs.New(errs.ErrBodyParser, err.Error())
+		}
 	}
 	if err := ctx.ParamsParser(payload); err != nil {
 		return false, errs.New(errs.ErrParamsParser, err.Error())
