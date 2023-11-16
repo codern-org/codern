@@ -2,6 +2,8 @@ package validator
 
 import (
 	"errors"
+	"fmt"
+	"mime/multipart"
 	"reflect"
 
 	"github.com/codern-org/codern/domain"
@@ -75,23 +77,52 @@ func fileParser(payload interface{}, ctx *fiber.Ctx) error {
 	}
 	v = v.Elem() // Unwrap interfae or pointer
 
+	var form *multipart.Form
 	for i := 0; i < v.NumField(); i++ {
 		field := v.Type().Field(i)
 		fileKey := field.Tag.Get("file")
-
 		if fileKey != "" {
-			fileHeader, err := ctx.FormFile(fileKey)
-			if err != nil {
-				return err
-			}
-			file, err := fileHeader.Open()
-			if err != nil {
-				return err
+			// Parse multipart form if not parsed before
+			if form == nil {
+				ctxForm, err := ctx.MultipartForm()
+				if err != nil {
+					return fmt.Errorf("cannot parse the file")
+				}
+				form = ctxForm
 			}
 
-			// TODO: contains unsafe operation, need better error handling
-			v.Field(i).Set(reflect.ValueOf(file))
+			if field.Type == reflect.TypeOf((*multipart.File)(nil)).Elem() {
+				// Parse a single file.
+				// If the payload contains multiple files, the first file is being parsed
+				for name, headers := range form.File {
+					if name == fileKey {
+						file, err := headers[0].Open()
+						if err != nil {
+							return fmt.Errorf("cannot parse the file")
+						}
+						v.Field(i).Set(reflect.ValueOf(file))
+					}
+				}
+			} else if field.Type == reflect.TypeOf((*[]multipart.File)(nil)).Elem() {
+				// Parse multiple files
+				for name, headers := range form.File {
+					if name != fileKey {
+						continue
+					}
+					var files []multipart.File
+					for _, header := range headers {
+						file, err := header.Open()
+						if err != nil {
+							return fmt.Errorf("cannot parse the file")
+						}
+						files = append(files, file)
+					}
+					v.Field(i).Set(reflect.ValueOf(files))
+					break
+				}
+			}
 		}
 	}
+
 	return nil
 }
