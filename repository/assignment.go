@@ -194,15 +194,20 @@ func (r *assignmentRepository) listTestcase(assignmentIds []int) ([]domain.Testc
 
 func (r *assignmentRepository) ListSubmission(userId string, assignmentId int) ([]domain.Submission, error) {
 	submissions := make([]domain.Submission, 0)
-	err := r.db.Select(
-		&submissions,
-		`SELECT s.*, a.due_date
+	query := `
+		SELECT
+			s.*,
+			CASE
+				WHEN s.submitted_at > a.due_date THEN TRUE
+				WHEN s.submitted_at < a.due_date THEN FALSE
+				WHEN s.submitted_at = a.due_date THEN FALSE
+				ELSE FALSE
+			END AS is_late
 		FROM submission s
-		RIGHT JOIN assignment a ON a.id = s.assignment_id
-		WHERE s.assignment_id = ? AND s.user_id = ?`,
-		assignmentId,
-		userId,
-	)
+		INNER JOIN assignment a on a.id = s.assignment_id
+		WHERE s.assignment_id = ? AND s.user_id = ?
+	`
+	err := r.db.Select(&submissions, query, assignmentId, userId)
 	if err != nil {
 		return nil, fmt.Errorf("cannot query to list submission: %w", err)
 	}
@@ -224,16 +229,7 @@ func (r *assignmentRepository) ListSubmission(userId string, assignmentId int) (
 		submissionById := make(map[int]*domain.Submission)
 		for i := range submissions {
 			submissionById[submissions[i].Id] = &submissions[i]
-			submission := submissionById[submissions[i].Id]
-			if submission.DueDate == nil {
-				submission.IsLate = false
-			} else if submission.SubmittedAt.After(*submission.DueDate) {
-				submission.IsLate = true
-			} else {
-				submission.IsLate = false
-			}
 		}
-
 		for i := range results {
 			submission := submissionById[results[i].SubmissionId]
 			submission.Results = append(submission.Results, results[i])
