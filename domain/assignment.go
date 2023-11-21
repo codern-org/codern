@@ -23,21 +23,24 @@ const (
 )
 
 type Assignment struct {
-	Id          int             `json:"id" db:"id"`
-	WorkspaceId int             `json:"-" db:"workspace_id"`
-	Name        string          `json:"name" db:"name"`
-	Description string          `json:"description" db:"description"`
-	DetailUrl   string          `json:"detailUrl" db:"detail_url"`
-	MemoryLimit int             `json:"memoryLimit" db:"memory_limit"`
-	TimeLimit   int             `json:"timeLimit" db:"time_limit"`
-	Level       AssignmentLevel `json:"level" db:"level"`
-	CreatedAt   time.Time       `json:"createdAt" db:"created_at"`
-	UpdatedAt   time.Time       `json:"updatedAt" db:"updated_at"`
+	Id          int              `json:"id" db:"id"`
+	WorkspaceId int              `json:"-" db:"workspace_id"`
+	Name        string           `json:"name" db:"name"`
+	Description string           `json:"description" db:"description"`
+	DetailUrl   string           `json:"detailUrl" db:"detail_url"`
+	MemoryLimit int              `json:"memoryLimit" db:"memory_limit"`
+	TimeLimit   int              `json:"timeLimit" db:"time_limit"`
+	Level       AssignmentLevel  `json:"level" db:"level"`
+	CreatedAt   time.Time        `json:"createdAt" db:"created_at"`
+	UpdatedAt   time.Time        `json:"updatedAt" db:"updated_at"`
+	DueDate     *time.Time       `json:"dueDate" db:"due_date"`
+	Status      AssignmentStatus `json:"status" db:"status"`
 
+	// TODO: add late status field in assignment
 	// Always aggregation
-	Testcases       []Testcase       `json:"-"`
-	LastSubmittedAt *time.Time       `json:"lastSubmittedAt" db:"last_submitted_at"`
-	Status          AssignmentStatus `json:"status" db:"status"`
+	Testcases       []Testcase `json:"-"`
+	LastSubmittedAt *time.Time `json:"lastSubmittedAt" db:"last_submitted_at"`
+	// IsLate       bool      `json:"isLate"`
 }
 
 type Submission struct {
@@ -50,6 +53,7 @@ type Submission struct {
 	FileUrl        string           `json:"-" db:"file_url"`
 	SubmittedAt    time.Time        `json:"submittedAt" db:"submitted_at"`
 	CompilationLog *string          `json:"compilationLog,omitempty" db:"compilation_log"`
+	IsLate         bool             `json:"isLate" db:"is_late"`
 
 	// Always aggregation
 	Results []SubmissionResult `json:"results,omitempty"`

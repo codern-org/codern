@@ -194,7 +194,20 @@ func (r *assignmentRepository) listTestcase(assignmentIds []int) ([]domain.Testc
 
 func (r *assignmentRepository) ListSubmission(userId string, assignmentId int) ([]domain.Submission, error) {
 	submissions := make([]domain.Submission, 0)
-	err := r.db.Select(&submissions, "SELECT * FROM submission WHERE assignment_id = ? AND user_id = ?", assignmentId, userId)
+	query := `
+		SELECT
+			s.*,
+			CASE
+				WHEN s.submitted_at > a.due_date THEN TRUE
+				WHEN s.submitted_at < a.due_date THEN FALSE
+				WHEN s.submitted_at = a.due_date THEN FALSE
+				ELSE FALSE
+			END AS is_late
+		FROM submission s
+		INNER JOIN assignment a on a.id = s.assignment_id
+		WHERE s.assignment_id = ? AND s.user_id = ?
+	`
+	err := r.db.Select(&submissions, query, assignmentId, userId)
 	if err != nil {
 		return nil, fmt.Errorf("cannot query to list submission: %w", err)
 	}
