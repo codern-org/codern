@@ -194,7 +194,15 @@ func (r *assignmentRepository) listTestcase(assignmentIds []int) ([]domain.Testc
 
 func (r *assignmentRepository) ListSubmission(userId string, assignmentId int) ([]domain.Submission, error) {
 	submissions := make([]domain.Submission, 0)
-	err := r.db.Select(&submissions, "SELECT * FROM submission WHERE assignment_id = ? AND user_id = ?", assignmentId, userId)
+	err := r.db.Select(
+		&submissions,
+		`SELECT s.*, a.due_date
+		FROM submission s
+		RIGHT JOIN codern_prod.assignment a ON a.id = s.assignment_id
+		WHERE s.assignment_id = ? AND s.user_id = ?`,
+		assignmentId,
+		userId,
+	)
 	if err != nil {
 		return nil, fmt.Errorf("cannot query to list submission: %w", err)
 	}
@@ -214,19 +222,12 @@ func (r *assignmentRepository) ListSubmission(userId string, assignmentId int) (
 		}
 
 		submissionById := make(map[int]*domain.Submission)
-		assignment, err := r.Get(assignmentId, userId)
-		if assignment == nil {
-			return nil, fmt.Errorf("cannot get assignment due date to determine late flag: assignment not found")
-		}
-		if err != nil {
-			return nil, fmt.Errorf("cannot get assignment due date to determine late flag: %w", err)
-		}
 		for i := range submissions {
 			submissionById[submissions[i].Id] = &submissions[i]
 			submission := submissionById[submissions[i].Id]
-			if assignment.DueDate == nil {
+			if submission.DueDate == nil {
 				submission.IsLate = false
-			} else if submission.SubmittedAt.After(*assignment.DueDate) {
+			} else if submission.SubmittedAt.After(*submission.DueDate) {
 				submission.IsLate = true
 			} else {
 				submission.IsLate = false

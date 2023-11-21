@@ -55,6 +55,7 @@ type Submission struct {
 	CompilationLog *string          `json:"compilationLog,omitempty" db:"compilation_log"`
 
 	// Always aggregation
+	DueDate *time.Time         `json:"dueDate,omitempty" db:"due_date"`
 	IsLate  bool               `json:"isLate"`
 	Results []SubmissionResult `json:"results,omitempty"`
 }
