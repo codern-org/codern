@@ -198,7 +198,7 @@ func (r *assignmentRepository) ListSubmission(userId string, assignmentId int) (
 		&submissions,
 		`SELECT s.*, a.due_date
 		FROM submission s
-		RIGHT JOIN codern_prod.assignment a ON a.id = s.assignment_id
+		RIGHT JOIN assignment a ON a.id = s.assignment_id
 		WHERE s.assignment_id = ? AND s.user_id = ?`,
 		assignmentId,
 		userId,
