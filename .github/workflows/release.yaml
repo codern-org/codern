@@ -1,9 +1,9 @@
 name: Release with versioning
 
 on:
-  push:
-    branches:
-      - main
+  # push:
+  #   branches:
+  #     - main
   workflow_dispatch:
     inputs:
       version:
