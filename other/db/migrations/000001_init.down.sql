@@ -3,6 +3,7 @@ DROP TABLE IF EXISTS `session`;
 
 DROP TABLE IF EXISTS `workspace`;
 DROP TABLE IF EXISTS `workspace_participant`;
+DROP TABLE IF EXISTS `workspace_invitation`;
 
 DROP TABLE IF EXISTS `assignment`;
 DROP TABLE IF EXISTS `testcase`;

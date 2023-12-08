@@ -1,20 +1,156 @@
 package usecase
 
 import (
+	"time"
+
 	"github.com/codern-org/codern/domain"
 	errs "github.com/codern-org/codern/domain/error"
 )
 
 type workspaceUsecase struct {
 	workspaceRepository domain.WorkspaceRepository
+	userUsecase         domain.UserUsecase
 }
 
 func NewWorkspaceUsecase(
 	workspaceRepository domain.WorkspaceRepository,
+	useruserUsecase domain.UserUsecase,
 ) domain.WorkspaceUsecase {
 	return &workspaceUsecase{
 		workspaceRepository: workspaceRepository,
+		userUsecase:         useruserUsecase,
 	}
+}
+
+func (u *workspaceUsecase) CreateInvitation(workspaceId int, inviterId string, validAt time.Time, validUntil time.Time) error {
+	inviterRole, err := u.workspaceRepository.GetRole(inviterId, workspaceId)
+	if err != nil {
+		return errs.New(errs.SameCode, "cannot get inviter id %s role while creating invitation", inviterId, err)
+	} else if inviterRole == nil {
+		return errs.New(errs.ErrInvitationNoPerm, "inviter id %s is not in workspace id %s", inviterId, workspaceId)
+	} else if *inviterRole != domain.OwnerRole && *inviterRole != domain.AdminRole {
+		return errs.New(errs.ErrInvitationNoPerm, "inviter id %s has no permission to create invitation", inviterId)
+	}
+
+	if validAt.After(validUntil) {
+		return errs.New(errs.ErrCreateInvitation, "valid at date must be before valid until date")
+	}
+
+	id := inviterId + string(rune(workspaceId)) + time.Now().Local().String() // TODO: use random string
+	invitation := &domain.WorkspaceInvitation{
+		Id:          id,
+		WorkspaceId: workspaceId,
+		InviterId:   inviterId,
+		CreatedAt:   time.Now(),
+		ValidAt:     validAt,
+		ValidUntil:  validUntil,
+	}
+
+	err = u.workspaceRepository.CreateInvitation(invitation)
+	if err != nil {
+		return errs.New(errs.ErrCreateInvitation, "cannot create invitation", err)
+	}
+
+	return nil
+}
+
+func (u *workspaceUsecase) GetInvitation(id string) (*domain.WorkspaceInvitation, error) {
+	invitation, err := u.workspaceRepository.GetInvitation(id)
+	if err != nil {
+		return nil, errs.New(errs.ErrGetInvitation, "cannot get invitation id %s", id, err)
+	}
+	return invitation, nil
+}
+
+func (u *workspaceUsecase) GetInvitations(workspaceId int) ([]domain.WorkspaceInvitation, error) {
+	invitations, err := u.workspaceRepository.GetInvitations(workspaceId)
+	if err != nil {
+		return nil, errs.New(errs.ErrGetInvitation, "cannot get invitations in workspace id %d", workspaceId, err)
+	}
+	return invitations, nil
+}
+
+func (u *workspaceUsecase) DeleteInvitation(invitationId string, userId string) error {
+	invitation, err := u.GetInvitation(invitationId)
+	if err != nil {
+		return errs.New(errs.SameCode, "cannot get invitation id %s while deleting", invitationId, err)
+	} else if invitation == nil {
+		return errs.New(errs.ErrInvitationNotFound, "invitation id %s not found", invitationId)
+	}
+
+	userRole, err := u.workspaceRepository.GetRole(userId, invitation.WorkspaceId)
+	if err != nil {
+		return errs.New(errs.SameCode, "cannot get user id %s role while deleting", userId, err)
+	} else if userRole == nil {
+		return errs.New(errs.ErrInvitationNoPerm, "user id %s not found in workspace while deleting invitation", userId)
+	}
+
+	if *userRole != domain.OwnerRole && invitation.InviterId != userId {
+		return errs.New(errs.ErrInvitationNoPerm, "user id %s havs no permission to delete invitation %s", userId, invitationId)
+	}
+
+	err = u.workspaceRepository.DeleteInvitation(invitationId)
+	if err != nil {
+		return errs.New(errs.ErrDeleteInvitation, "cannot delete invitation id %s", invitationId, err)
+	}
+
+	return nil
+}
+
+func (u *workspaceUsecase) CreateParticipant(workspaceId int, userId string, role domain.WorkspaceRole) error {
+	user, err := u.userUsecase.Get(userId)
+	if err != nil {
+		return errs.New(errs.SameCode, "cannot get user id %s while creating participant", userId, err)
+	} else if user == nil {
+		return errs.New(errs.ErrUserNotFound, "user id %s not found while creating participant", userId)
+	}
+
+	isUserAlreadyJoined, err := u.workspaceRepository.HasUser(userId, workspaceId)
+	if err != nil {
+		return errs.New(errs.SameCode, "cannot validate if user id %s already exist in workspace", userId, err)
+	} else if isUserAlreadyJoined {
+		return errs.New(errs.ErrWorkspaceHasUser, "user id %s is already in workspace", userId)
+	}
+
+	participant := &domain.WorkspaceParticipant{
+		WorkspaceId: workspaceId,
+		UserId:      userId,
+		Role:        role,
+		Favorite:    false,
+	}
+
+	err = u.workspaceRepository.CreateParticipant(participant)
+	if err != nil {
+		return errs.New(errs.ErrCreateWorkspaceParticipant, "cannot create participant", err)
+	}
+
+	return nil
+}
+
+func (u *workspaceUsecase) JoinByInvitation(userId string, invitationCode string) error {
+	invitation, err := u.GetInvitation(invitationCode)
+	if err != nil {
+		return errs.New(errs.SameCode, "cannot get invitation id %s while joining", invitationCode, err)
+	} else if invitation == nil {
+		return errs.New(errs.ErrInvitationNotFound, "invitation id %s not found while joining", invitationCode)
+	}
+
+	if invitation.ValidAt.After(time.Now()) {
+		return errs.New(errs.ErrInvitationInvalidDate, "invitation id %s is not valid at this time yet", invitationCode)
+	}
+
+	if invitation.ValidUntil.Before(time.Now()) {
+		return errs.New(errs.ErrInvitationInvalidDate, "invitation id %s is expired", invitationCode)
+	}
+
+	err = u.CreateParticipant(invitation.WorkspaceId, userId, domain.MemberRole)
+	if errs.HasCode(err, errs.ErrWorkspaceHasUser) {
+		return errs.New(errs.ErrWorkspaceHasUser, "user id %s is already in workspace", userId)
+	} else if err != nil {
+		return errs.New(errs.SameCode, "cannot create participant while joining", err)
+	}
+
+	return nil
 }
 
 func (u *workspaceUsecase) HasUser(userId string, workspaceId int) (bool, error) {

@@ -46,11 +46,25 @@ type WorkspaceParticipant struct {
 	ProfileUrl string `json:"profileUrl" db:"profile_url"`
 }
 
+type WorkspaceInvitation struct {
+	Id          string    `json:"id" db:"id"`
+	WorkspaceId int       `json:"workspaceId" db:"workspace_id"`
+	InviterId   string    `json:"inviterId" db:"inviter_id"`
+	CreatedAt   time.Time `json:"createdAt" db:"created_at"`
+	ValidAt     time.Time `json:"validAt" db:"valid_at"`
+	ValidUntil  time.Time `json:"validUntil" db:"valid_until"`
+}
+
 type WorkspaceSelector struct {
 	Participants bool
 }
 
 type WorkspaceRepository interface {
+	CreateInvitation(invitation *WorkspaceInvitation) error
+	GetInvitation(id string) (*WorkspaceInvitation, error)
+	GetInvitations(workspaceId int) ([]WorkspaceInvitation, error)
+	DeleteInvitation(invitationId string) error
+	CreateParticipant(participant *WorkspaceParticipant) error
 	HasUser(userId string, workspaceId int) (bool, error)
 	HasAssignment(assignmentId int, workspaceId int) (bool, error)
 	Get(id int, userId string, selector *WorkspaceSelector) (*Workspace, error)
@@ -61,6 +75,12 @@ type WorkspaceRepository interface {
 }
 
 type WorkspaceUsecase interface {
+	CreateInvitation(workspaceId int, inviterId string, validAt time.Time, validUntil time.Time) error
+	GetInvitation(id string) (*WorkspaceInvitation, error)
+	GetInvitations(workspaceId int) ([]WorkspaceInvitation, error)
+	DeleteInvitation(invitationId string, userId string) error
+	CreateParticipant(workspaceId int, userId string, role WorkspaceRole) error
+	JoinByInvitation(userId string, invitationCode string) error
 	HasUser(userId string, workspaceId int) (bool, error)
 	HasAssignment(assignmentId int, workspaceId int) (bool, error)
 	Get(id int, selector *WorkspaceSelector, userId string) (*Workspace, error)

@@ -113,6 +113,8 @@ func (s *FiberServer) applyRoutes() {
 	api.Get("/", middleware.PathType("healthcheck"), healtController.Index)
 	api.Get("/health", middleware.PathType("healthcheck"), healtController.Check)
 
+	api.Get("/join/:invitationId", authMiddleware, workspaceController.JoinByInvitationCode)
+
 	auth := api.Group("/auth", middleware.PathType("auth"))
 	auth.Get("/me", authMiddleware, authController.Me)
 	auth.Get("/signout", authMiddleware, authController.SignOut)
@@ -126,6 +128,11 @@ func (s *FiberServer) applyRoutes() {
 	workspace := api.Group("/workspaces", middleware.PathType("workspace"))
 	workspace.Get("/", authMiddleware, workspaceMiddleware, workspaceController.List)
 	workspace.Get("/:workspaceId", authMiddleware, workspaceMiddleware, workspaceController.Get)
+
+	invitation := workspace.Group("/:workspaceId/invitation", middleware.PathType("invitation"))
+	invitation.Get("/", authMiddleware, workspaceMiddleware, workspaceController.GetInvitations)
+	invitation.Post("/", authMiddleware, workspaceMiddleware, workspaceController.CreateInvitation)
+	invitation.Delete("/:invitationId", authMiddleware, workspaceMiddleware, workspaceController.DeleteInvitation)
 
 	assignment := workspace.Group("/:workspaceId/assignments")
 	assignment.Get("/", authMiddleware, workspaceMiddleware, assignmentController.List)

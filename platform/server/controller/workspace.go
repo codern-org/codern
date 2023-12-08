@@ -80,3 +80,62 @@ func (c *WorkspaceController) Get(ctx *fiber.Ctx) error {
 
 	return response.NewSuccessResponse(ctx, fiber.StatusOK, workspace)
 }
+
+func (c *WorkspaceController) CreateInvitation(ctx *fiber.Ctx) error {
+	workspaceId := middleware.GetWorkspaceIdFromCtx(ctx)
+
+	var pl payload.CreateInvitationPayload
+	if ok, err := c.validator.Validate(&pl, ctx); !ok {
+		return err
+	}
+
+	user := middleware.GetUserFromCtx(ctx)
+
+	err := c.workspaceUsecase.CreateInvitation(
+		workspaceId,
+		user.Id,
+		pl.ValidAt,
+		pl.ValidUntil,
+	)
+
+	if err != nil {
+		return err
+	}
+
+	return response.NewSuccessResponse(ctx, fiber.StatusCreated, nil)
+}
+
+func (c *WorkspaceController) GetInvitations(ctx *fiber.Ctx) error {
+	workspaceId := middleware.GetWorkspaceIdFromCtx(ctx)
+
+	invitations, err := c.workspaceUsecase.GetInvitations(workspaceId)
+	if err != nil {
+		return err
+	}
+
+	return response.NewSuccessResponse(ctx, fiber.StatusOK, invitations)
+}
+
+func (c *WorkspaceController) DeleteInvitation(ctx *fiber.Ctx) error {
+	invitationId := ctx.Params("invitationId")
+	user := middleware.GetUserFromCtx(ctx)
+
+	err := c.workspaceUsecase.DeleteInvitation(invitationId, user.Id)
+	if err != nil {
+		return err
+	}
+
+	return response.NewSuccessResponse(ctx, fiber.StatusOK, nil)
+}
+
+func (c *WorkspaceController) JoinByInvitationCode(ctx *fiber.Ctx) error {
+	invitationCode := ctx.Params("invitationId")
+	user := middleware.GetUserFromCtx(ctx)
+
+	err := c.workspaceUsecase.JoinByInvitation(user.Id, invitationCode)
+	if err != nil {
+		return err
+	}
+
+	return response.NewSuccessResponse(ctx, fiber.StatusOK, nil)
+}

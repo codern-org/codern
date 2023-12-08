@@ -30,23 +30,30 @@ const (
 	ErrUpdateUser        = 2033
 	ErrGoogleAuth        = 2040
 
-	ErrWorkspaceNotFound       = 3000
-	ErrWorkspaceNoPerm         = 3001
-	ErrGetWorkspace            = 3002
-	ErrListWorkspace           = 3003
-	ErrWorkspaceHasUser        = 3004
-	ErrWorkspaceHasAssignment  = 3005
-	ErrWorkspaceUpdateRole     = 3006
-	ErrWorkspaceUpdateRolePerm = 3007
-	ErrCreateSubmission        = 3010
-	ErrGetAssignment           = 3020
-	ErrListAssignment          = 3021
-	ErrAssignmentNotFound      = 3022
-	ErrAssignmentNoTestcase    = 3023
-	ErrListTestcase            = 3030
-	ErrGetSubmission           = 3040
-	ErrListSubmission          = 3041
-	ErrCreateSubmissionResult  = 3042
+	ErrWorkspaceNotFound          = 3000
+	ErrWorkspaceNoPerm            = 3001
+	ErrGetWorkspace               = 3002
+	ErrListWorkspace              = 3003
+	ErrWorkspaceHasUser           = 3004
+	ErrWorkspaceHasAssignment     = 3005
+	ErrWorkspaceUpdateRole        = 3006
+	ErrWorkspaceUpdateRolePerm    = 3007
+	ErrCreateSubmission           = 3010
+	ErrGetAssignment              = 3020
+	ErrListAssignment             = 3021
+	ErrAssignmentNotFound         = 3022
+	ErrAssignmentNoTestcase       = 3023
+	ErrListTestcase               = 3030
+	ErrGetSubmission              = 3040
+	ErrListSubmission             = 3041
+	ErrCreateSubmissionResult     = 3042
+	ErrCreateWorkspaceParticipant = 3050
+	ErrCreateInvitation           = 3060
+	ErrGetInvitation              = 3061
+	ErrDeleteInvitation           = 3062
+	ErrInvitationNotFound         = 3063
+	ErrInvitationNoPerm           = 3064
+	ErrInvitationInvalidDate      = 3065
 
 	ErrGradingRequest = 4000
 

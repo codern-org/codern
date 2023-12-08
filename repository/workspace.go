@@ -17,6 +17,62 @@ func NewWorkspaceRepository(db *sqlx.DB) domain.WorkspaceRepository {
 	return &workspaceRepository{db: db}
 }
 
+func (r *workspaceRepository) CreateInvitation(invitation *domain.WorkspaceInvitation) error {
+	_, err := r.db.Exec(`
+		INSERT INTO workspace_invitation (id, workspace_id, inviter_id, created_at, valid_at, valid_until)
+		VALUES (?, ?, ?, ?, ?, ?)
+	`, invitation.Id, invitation.WorkspaceId, invitation.InviterId, invitation.CreatedAt, invitation.ValidAt, invitation.ValidUntil)
+	if err != nil {
+		return fmt.Errorf("cannot query to insert workspace invitation: %w", err)
+	}
+	return nil
+}
+
+func (r *workspaceRepository) GetInvitation(id string) (*domain.WorkspaceInvitation, error) {
+	var invitation domain.WorkspaceInvitation
+	err := r.db.Get(
+		&invitation,
+		"SELECT * FROM workspace_invitation WHERE id = ?",
+		id,
+	)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	} else if err != nil {
+		return nil, fmt.Errorf("cannot query to get workspace invitation: %w", err)
+	}
+	return &invitation, nil
+}
+
+func (r *workspaceRepository) GetInvitations(workspaceId int) ([]domain.WorkspaceInvitation, error) {
+	invitations := make([]domain.WorkspaceInvitation, 0)
+	err := r.db.Select(
+		&invitations,
+		"SELECT * FROM workspace_invitation WHERE workspace_id = ?",
+		workspaceId,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("cannot query to get workspace invitations: %w", err)
+	}
+	return invitations, nil
+}
+
+func (r *workspaceRepository) DeleteInvitation(invitationId string) error {
+	_, err := r.db.Exec("DELETE FROM workspace_invitation WHERE id = ?", invitationId)
+	if err != nil {
+		return fmt.Errorf("cannot query to delete workspace invitation: %w", err)
+	}
+	return nil
+}
+
+func (r *workspaceRepository) CreateParticipant(participant *domain.WorkspaceParticipant) error {
+	_, err := r.db.Exec("INSERT INTO workspace_participant (workspace_id, user_id, role, favorite) VALUES (?, ?, ?, ?)", participant.WorkspaceId, participant.UserId, participant.Role, participant.Favorite)
+	if err != nil {
+		return fmt.Errorf("cannot query to insert workspace participant: %w", err)
+	}
+
+	return nil
+}
+
 func (r *workspaceRepository) HasUser(userId string, workspaceId int) (bool, error) {
 	var result domain.WorkspaceParticipant
 	err := r.db.Get(
