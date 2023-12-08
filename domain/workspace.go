@@ -74,6 +74,7 @@ type WorkspaceUsecase interface {
 	HasUser(userId string, workspaceId int) (bool, error)
 	HasAssignment(assignmentId int, workspaceId int) (bool, error)
 	Get(id int, userId string) (*Workspace, error)
+	GetRole(userId string, workspaceId int) (*WorkspaceRole, error)
 	List(userId string) ([]Workspace, error)
 	ListParticipant(workspaceId int) ([]WorkspaceParticipant, error)
 	UpdateRole(updaterUserId string, targetUserId string, workspaceId int, role WorkspaceRole) error

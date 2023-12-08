@@ -99,7 +99,7 @@ func (s *FiberServer) applyRoutes() {
 	// Initialize Controllers
 	healtController := controller.NewHealthController(s.cfg)
 	webSocketController := controller.NewWebSocketController(s.platform.WebSocketHub)
-	fileController := controller.NewFileController(s.cfg)
+	fileController := controller.NewFileController(s.cfg, s.usecase.Workspace)
 	authController := controller.NewAuthController(
 		s.cfg, validator, s.usecase.Auth, s.usecase.Google, s.usecase.User,
 	)
@@ -146,6 +146,7 @@ func (s *FiberServer) applyRoutes() {
 	fs.Get("/user/:userId/profile", fileController.GetUserProfile)
 	fs.Get("/workspaces/:workspaceId/profile", workspaceMiddleware, fileController.GetWorkspaceProfile)
 	fs.Get("/workspaces/:workspaceId/assignments/:assignmentId/detail/*", workspaceMiddleware, fileController.GetAssignmentDetail)
+	fs.Get("/workspaces/:workspaceId/assignments/:assignmentId/submissions/:userId/:submissionId", workspaceMiddleware, fileController.GetSubmission)
 
 	// WebSocket
 	ws := s.app.Group("/ws", authMiddleware, webSocketController.Upgrade)

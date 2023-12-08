@@ -38,7 +38,8 @@ const (
 	ErrWorkspaceHasAssignment     = 3005
 	ErrWorkspaceUpdateRole        = 3006
 	ErrWorkspaceUpdateRolePerm    = 3007
-	ErrListWorkspaceParticipant   = 3008
+	ErrGetRole                    = 3008
+	ErrListWorkspaceParticipant   = 3009
 	ErrCreateSubmission           = 3010
 	ErrGetAssignment              = 3020
 	ErrListAssignment             = 3021
@@ -57,6 +58,8 @@ const (
 	ErrInvitationInvalidDate      = 3065
 
 	ErrGradingRequest = 4000
+
+	ErrFilePerm = 5000
 
 	ErrCreateUrlPath = 9000
 )

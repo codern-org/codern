@@ -193,6 +193,17 @@ func (u *workspaceUsecase) Get(id int, userId string) (*domain.Workspace, error)
 	return workspace, nil
 }
 
+func (u *workspaceUsecase) GetRole(
+	userId string,
+	workspaceId int,
+) (*domain.WorkspaceRole, error) {
+	userRole, err := u.workspaceRepository.GetRole(userId, workspaceId)
+	if err != nil {
+		return nil, errs.New(errs.ErrGetRole, "cannot get user role", err)
+	}
+	return userRole, nil
+}
+
 func (u *workspaceUsecase) List(userId string) ([]domain.Workspace, error) {
 	workspaces, err := u.workspaceRepository.List(userId)
 	if err != nil {
