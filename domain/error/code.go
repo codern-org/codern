@@ -38,6 +38,7 @@ const (
 	ErrWorkspaceHasAssignment     = 3005
 	ErrWorkspaceUpdateRole        = 3006
 	ErrWorkspaceUpdateRolePerm    = 3007
+	ErrListWorkspaceParticipant   = 3008
 	ErrCreateSubmission           = 3010
 	ErrGetAssignment              = 3020
 	ErrListAssignment             = 3021

@@ -23,24 +23,22 @@ const (
 )
 
 type Assignment struct {
-	Id          int              `json:"id" db:"id"`
-	WorkspaceId int              `json:"-" db:"workspace_id"`
-	Name        string           `json:"name" db:"name"`
-	Description string           `json:"description" db:"description"`
-	DetailUrl   string           `json:"detailUrl" db:"detail_url"`
-	MemoryLimit int              `json:"memoryLimit" db:"memory_limit"`
-	TimeLimit   int              `json:"timeLimit" db:"time_limit"`
-	Level       AssignmentLevel  `json:"level" db:"level"`
-	CreatedAt   time.Time        `json:"createdAt" db:"created_at"`
-	UpdatedAt   time.Time        `json:"updatedAt" db:"updated_at"`
-	DueDate     *time.Time       `json:"dueDate" db:"due_date"`
-	Status      AssignmentStatus `json:"status" db:"status"`
+	Id              int              `json:"id" db:"id"`
+	WorkspaceId     int              `json:"-" db:"workspace_id"`
+	Name            string           `json:"name" db:"name"`
+	Description     string           `json:"description" db:"description"`
+	DetailUrl       string           `json:"detailUrl" db:"detail_url"`
+	MemoryLimit     int              `json:"memoryLimit" db:"memory_limit"`
+	TimeLimit       int              `json:"timeLimit" db:"time_limit"`
+	Level           AssignmentLevel  `json:"level" db:"level"`
+	CreatedAt       time.Time        `json:"createdAt" db:"created_at"`
+	UpdatedAt       time.Time        `json:"updatedAt" db:"updated_at"`
+	DueDate         *time.Time       `json:"dueDate" db:"due_date"`
+	Status          AssignmentStatus `json:"status" db:"status"`
+	LastSubmittedAt *time.Time       `json:"lastSubmittedAt" db:"last_submitted_at"`
 
-	// TODO: add late status field in assignment
 	// Always aggregation
-	Testcases       []Testcase `json:"-"`
-	LastSubmittedAt *time.Time `json:"lastSubmittedAt" db:"last_submitted_at"`
-	// IsLate       bool      `json:"isLate"`
+	Testcases []Testcase `json:"-"`
 }
 
 type Submission struct {

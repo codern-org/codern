@@ -103,12 +103,8 @@ func (r *workspaceRepository) HasAssignment(assignmentId int, workspaceId int) (
 	return true, nil
 }
 
-func (r *workspaceRepository) Get(
-	id int,
-	userId string,
-	selector *domain.WorkspaceSelector,
-) (*domain.Workspace, error) {
-	workspaces, err := r.list([]int{id}, userId, selector)
+func (r *workspaceRepository) Get(id int, userId string) (*domain.Workspace, error) {
+	workspaces, err := r.list([]int{id}, userId)
 	if err != nil {
 		return nil, fmt.Errorf("cannot query to get workspace: %w", err)
 	} else if len(workspaces) == 0 {
@@ -132,10 +128,7 @@ func (r *workspaceRepository) GetRole(userId string, workspaceId int) (*domain.W
 	return &role, nil
 }
 
-func (r *workspaceRepository) List(
-	userId string,
-	selector *domain.WorkspaceSelector,
-) ([]domain.Workspace, error) {
+func (r *workspaceRepository) List(userId string) ([]domain.Workspace, error) {
 	var workspaceIds []int
 	err := r.db.Select(
 		&workspaceIds,
@@ -145,14 +138,10 @@ func (r *workspaceRepository) List(
 	if err != nil {
 		return nil, fmt.Errorf("cannot query to list workspace id: %w", err)
 	}
-	return r.list(workspaceIds, userId, selector)
+	return r.list(workspaceIds, userId)
 }
 
-func (r *workspaceRepository) list(
-	ids []int,
-	userId string,
-	selector *domain.WorkspaceSelector,
-) ([]domain.Workspace, error) {
+func (r *workspaceRepository) list(ids []int, userId string) ([]domain.Workspace, error) {
 	workspaces := make([]domain.Workspace, 0)
 	if len(ids) == 0 {
 		return workspaces, nil
@@ -183,35 +172,27 @@ func (r *workspaceRepository) list(
 		return nil, fmt.Errorf("cannot query to list workspace: %w", err)
 	}
 
-	if selector.Participants {
-		participants := make([]domain.WorkspaceParticipant, 0)
-		query, args, err := sqlx.In(`
-			SELECT
-				user.display_name as name,
-				user.profile_url,
-				wp.*
-			FROM workspace_participant wp
-			INNER JOIN user ON user.id = wp.user_id
-			WHERE workspace_id IN (?)
-		`, ids)
-		if err != nil {
-			return nil, fmt.Errorf("cannot query to create query to list workspace participant: %w", err)
-		}
-		if err := r.db.Select(&participants, query, args...); err != nil {
-			return nil, fmt.Errorf("cannot query to list workspace participant: %w", err)
-		}
-
-		for i := range workspaces {
-			workspace := &workspaces[i]
-			for j := range participants {
-				if workspace.Id == participants[j].WorkspaceId {
-					workspace.Participants = append(workspace.Participants, participants[j])
-				}
-			}
-		}
-	}
-
 	return workspaces, nil
+}
+
+func (r *workspaceRepository) ListParticipant(
+	workspaceId int,
+) ([]domain.WorkspaceParticipant, error) {
+	participants := make([]domain.WorkspaceParticipant, 0)
+	err := r.db.Select(&participants, `
+		SELECT
+			wp.*,
+			user.profile_url,
+			user.display_name as name
+		FROM workspace_participant wp
+		INNER JOIN user ON user.id = wp.user_id
+		WHERE workspace_id = ?
+		ORDER BY name ASC
+	`, workspaceId)
+	if err != nil {
+		return nil, fmt.Errorf("cannot query to list workspace participant: %w", err)
+	}
+	return participants, nil
 }
 
 func (r *workspaceRepository) UpdateRecent(userId string, workspaceId int) error {

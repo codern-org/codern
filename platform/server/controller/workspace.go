@@ -38,16 +38,24 @@ func NewWorkspaceController(
 // @Router 			/workspaces [get]
 func (c *WorkspaceController) List(ctx *fiber.Ctx) error {
 	user := middleware.GetUserFromCtx(ctx)
-	selector := payload.GetFieldSelector(ctx)
 
-	workspaces, err := c.workspaceUsecase.List(user.Id, &domain.WorkspaceSelector{
-		Participants: selector.Has("participants"),
-	})
+	workspaces, err := c.workspaceUsecase.List(user.Id)
 	if err != nil {
 		return err
 	}
 
 	return response.NewSuccessResponse(ctx, fiber.StatusOK, workspaces)
+}
+
+func (c *WorkspaceController) ListParticipant(ctx *fiber.Ctx) error {
+	workspaceId := middleware.GetWorkspaceIdFromCtx(ctx)
+
+	participants, err := c.workspaceUsecase.ListParticipant(workspaceId)
+	if err != nil {
+		return err
+	}
+
+	return response.NewSuccessResponse(ctx, fiber.StatusOK, participants)
 }
 
 // Get godoc
@@ -65,13 +73,8 @@ func (c *WorkspaceController) List(ctx *fiber.Ctx) error {
 func (c *WorkspaceController) Get(ctx *fiber.Ctx) error {
 	user := middleware.GetUserFromCtx(ctx)
 	workspaceId := middleware.GetWorkspaceIdFromCtx(ctx)
-	selector := payload.GetFieldSelector(ctx)
 
-	workspace, err := c.workspaceUsecase.Get(
-		workspaceId,
-		&domain.WorkspaceSelector{Participants: selector.Has("participants")},
-		user.Id,
-	)
+	workspace, err := c.workspaceUsecase.Get(workspaceId, user.Id)
 	if err != nil {
 		return err
 	} else if workspace == nil {

@@ -173,12 +173,8 @@ func (u *workspaceUsecase) HasAssignment(assignmentId int, workspaceId int) (boo
 	return isIn, nil
 }
 
-func (u *workspaceUsecase) Get(
-	id int,
-	selector *domain.WorkspaceSelector,
-	userId string,
-) (*domain.Workspace, error) {
-	workspace, err := u.workspaceRepository.Get(id, userId, selector)
+func (u *workspaceUsecase) Get(id int, userId string) (*domain.Workspace, error) {
+	workspace, err := u.workspaceRepository.Get(id, userId)
 	if err != nil {
 		return nil, errs.New(errs.ErrGetWorkspace, "cannot get workspace id %d", id, err)
 	}
@@ -188,15 +184,20 @@ func (u *workspaceUsecase) Get(
 	return workspace, nil
 }
 
-func (u *workspaceUsecase) List(
-	userId string,
-	selector *domain.WorkspaceSelector,
-) ([]domain.Workspace, error) {
-	workspaces, err := u.workspaceRepository.List(userId, selector)
+func (u *workspaceUsecase) List(userId string) ([]domain.Workspace, error) {
+	workspaces, err := u.workspaceRepository.List(userId)
 	if err != nil {
 		return nil, errs.New(errs.ErrListWorkspace, "cannot list workspace", err)
 	}
 	return workspaces, nil
+}
+
+func (u *workspaceUsecase) ListParticipant(workspaceId int) ([]domain.WorkspaceParticipant, error) {
+	participants, err := u.workspaceRepository.ListParticipant(workspaceId)
+	if err != nil {
+		return nil, errs.New(errs.ErrListWorkspaceParticipant, "cannot list workspace particpant", err)
+	}
+	return participants, nil
 }
 
 func (u *workspaceUsecase) UpdateRole(
