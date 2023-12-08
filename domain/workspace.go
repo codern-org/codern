@@ -65,7 +65,7 @@ type WorkspaceRepository interface {
 }
 
 type WorkspaceUsecase interface {
-	CreateInvitation(workspaceId int, inviterId string, validAt time.Time, validUntil time.Time) error
+	CreateInvitation(workspaceId int, inviterId string, validAt time.Time, validUntil time.Time) (string, error)
 	GetInvitation(id string) (*WorkspaceInvitation, error)
 	GetInvitations(workspaceId int) ([]WorkspaceInvitation, error)
 	DeleteInvitation(invitationId string, userId string) error

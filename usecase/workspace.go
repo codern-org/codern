@@ -5,6 +5,8 @@ import (
 
 	"github.com/codern-org/codern/domain"
 	errs "github.com/codern-org/codern/domain/error"
+	"github.com/codern-org/codern/internal/constant"
+	"github.com/codern-org/codern/internal/generator"
 )
 
 type workspaceUsecase struct {
@@ -22,21 +24,36 @@ func NewWorkspaceUsecase(
 	}
 }
 
-func (u *workspaceUsecase) CreateInvitation(workspaceId int, inviterId string, validAt time.Time, validUntil time.Time) error {
+func (u *workspaceUsecase) CreateInvitation(
+	workspaceId int,
+	inviterId string,
+	validAt time.Time,
+	validUntil time.Time,
+) (string, error) {
 	inviterRole, err := u.workspaceRepository.GetRole(inviterId, workspaceId)
 	if err != nil {
-		return errs.New(errs.SameCode, "cannot get inviter id %s role while creating invitation", inviterId, err)
+		return "", errs.New(errs.SameCode, "cannot get inviter id %s role while creating invitation", inviterId, err)
 	} else if inviterRole == nil {
-		return errs.New(errs.ErrInvitationNoPerm, "inviter id %s is not in workspace id %s", inviterId, workspaceId)
+		return "", errs.New(errs.ErrInvitationNoPerm, "cannot get role of inviter id %s", inviterId)
 	} else if *inviterRole != domain.OwnerRole && *inviterRole != domain.AdminRole {
-		return errs.New(errs.ErrInvitationNoPerm, "inviter id %s has no permission to create invitation", inviterId)
+		return "", errs.New(errs.ErrInvitationNoPerm, "inviter id %s has no permission to create invitation", inviterId)
 	}
 
 	if validAt.After(validUntil) {
-		return errs.New(errs.ErrCreateInvitation, "valid at date must be before valid until date")
+		return "", errs.New(errs.ErrCreateInvitation, "valid at date must be before valid until date")
 	}
 
-	id := inviterId + string(rune(workspaceId)) + time.Now().Local().String() // TODO: use random string
+	var id string
+	for {
+		id = generator.RandStr(constant.MaxInvitationCodeChar)
+		invitation, err := u.GetInvitation(id)
+		if err != nil {
+			return "", errs.New(errs.SameCode, "cannot get invitation to generate invitation code", err)
+		} else if invitation == nil {
+			break
+		}
+	}
+
 	invitation := &domain.WorkspaceInvitation{
 		Id:          id,
 		WorkspaceId: workspaceId,
@@ -46,12 +63,10 @@ func (u *workspaceUsecase) CreateInvitation(workspaceId int, inviterId string, v
 		ValidUntil:  validUntil,
 	}
 
-	err = u.workspaceRepository.CreateInvitation(invitation)
-	if err != nil {
-		return errs.New(errs.ErrCreateInvitation, "cannot create invitation", err)
+	if err = u.workspaceRepository.CreateInvitation(invitation); err != nil {
+		return "", errs.New(errs.ErrCreateInvitation, "cannot create invitation", err)
 	}
-
-	return nil
+	return id, nil
 }
 
 func (u *workspaceUsecase) GetInvitation(id string) (*domain.WorkspaceInvitation, error) {
@@ -89,11 +104,9 @@ func (u *workspaceUsecase) DeleteInvitation(invitationId string, userId string) 
 		return errs.New(errs.ErrInvitationNoPerm, "user id %s havs no permission to delete invitation %s", userId, invitationId)
 	}
 
-	err = u.workspaceRepository.DeleteInvitation(invitationId)
-	if err != nil {
+	if err := u.workspaceRepository.DeleteInvitation(invitationId); err != nil {
 		return errs.New(errs.ErrDeleteInvitation, "cannot delete invitation id %s", invitationId, err)
 	}
-
 	return nil
 }
 
@@ -119,11 +132,9 @@ func (u *workspaceUsecase) CreateParticipant(workspaceId int, userId string, rol
 		Favorite:    false,
 	}
 
-	err = u.workspaceRepository.CreateParticipant(participant)
-	if err != nil {
+	if err := u.workspaceRepository.CreateParticipant(participant); err != nil {
 		return errs.New(errs.ErrCreateWorkspaceParticipant, "cannot create participant", err)
 	}
-
 	return nil
 }
 
@@ -138,7 +149,6 @@ func (u *workspaceUsecase) JoinByInvitation(userId string, invitationCode string
 	if invitation.ValidAt.After(time.Now()) {
 		return errs.New(errs.ErrInvitationInvalidDate, "invitation id %s is not valid at this time yet", invitationCode)
 	}
-
 	if invitation.ValidUntil.Before(time.Now()) {
 		return errs.New(errs.ErrInvitationInvalidDate, "invitation id %s is expired", invitationCode)
 	}
@@ -149,7 +159,6 @@ func (u *workspaceUsecase) JoinByInvitation(userId string, invitationCode string
 	} else if err != nil {
 		return errs.New(errs.SameCode, "cannot create participant while joining", err)
 	}
-
 	return nil
 }
 

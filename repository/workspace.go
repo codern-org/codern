@@ -65,11 +65,13 @@ func (r *workspaceRepository) DeleteInvitation(invitationId string) error {
 }
 
 func (r *workspaceRepository) CreateParticipant(participant *domain.WorkspaceParticipant) error {
-	_, err := r.db.Exec("INSERT INTO workspace_participant (workspace_id, user_id, role, favorite) VALUES (?, ?, ?, ?)", participant.WorkspaceId, participant.UserId, participant.Role, participant.Favorite)
+	_, err := r.db.Exec(
+		"INSERT INTO workspace_participant (workspace_id, user_id, role, favorite) VALUES (?, ?, ?, ?)",
+		participant.WorkspaceId, participant.UserId, participant.Role, participant.Favorite,
+	)
 	if err != nil {
 		return fmt.Errorf("cannot query to insert workspace participant: %w", err)
 	}
-
 	return nil
 }
 

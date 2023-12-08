@@ -85,27 +85,20 @@ func (c *WorkspaceController) Get(ctx *fiber.Ctx) error {
 }
 
 func (c *WorkspaceController) CreateInvitation(ctx *fiber.Ctx) error {
-	workspaceId := middleware.GetWorkspaceIdFromCtx(ctx)
-
 	var pl payload.CreateInvitationPayload
 	if ok, err := c.validator.Validate(&pl, ctx); !ok {
 		return err
 	}
 
 	user := middleware.GetUserFromCtx(ctx)
+	workspaceId := middleware.GetWorkspaceIdFromCtx(ctx)
 
-	err := c.workspaceUsecase.CreateInvitation(
-		workspaceId,
-		user.Id,
-		pl.ValidAt,
-		pl.ValidUntil,
-	)
-
+	id, err := c.workspaceUsecase.CreateInvitation(workspaceId, user.Id, pl.ValidAt, pl.ValidUntil)
 	if err != nil {
 		return err
 	}
 
-	return response.NewSuccessResponse(ctx, fiber.StatusCreated, nil)
+	return response.NewSuccessResponse(ctx, fiber.StatusCreated, id)
 }
 
 func (c *WorkspaceController) GetInvitations(ctx *fiber.Ctx) error {

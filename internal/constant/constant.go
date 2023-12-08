@@ -16,4 +16,6 @@ var (
 
 	MaxWebSocketConnPerUser = 4
 	SeaweedFsChunkSize      = 1048576 // 1 MiB
+
+	MaxInvitationCodeChar = 6
 )
