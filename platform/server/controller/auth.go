@@ -60,15 +60,15 @@ func (c *AuthController) Me(ctx *fiber.Ctx) error {
 // @Produce 		json
 // @Router 			/auth/signin [post]
 func (c *AuthController) SignIn(ctx *fiber.Ctx) error {
-	var payload payload.SignInPayload
-	if ok, err := c.validator.Validate(&payload, ctx); !ok {
+	var pl payload.SignInPayload
+	if ok, err := c.validator.Validate(&pl, ctx); !ok {
 		return err
 	}
 
 	ipAddress := ctx.IP()
 	userAgent := ctx.Context().UserAgent()
 
-	cookie, err := c.authUsecase.SignIn(payload.Email, payload.Password, ipAddress, string(userAgent))
+	cookie, err := c.authUsecase.SignIn(pl.Email, pl.Password, ipAddress, string(userAgent))
 	if err != nil {
 		return err
 	}

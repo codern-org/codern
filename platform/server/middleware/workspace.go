@@ -3,11 +3,12 @@ package middleware
 import (
 	"github.com/codern-org/codern/domain"
 	errs "github.com/codern-org/codern/domain/error"
-	"github.com/codern-org/codern/internal/constant"
+	"github.com/codern-org/codern/platform/server/payload"
 	"github.com/gofiber/fiber/v2"
 )
 
 func NewWorkspaceMiddleware(
+	validator domain.PayloadValidator,
 	workspaceUsecase domain.WorkspaceUsecase,
 ) fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
@@ -15,45 +16,33 @@ func NewWorkspaceMiddleware(
 			return ctx.Next()
 		}
 
-		workspaceId, err := ctx.ParamsInt("workspaceId")
-		if err != nil {
-			return errs.New(errs.ErrPayloadValidator, "param workspaceId is invalid")
+		var pl payload.WorkspacePath
+		if ok, err := validator.Validate(&pl, ctx); !ok {
+			return err
 		}
 
 		user := GetUserFromCtx(ctx)
-		ok, err := workspaceUsecase.HasUser(user.Id, workspaceId)
+		ok, err := workspaceUsecase.HasUser(user.Id, pl.WorkspaceId)
 		if !ok {
-			return errs.New(errs.ErrWorkspaceNoPerm, "cannot access workspace id %d", workspaceId)
+			return errs.New(errs.ErrWorkspaceNoPerm, "cannot access workspace id %d", pl.WorkspaceId)
 		} else if err != nil {
 			return err
 		}
 
-		var assignmentId int
 		if ctx.Params("assignmentId") != "" {
-			assignmentId, err = ctx.ParamsInt("assignmentId")
-			if err != nil {
-				return errs.New(errs.ErrPayloadValidator, "param assignmentId is invalid", err)
+			var pl payload.AssignmentPath
+			if ok, err := validator.Validate(&pl, ctx); !ok {
+				return err
 			}
 
-			ok, err := workspaceUsecase.HasAssignment(assignmentId, workspaceId)
+			ok, err := workspaceUsecase.HasAssignment(pl.AssignmentId, pl.WorkspaceId)
 			if !ok {
-				return errs.New(errs.ErrWorkspaceNoPerm, "cannot access assignment id %d", assignmentId)
+				return errs.New(errs.ErrWorkspaceNoPerm, "cannot access assignment id %d", pl.AssignmentId)
 			} else if err != nil {
 				return err
 			}
 		}
 
-		ctx.Locals(constant.WorkspaceIdCtxLocal, workspaceId)
-		ctx.Locals(constant.AssignmentIdCtxLocal, assignmentId)
-
 		return ctx.Next()
 	}
-}
-
-func GetWorkspaceIdFromCtx(ctx *fiber.Ctx) int {
-	return ctx.Locals(constant.WorkspaceIdCtxLocal).(int)
-}
-
-func GetAssignmentIdFromCtx(ctx *fiber.Ctx) int {
-	return ctx.Locals(constant.AssignmentIdCtxLocal).(int)
 }

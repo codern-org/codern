@@ -48,9 +48,12 @@ func (c *WorkspaceController) List(ctx *fiber.Ctx) error {
 }
 
 func (c *WorkspaceController) ListParticipant(ctx *fiber.Ctx) error {
-	workspaceId := middleware.GetWorkspaceIdFromCtx(ctx)
+	var pl payload.WorkspacePath
+	if ok, err := c.validator.Validate(&pl, ctx); !ok {
+		return err
+	}
 
-	participants, err := c.workspaceUsecase.ListParticipant(workspaceId)
+	participants, err := c.workspaceUsecase.ListParticipant(pl.WorkspaceId)
 	if err != nil {
 		return err
 	}
@@ -71,14 +74,18 @@ func (c *WorkspaceController) ListParticipant(ctx *fiber.Ctx) error {
 // @Param 			sid header string true "Session ID"
 // @Router 			/workspaces/{workspaceId} [get]
 func (c *WorkspaceController) Get(ctx *fiber.Ctx) error {
-	user := middleware.GetUserFromCtx(ctx)
-	workspaceId := middleware.GetWorkspaceIdFromCtx(ctx)
+	var pl payload.WorkspacePath
+	if ok, err := c.validator.Validate(&pl, ctx); !ok {
+		return err
+	}
 
-	workspace, err := c.workspaceUsecase.Get(workspaceId, user.Id)
+	user := middleware.GetUserFromCtx(ctx)
+
+	workspace, err := c.workspaceUsecase.Get(pl.WorkspaceId, user.Id)
 	if err != nil {
 		return err
 	} else if workspace == nil {
-		return errs.New(errs.ErrWorkspaceNotFound, "workspace id %d not found", workspaceId)
+		return errs.New(errs.ErrWorkspaceNotFound, "workspace id %d not found", pl.WorkspaceId)
 	}
 
 	return response.NewSuccessResponse(ctx, fiber.StatusOK, workspace)
@@ -91,9 +98,13 @@ func (c *WorkspaceController) CreateInvitation(ctx *fiber.Ctx) error {
 	}
 
 	user := middleware.GetUserFromCtx(ctx)
-	workspaceId := middleware.GetWorkspaceIdFromCtx(ctx)
 
-	id, err := c.workspaceUsecase.CreateInvitation(workspaceId, user.Id, pl.ValidAt, pl.ValidUntil)
+	id, err := c.workspaceUsecase.CreateInvitation(
+		pl.WorkspaceId,
+		user.Id,
+		pl.ValidAt,
+		pl.ValidUntil,
+	)
 	if err != nil {
 		return err
 	}
@@ -102,9 +113,12 @@ func (c *WorkspaceController) CreateInvitation(ctx *fiber.Ctx) error {
 }
 
 func (c *WorkspaceController) GetInvitations(ctx *fiber.Ctx) error {
-	workspaceId := middleware.GetWorkspaceIdFromCtx(ctx)
+	var pl payload.WorkspacePath
+	if ok, err := c.validator.Validate(&pl, ctx); !ok {
+		return err
+	}
 
-	invitations, err := c.workspaceUsecase.GetInvitations(workspaceId)
+	invitations, err := c.workspaceUsecase.GetInvitations(pl.WorkspaceId)
 	if err != nil {
 		return err
 	}
@@ -113,8 +127,8 @@ func (c *WorkspaceController) GetInvitations(ctx *fiber.Ctx) error {
 }
 
 func (c *WorkspaceController) DeleteInvitation(ctx *fiber.Ctx) error {
-	invitationId := ctx.Params("invitationId")
 	user := middleware.GetUserFromCtx(ctx)
+	invitationId := ctx.Params("invitationId")
 
 	err := c.workspaceUsecase.DeleteInvitation(invitationId, user.Id)
 	if err != nil {
@@ -125,8 +139,8 @@ func (c *WorkspaceController) DeleteInvitation(ctx *fiber.Ctx) error {
 }
 
 func (c *WorkspaceController) JoinByInvitationCode(ctx *fiber.Ctx) error {
-	invitationCode := ctx.Params("invitationId")
 	user := middleware.GetUserFromCtx(ctx)
+	invitationCode := ctx.Params("invitationId")
 
 	err := c.workspaceUsecase.JoinByInvitation(user.Id, invitationCode)
 	if err != nil {

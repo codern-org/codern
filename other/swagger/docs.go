@@ -150,7 +150,7 @@ const docTemplate = `{
                 "responses": {}
             }
         },
-        "/file/workspaces/{workspaceId}/assignments/{assignmentId}/detail": {
+        "/file/workspaces/{workspaceId}/assignments/{assignmentId}/{subPath}": {
             "get": {
                 "security": [
                     {
@@ -181,6 +181,12 @@ const docTemplate = `{
                         "name": "assignmentId",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Sub path",
+                        "name": "subPath",
+                        "in": "path"
                     },
                     {
                         "type": "string",
@@ -479,6 +485,15 @@ const docTemplate = `{
                         "required": true
                     },
                     {
+                        "description": "Payload",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/payload.CreateSubmissionPayload"
+                        }
+                    },
+                    {
                         "type": "string",
                         "description": "Session ID",
                         "name": "sid",
@@ -487,6 +502,21 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {}
+            }
+        }
+    },
+    "definitions": {
+        "payload.CreateSubmissionPayload": {
+            "type": "object",
+            "required": [
+                "language",
+                "sourceCode"
+            ],
+            "properties": {
+                "language": {
+                    "type": "string"
+                },
+                "sourceCode": {}
             }
         }
     },

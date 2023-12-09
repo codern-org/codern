@@ -93,13 +93,13 @@ func (s *FiberServer) applyRoutes() {
 
 	// Initialize Middlewares
 	fileMiddleware := middleware.NewFileMiddleware()
+	workspaceMiddleware := middleware.NewWorkspaceMiddleware(validator, s.usecase.Workspace)
 	authMiddleware := middleware.NewAuthMiddleware(validator, s.usecase.Auth)
-	workspaceMiddleware := middleware.NewWorkspaceMiddleware(s.usecase.Workspace)
 
 	// Initialize Controllers
 	healtController := controller.NewHealthController(s.cfg)
 	webSocketController := controller.NewWebSocketController(s.platform.WebSocketHub)
-	fileController := controller.NewFileController(s.cfg, s.usecase.Workspace)
+	fileController := controller.NewFileController(s.cfg, validator, s.usecase.Workspace)
 	authController := controller.NewAuthController(
 		s.cfg, validator, s.usecase.Auth, s.usecase.Google, s.usecase.User,
 	)

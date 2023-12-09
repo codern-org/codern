@@ -23,4 +23,4 @@ migrate-db:
 	go run ./internal/cmd/mysql_migration.go
 
 swagger:
-	swag init -o ./other/swagger
+	swag init --parseDependency -o ./other/swagger

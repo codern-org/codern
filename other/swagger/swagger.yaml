@@ -1,3 +1,13 @@
+definitions:
+  payload.CreateSubmissionPayload:
+    properties:
+      language:
+        type: string
+      sourceCode: {}
+    required:
+    - language
+    - sourceCode
+    type: object
 info:
   contact: {}
   description: The API Server of Codern
@@ -94,7 +104,7 @@ paths:
       summary: Get an user profile image
       tags:
       - file
-  /file/workspaces/{workspaceId}/assignments/{assignmentId}/detail:
+  /file/workspaces/{workspaceId}/assignments/{assignmentId}/{subPath}:
     get:
       description: Get a workspace detail markdown from internal file system by proxy
       parameters:
@@ -108,6 +118,10 @@ paths:
         name: assignmentId
         required: true
         type: number
+      - description: Sub path
+        in: path
+        name: subPath
+        type: string
       - description: Session ID
         in: header
         name: sid
@@ -305,6 +319,12 @@ paths:
         name: assignmentId
         required: true
         type: integer
+      - description: Payload
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/payload.CreateSubmissionPayload'
       - description: Session ID
         in: header
         name: sid

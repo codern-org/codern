@@ -8,17 +8,27 @@ import (
 	errs "github.com/codern-org/codern/domain/error"
 	"github.com/codern-org/codern/internal/config"
 	"github.com/codern-org/codern/platform/server/middleware"
+	"github.com/codern-org/codern/platform/server/payload"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/proxy"
 )
 
 type FileController struct {
+	validator        domain.PayloadValidator
 	filerUrl         string
 	WorkspaceUsecase domain.WorkspaceUsecase
 }
 
-func NewFileController(cfg *config.Config, WorkspaceUsecase domain.WorkspaceUsecase) *FileController {
-	return &FileController{filerUrl: cfg.Client.SeaweedFs.FilerUrls.Internal, WorkspaceUsecase: WorkspaceUsecase}
+func NewFileController(
+	cfg *config.Config,
+	validator domain.PayloadValidator,
+	WorkspaceUsecase domain.WorkspaceUsecase,
+) *FileController {
+	return &FileController{
+		validator:        validator,
+		filerUrl:         cfg.Client.SeaweedFs.FilerUrls.Internal,
+		WorkspaceUsecase: WorkspaceUsecase,
+	}
 }
 
 // GetUserProfile godoc
@@ -53,9 +63,12 @@ func (c *FileController) GetUserProfile(ctx *fiber.Ctx) error {
 // @Param 			sid header string true "Session ID"
 // @Router			/file/workspaces/{workspaceId}/profile [get]
 func (c *FileController) GetWorkspaceProfile(ctx *fiber.Ctx) error {
-	workspaceId := middleware.GetWorkspaceIdFromCtx(ctx)
+	var pl payload.WorkspacePath
+	if ok, err := c.validator.Validate(&pl, ctx); !ok {
+		return err
+	}
 
-	path := fmt.Sprintf("/workspaces/%d/profile", workspaceId)
+	path := fmt.Sprintf("/workspaces/%d/profile", pl.WorkspaceId)
 	url, err := url.JoinPath(c.filerUrl, path)
 	if err != nil {
 		return errs.New(errs.ErrCreateUrlPath, "invalid url", err)
@@ -76,8 +89,10 @@ func (c *FileController) GetWorkspaceProfile(ctx *fiber.Ctx) error {
 // @Param 			sid header string true "Session ID"
 // @Router			/file/workspaces/{workspaceId}/assignments/{assignmentId}/{subPath} [get]
 func (c *FileController) GetAssignmentDetail(ctx *fiber.Ctx) error {
-	workspaceId := middleware.GetWorkspaceIdFromCtx(ctx)
-	assignmentId := middleware.GetAssignmentIdFromCtx(ctx)
+	var pl payload.AssignmentPath
+	if ok, err := c.validator.Validate(&pl, ctx); !ok {
+		return err
+	}
 
 	subPath := ctx.Params("*")
 	if subPath == "" {
@@ -86,7 +101,7 @@ func (c *FileController) GetAssignmentDetail(ctx *fiber.Ctx) error {
 
 	path := fmt.Sprintf(
 		"/workspaces/%d/assignments/%d/detail/%s",
-		workspaceId, assignmentId, subPath,
+		pl.WorkspaceId, pl.AssignmentId, subPath,
 	)
 	url, err := url.JoinPath(c.filerUrl, path)
 	if err != nil {
@@ -96,18 +111,20 @@ func (c *FileController) GetAssignmentDetail(ctx *fiber.Ctx) error {
 }
 
 func (c *FileController) GetSubmission(ctx *fiber.Ctx) error {
-	workspaceId := middleware.GetWorkspaceIdFromCtx(ctx)
-	assignmentId := middleware.GetAssignmentIdFromCtx(ctx)
+	var pl payload.SubmissionPath
+	if ok, err := c.validator.Validate(&pl, ctx); !ok {
+		return err
+	}
+
 	user := middleware.GetUserFromCtx(ctx)
-	submissionId := ctx.Params("submissionId")
 	submittedUserId := ctx.Params("userId")
 
 	path := fmt.Sprintf(
-		"/workspaces/%d/assignments/%d/submissions/%s/%s",
-		workspaceId, assignmentId, submittedUserId, submissionId,
+		"/workspaces/%d/assignments/%d/submissions/%s/%d",
+		pl.WorkspaceId, pl.AssignmentId, submittedUserId, pl.SubmissionId,
 	)
 
-	userRole, err := c.WorkspaceUsecase.GetRole(user.Id, workspaceId)
+	userRole, err := c.WorkspaceUsecase.GetRole(user.Id, pl.WorkspaceId)
 	if err != nil {
 		return err
 	} else if *userRole == domain.MemberRole && user.Id != submittedUserId {
