@@ -12,7 +12,9 @@
 				// Improve your code commenting by annotating with alert, informational, TODOs, and more!
 				"aaron-bond.better-comments",
 				// Editor configuration file
-				"EditorConfig.EditorConfig"
+				"EditorConfig.EditorConfig",
+				// Git history visualization
+				"mhutchie.git-graph"
 			]
 		}
 	},
