@@ -48,7 +48,7 @@ type Submission struct {
 	Language       string           `json:"language" db:"language"`
 	Status         AssignmentStatus `json:"status" db:"status"`
 	Score          int              `json:"score" db:"score"`
-	FileUrl        string           `json:"-" db:"file_url"`
+	FileUrl        string           `json:"fileUrl" db:"file_url"`
 	SubmittedAt    time.Time        `json:"submittedAt" db:"submitted_at"`
 	CompilationLog *string          `json:"compilationLog,omitempty" db:"compilation_log"`
 	IsLate         bool             `json:"isLate" db:"is_late"`

@@ -1,9 +1,10 @@
 package payload
 
-import "mime/multipart"
+import (
+	"mime/multipart"
+)
 
 type SubmissionPath struct {
-	WorkspacePath
 	AssignmentPath
 	SubmissionId int `params:"submissionId" validate:"required" json:"-"`
 }
