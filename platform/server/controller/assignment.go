@@ -27,6 +27,32 @@ func NewAssignmentController(
 	}
 }
 
+func (c *AssignmentController) CreateAssignment(ctx *fiber.Ctx) error {
+	var pl payload.CreateAssignmentPayload
+	if ok, err := c.validator.Validate(&pl, ctx); !ok {
+		return err
+	}
+
+	user := middleware.GetUserFromCtx(ctx)
+
+	if err := c.assignmentUsecase.CreateAssignment(
+		user.Id,
+		pl.WorkspaceId,
+		pl.Name,
+		pl.Description,
+		pl.MemoryLimit,
+		pl.TimeLimit,
+		pl.Level,
+		pl.DetailFile,
+	); err != nil {
+		return err
+	}
+
+	return response.NewSuccessResponse(ctx, fiber.StatusOK, fiber.Map{
+		"created_at": time.Now(),
+	})
+}
+
 // CreateSubmission godoc
 //
 // @Summary 		Create a new submission

@@ -22,23 +22,28 @@ const (
 	AssignmentStatusComplete    AssignmentStatus = "COMPLETED"
 )
 
-type Assignment struct {
-	Id              int              `json:"id" db:"id"`
-	WorkspaceId     int              `json:"-" db:"workspace_id"`
-	Name            string           `json:"name" db:"name"`
-	Description     string           `json:"description" db:"description"`
-	DetailUrl       string           `json:"detailUrl" db:"detail_url"`
-	MemoryLimit     int              `json:"memoryLimit" db:"memory_limit"`
-	TimeLimit       int              `json:"timeLimit" db:"time_limit"`
-	Level           AssignmentLevel  `json:"level" db:"level"`
-	CreatedAt       time.Time        `json:"createdAt" db:"created_at"`
-	UpdatedAt       time.Time        `json:"updatedAt" db:"updated_at"`
-	DueDate         *time.Time       `json:"dueDate" db:"due_date"`
-	Status          AssignmentStatus `json:"status" db:"status"`
-	LastSubmittedAt *time.Time       `json:"lastSubmittedAt" db:"last_submitted_at"`
+type RawAssignment struct {
+	Id          int             `json:"id" db:"id"`
+	WorkspaceId int             `json:"-" db:"workspace_id"`
+	Name        string          `json:"name" db:"name"`
+	Description string          `json:"description" db:"description"`
+	DetailUrl   string          `json:"detailUrl" db:"detail_url"`
+	MemoryLimit int             `json:"memoryLimit" db:"memory_limit"`
+	TimeLimit   int             `json:"timeLimit" db:"time_limit"`
+	Level       AssignmentLevel `json:"level" db:"level"`
+	CreatedAt   time.Time       `json:"createdAt" db:"created_at"`
+	UpdatedAt   time.Time       `json:"updatedAt" db:"updated_at"`
+	DueDate     *time.Time      `json:"dueDate" db:"due_date"`
 
 	// Always aggregation
 	Testcases []Testcase `json:"-"`
+}
+
+type Assignment struct {
+	RawAssignment
+
+	Status          AssignmentStatus `json:"status" db:"status"`
+	LastSubmittedAt *time.Time       `json:"lastSubmittedAt" db:"last_submitted_at"`
 }
 
 type Submission struct {
@@ -73,16 +78,26 @@ type Testcase struct {
 	OutputFileUrl string `json:"outputFileUrl" db:"output_file_url"`
 }
 
+type TestcaseFile struct {
+	Input  io.Reader
+	Output io.Reader
+}
+
 type AssignmentRepository interface {
+	CreateAssignment(assignment *RawAssignment) error
+	CreateTestcases(testcases []Testcase) error
 	CreateSubmission(submission *Submission, testcases []Testcase) error
 	CreateSubmissionResults(submissionId int, compilationLog string, status AssignmentStatus, score int, results []SubmissionResult) error
 	Get(id int, userId string) (*Assignment, error)
+	GetRaw(id int) (*RawAssignment, error)
 	GetSubmission(id int) (*Submission, error)
 	List(userId string, workspaceId int) ([]Assignment, error)
 	ListSubmission(userId string, assignmentId int) ([]Submission, error)
 }
 
 type AssignmentUsecase interface {
+	CreateAssignment(userId string, workspaceId int, name string, description string, memoryLimit int, timeLimit int, level AssignmentLevel, file io.Reader) error
+	CreateTestcase(assignmentId int, testcaseFiles []TestcaseFile) error
 	CreateSubmission(userId string, assignmentId int, workspaceId int, language string, file io.Reader) error
 	CreateSubmissionResults(submissionId int, compilationLog string, results []SubmissionResult) error
 	Get(id int, userId string) (*Assignment, error)

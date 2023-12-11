@@ -16,6 +16,38 @@ func NewAssignmentRepository(db *sqlx.DB) domain.AssignmentRepository {
 	return &assignmentRepository{db: db}
 }
 
+func (r *assignmentRepository) CreateAssignment(assignment *domain.RawAssignment) error {
+	_, err := r.db.NamedExec(`
+		INSERT INTO assignment
+			(id, workspace_id, name, description, detail_url, memory_limit, time_limit, level)
+		VALUES
+			(:id, :workspace_id, :name, :description, :detail_url, :memory_limit, :time_limit, :level)
+		`, assignment)
+	if err != nil {
+		return fmt.Errorf("cannot query to insert assignment: %w", err)
+	}
+
+	return nil
+}
+
+func (r *assignmentRepository) CreateTestcases(testcases []domain.Testcase) error {
+	query := "INSERT INTO testcase (id, assignment_id, input_file_url, output_file_url) VALUES "
+
+	args := make([]interface{}, 0, len(testcases)*4)
+	for i := range testcases {
+		query += "(?, ?, ?, ?),"
+		args = append(args, testcases[i].Id, testcases[i].AssignmentId, testcases[i].InputFileUrl, testcases[i].OutputFileUrl)
+	}
+
+	query = query[:len(query)-1]
+
+	if _, err := r.db.Exec(query, args...); err != nil {
+		return fmt.Errorf("cannot query to create testcase: %w", err)
+	}
+
+	return nil
+}
+
 func (r *assignmentRepository) CreateSubmission(
 	submission *domain.Submission,
 	testcases []domain.Testcase,
@@ -90,6 +122,16 @@ func (r *assignmentRepository) Get(id int, userId string) (*domain.Assignment, e
 	return &assignments[0], nil
 }
 
+func (r *assignmentRepository) GetRaw(id int) (*domain.RawAssignment, error) {
+	assignments, err := r.listRaw(nil, &id)
+	if err != nil {
+		return nil, fmt.Errorf("cannot query to get raw assignment: %w", err)
+	} else if len(assignments) == 0 {
+		return nil, nil
+	}
+	return &assignments[0], nil
+}
+
 func (r *assignmentRepository) GetSubmission(id int) (*domain.Submission, error) {
 	var submission domain.Submission
 	err := r.db.Get(&submission, "SELECT * FROM submission WHERE id = ?", id)
@@ -157,27 +199,71 @@ func (r *assignmentRepository) list(
 	}
 
 	if len(assignments) > 0 {
-		var assignmentIds []int
+		params := make([]*domain.RawAssignment, 0, len(assignments))
 		for i := range assignments {
-			assignmentIds = append(assignmentIds, assignments[i].Id)
+			params = append(params, &assignments[i].RawAssignment)
 		}
-
-		testcases, err := r.listTestcase(assignmentIds)
-		if err != nil {
-			return nil, fmt.Errorf("cannot query to list testcase for assignment: %w", err)
-		}
-
-		assignmentById := make(map[int]*domain.Assignment)
-		for i := range assignments {
-			assignmentById[assignments[i].Id] = &assignments[i]
-		}
-		for i := range testcases {
-			assignment := assignmentById[testcases[i].AssignmentId]
-			assignment.Testcases = append(assignment.Testcases, testcases[i])
+		if err := r.mutateTestcases(params); err != nil {
+			return nil, err
 		}
 	}
 
 	return assignments, nil
+}
+
+func (r *assignmentRepository) listRaw(
+	workspaceId *int,
+	assignmentId *int,
+) ([]domain.RawAssignment, error) {
+	rawAssignments := make([]domain.RawAssignment, 0)
+
+	if workspaceId != nil {
+		query := `SELECT * FROM assignment WHERE workspace_id = ?`
+		if err := r.db.Select(&rawAssignments, query, workspaceId); err != nil {
+			return nil, fmt.Errorf("cannot query to list raw assignment with workspace id: %w", err)
+		}
+	}
+
+	if assignmentId != nil {
+		query := `SELECT * FROM assignment WHERE id = ?`
+		if err := r.db.Select(&rawAssignments, query, assignmentId); err != nil {
+			return nil, fmt.Errorf("cannot query to list raw assignment with id: %w", err)
+		}
+	}
+
+	if len(rawAssignments) > 0 {
+		params := make([]*domain.RawAssignment, 0, len(rawAssignments))
+		for i := range rawAssignments {
+			params = append(params, &rawAssignments[i])
+		}
+		if err := r.mutateTestcases(params); err != nil {
+			return nil, err
+		}
+	}
+	return rawAssignments, nil
+}
+
+func (r *assignmentRepository) mutateTestcases(assignments []*domain.RawAssignment) error {
+	var assignmentIds []int
+	for i := range assignments {
+		assignmentIds = append(assignmentIds, assignments[i].Id)
+	}
+
+	testcases, err := r.listTestcase(assignmentIds)
+	if err != nil {
+		return fmt.Errorf("cannot query to list testcase for assignment: %w", err)
+	}
+
+	assignmentById := make(map[int]*domain.RawAssignment)
+	for i := range assignments {
+		assignmentById[assignments[i].Id] = assignments[i]
+	}
+	for i := range testcases {
+		assignment := assignmentById[testcases[i].AssignmentId]
+		assignment.Testcases = append(assignment.Testcases, testcases[i])
+	}
+
+	return nil
 }
 
 func (r *assignmentRepository) listTestcase(assignmentIds []int) ([]domain.Testcase, error) {
