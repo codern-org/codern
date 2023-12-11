@@ -2,6 +2,7 @@ package consumer
 
 import (
 	"encoding/json"
+	"time"
 
 	"github.com/codern-org/codern/domain"
 	"github.com/codern-org/codern/platform"
@@ -14,6 +15,7 @@ type gradingConsumer struct {
 	logger            *zap.Logger
 	ch                *amqp.Channel
 	wsHub             *platform.WebSocketHub
+	influxDb          *platform.InfluxDb
 	assignmentUsecase domain.AssignmentUsecase
 }
 
@@ -21,12 +23,14 @@ func NewGradingConsumer(
 	logger *zap.Logger,
 	rabbitmq *platform.RabbitMq,
 	wsHub *platform.WebSocketHub,
+	influxDb *platform.InfluxDb,
 	assignmentUsecase domain.AssignmentUsecase,
 ) domain.GradingConsumer {
 	return &gradingConsumer{
 		logger:            logger,
 		ch:                rabbitmq.Ch,
 		wsHub:             wsHub,
+		influxDb:          influxDb,
 		assignmentUsecase: assignmentUsecase,
 	}
 }
@@ -61,8 +65,11 @@ func (c *gradingConsumer) ConsumeSubmssionResult() error {
 				})
 			}
 
-			err = c.assignmentUsecase.CreateSubmissionResults(submissionId, message.CompileOutput, results)
-			if err != nil {
+			if err := c.assignmentUsecase.CreateSubmissionResults(
+				submissionId,
+				message.CompileOutput,
+				results,
+			); err != nil {
 				delivery.Reject(true)
 				c.logger.Error("Cannot create submission results", zap.Error(err))
 				continue
@@ -74,8 +81,8 @@ func (c *gradingConsumer) ConsumeSubmssionResult() error {
 				c.logger.Error("Cannot get submission data when consuming submission result", zap.Error(err))
 				continue
 			}
-			err = c.wsHub.SendMessage(submission.UserId, "onSubmissionUpdate", submission)
-			if err != nil {
+
+			if err := c.wsHub.SendMessage(submission.UserId, "onSubmissionUpdate", submission); err != nil {
 				delivery.Reject(false)
 				c.logger.Error("Cannot send websocket message after consuming submission result", zap.Error(err))
 				continue
@@ -83,6 +90,17 @@ func (c *gradingConsumer) ConsumeSubmssionResult() error {
 
 			c.logger.Info("Consumed submission result", zap.Int("submission_id", submissionId))
 			delivery.Ack(true)
+
+			c.influxDb.WritePoint(
+				"gradingLatency", map[string]string{
+					"language": submission.Language,
+				},
+				map[string]interface{}{
+					"userId":       submission.UserId,
+					"assignmentId": submission.AssignmentId,
+					"latency":      time.Since(message.Metadata.StartTime).Nanoseconds(),
+				},
+			)
 		}
 	}()
 

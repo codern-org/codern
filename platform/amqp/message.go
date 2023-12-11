@@ -1,5 +1,7 @@
 package payload
 
+import "time"
+
 type GradeRequestMessage struct {
 	Language  string               `json:"language"`
 	SourceUrl string               `json:"sourceUrl"`
@@ -19,8 +21,9 @@ type GradeTestMessage struct {
 }
 
 type GradeMetadataMessage struct {
-	SubmissionId int   `json:"submissionId"`
-	TestcaseIds  []int `json:"testcaseIds"`
+	SubmissionId int       `json:"submissionId"`
+	TestcaseIds  []int     `json:"testcaseIds"`
+	StartTime    time.Time `json:"startTime"`
 }
 
 type GradeResponseMessage struct {

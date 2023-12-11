@@ -183,7 +183,13 @@ func startConsumer(
 	platform *domain.Platform,
 	usecase *domain.Usecase,
 ) {
-	gradingConsumer := consumer.NewGradingConsumer(logger, platform.RabbitMq, platform.WebSocketHub, usecase.Assignment)
+	gradingConsumer := consumer.NewGradingConsumer(
+		logger,
+		platform.RabbitMq,
+		platform.WebSocketHub,
+		platform.InfluxDb,
+		usecase.Assignment,
+	)
 	if err := gradingConsumer.ConsumeSubmssionResult(); err != nil {
 		logger.Fatal("Cannot start grading consumer", zap.Error(err))
 	}
