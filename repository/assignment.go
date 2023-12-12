@@ -175,7 +175,7 @@ func (r *assignmentRepository) list(
 				MAX(s.submitted_at) AS last_submitted_at,
 				CASE
 					WHEN SUM(CASE WHEN s.status = 'GRADING' THEN 1 ELSE 0 END) > 0 THEN 'GRADING'
-					WHEN COUNT(DISTINCT s.status) = 1 AND MIN(s.status) = 'COMPLETED' THEN 'COMPLETED'
+					WHEN SUM(CASE WHEN s.status = 'COMPLETED' THEN 1 ELSE 0 END) > 0 THEN 'COMPLETED'
 					ELSE 'INCOMPLETED'
 				END AS status
 			FROM submission s

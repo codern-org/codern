@@ -160,7 +160,7 @@ func (r *workspaceRepository) list(ids []int, userId string) ([]domain.Workspace
 			(SELECT
 				COUNT(DISTINCT(s.status))
 				FROM submission s
-				WHERE s.assignment_id = w.id AND s.user_id = ? AND s.status = 'COMPLETED'
+				WHERE s.assignment_id IN (SELECT id FROM assignment WHERE workspace_id = w.id) AND s.user_id = ? AND s.status = 'COMPLETED'
 			) AS completed_assignment
 		FROM workspace w
 		INNER JOIN user ON user.id = (SELECT user_id FROM workspace_participant WHERE workspace_id = w.id AND role = 'OWNER')
