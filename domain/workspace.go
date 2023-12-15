@@ -48,6 +48,14 @@ type WorkspaceInvitation struct {
 	ValidUntil  time.Time `json:"validUntil" db:"valid_until"`
 }
 
+type WorkspaceRank struct {
+	UserId              string `json:"userId" db:"id"`
+	DisplayName         string `json:"displayName" db:"display_name"`
+	ProfileUrl          string `json:"profileUrl" db:"profile_url"`
+	Score               int    `json:"score" db:"score"`
+	CompletedAssignment int    `json:"completedAssignment" db:"completed_assignment"`
+}
+
 type WorkspaceRepository interface {
 	CreateInvitation(invitation *WorkspaceInvitation) error
 	GetInvitation(id string) (*WorkspaceInvitation, error)
@@ -58,6 +66,7 @@ type WorkspaceRepository interface {
 	HasAssignment(assignmentId int, workspaceId int) (bool, error)
 	Get(id int, userId string) (*Workspace, error)
 	GetRole(userId string, workspaceId int) (*WorkspaceRole, error)
+	GetScoreboard(workspaceId int) ([]WorkspaceRank, error)
 	List(userId string) ([]Workspace, error)
 	ListParticipant(workspaceId int) ([]WorkspaceParticipant, error)
 	UpdateRecent(userId string, workspaceId int) error
@@ -75,6 +84,7 @@ type WorkspaceUsecase interface {
 	HasAssignment(assignmentId int, workspaceId int) (bool, error)
 	Get(id int, userId string) (*Workspace, error)
 	GetRole(userId string, workspaceId int) (*WorkspaceRole, error)
+	GetScoreboard(workspaceId int) ([]WorkspaceRank, error)
 	List(userId string) ([]Workspace, error)
 	ListParticipant(workspaceId int) ([]WorkspaceParticipant, error)
 	UpdateRole(updaterUserId string, targetUserId string, workspaceId int, role WorkspaceRole) error

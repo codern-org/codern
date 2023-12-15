@@ -91,6 +91,20 @@ func (c *WorkspaceController) Get(ctx *fiber.Ctx) error {
 	return response.NewSuccessResponse(ctx, fiber.StatusOK, workspace)
 }
 
+func (c *WorkspaceController) GetScoreboard(ctx *fiber.Ctx) error {
+	var pl payload.WorkspacePath
+	if ok, err := c.validator.Validate(&pl, ctx); !ok {
+		return err
+	}
+
+	scoreboard, err := c.workspaceUsecase.GetScoreboard(pl.WorkspaceId)
+	if err != nil {
+		return err
+	}
+
+	return response.NewSuccessResponse(ctx, fiber.StatusOK, scoreboard)
+}
+
 func (c *WorkspaceController) CreateInvitation(ctx *fiber.Ctx) error {
 	var pl payload.CreateInvitationPayload
 	if ok, err := c.validator.Validate(&pl, ctx); !ok {

@@ -204,6 +204,14 @@ func (u *workspaceUsecase) GetRole(
 	return userRole, nil
 }
 
+func (u *workspaceUsecase) GetScoreboard(workspaceId int) ([]domain.WorkspaceRank, error) {
+	scoreboard, err := u.workspaceRepository.GetScoreboard(workspaceId)
+	if err != nil {
+		return nil, errs.New(errs.ErrGetScoreboard, "cannot get scoreboard", err)
+	}
+	return scoreboard, nil
+}
+
 func (u *workspaceUsecase) List(userId string) ([]domain.Workspace, error) {
 	workspaces, err := u.workspaceRepository.List(userId)
 	if err != nil {

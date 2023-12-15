@@ -57,6 +57,7 @@ var DomainErrCodeToHttpStatus = map[int]int{
 	errs.ErrInvitationNotFound:       fiber.StatusNotFound,
 	errs.ErrInvitationNoPerm:         fiber.StatusForbidden,
 	errs.ErrInvitationInvalidDate:    fiber.StatusBadRequest,
+	errs.ErrGetScoreboard:            fiber.StatusInternalServerError,
 
 	errs.ErrGradingRequest: fiber.StatusInternalServerError,
 

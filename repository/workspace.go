@@ -130,6 +130,40 @@ func (r *workspaceRepository) GetRole(userId string, workspaceId int) (*domain.W
 	return &role, nil
 }
 
+func (r *workspaceRepository) GetScoreboard(workspaceId int) ([]domain.WorkspaceRank, error) {
+	scoreboard := make([]domain.WorkspaceRank, 0)
+	err := r.db.Select(&scoreboard, `
+		SELECT
+			u.id, u.display_name, u.profile_url,
+			SUM(t1.score) AS score,
+			t1.completed_assignment
+		FROM (
+			SELECT
+				user_id,
+				MAX(score) AS score,
+				(
+					SELECT
+						COUNT(DISTINCT status)
+					FROM submission s2
+					WHERE
+						s2.user_id = s.user_id
+						AND status = 'COMPLETED'
+						AND assignment_id IN (SELECT id FROM assignment WHERE workspace_id = ?)
+				) AS completed_assignment
+			FROM submission s
+			WHERE assignment_id IN (SELECT id FROM assignment WHERE workspace_id = ?)
+			GROUP BY user_id, assignment_id
+		) t1
+		INNER JOIN user u ON u.id = t1.user_id
+		GROUP BY t1.user_id
+		ORDER BY score DESC
+	`, workspaceId, workspaceId)
+	if err != nil {
+		return nil, fmt.Errorf("cannot query to get workspace scoreboard: %w", err)
+	}
+	return scoreboard, nil
+}
+
 func (r *workspaceRepository) List(userId string) ([]domain.Workspace, error) {
 	var workspaceIds []int
 	err := r.db.Select(

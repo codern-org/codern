@@ -58,6 +58,7 @@ const (
 	ErrInvitationNotFound         = 3063
 	ErrInvitationNoPerm           = 3064
 	ErrInvitationInvalidDate      = 3065
+	ErrGetScoreboard              = 3070
 
 	ErrGradingRequest = 4000
 
