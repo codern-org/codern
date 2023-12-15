@@ -21,5 +21,5 @@ type CreateInvitationPayload struct {
 
 type UpdateFavoritePayload struct {
 	WorkspacePath
-	Favorite bool `form:"favorite" validate:"required"`
+	Favorite bool `form:"favorite"`
 }
