@@ -163,3 +163,23 @@ func (c *WorkspaceController) JoinByInvitationCode(ctx *fiber.Ctx) error {
 
 	return response.NewSuccessResponse(ctx, fiber.StatusOK, nil)
 }
+
+func (c *WorkspaceController) UpdateFavorite(ctx *fiber.Ctx) error {
+	var pl payload.UpdateFavoritePayload
+	if ok, err := c.validator.Validate(&pl, ctx); !ok {
+		return err
+	}
+
+	user := middleware.GetUserFromCtx(ctx)
+
+	err := c.workspaceUsecase.UpdateFavorite(
+		user.Id,
+		pl.WorkspaceId,
+		pl.Favorite,
+	)
+	if err != nil {
+		return err
+	}
+
+	return response.NewSuccessResponse(ctx, fiber.StatusOK, nil)
+}

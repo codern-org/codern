@@ -18,3 +18,8 @@ type CreateInvitationPayload struct {
 	ValidAt    time.Time `form:"validAt" validate:"required"`
 	ValidUntil time.Time `form:"validUntil" validate:"required"`
 }
+
+type UpdateFavoritePayload struct {
+	WorkspacePath
+	Favorite bool `form:"favorite" validate:"required"`
+}

@@ -255,3 +255,18 @@ func (r *workspaceRepository) UpdateRole(
 	}
 	return nil
 }
+
+func (r *workspaceRepository) UpdateFavorite(
+	userId string,
+	workspaceId int,
+	favorite bool,
+) error {
+	_, err := r.db.Exec(
+		"UPDATE workspace_participant SET favorite = ? WHERE user_id = ? AND workspace_id = ?",
+		favorite, userId, workspaceId,
+	)
+	if err != nil {
+		return fmt.Errorf("cannot query to update favorite: %w", err)
+	}
+	return nil
+}
