@@ -15,11 +15,11 @@ type AssignmentPath struct {
 
 type CreateInvitationPayload struct {
 	WorkspacePath
-	ValidAt    time.Time `form:"validAt" validate:"required"`
-	ValidUntil time.Time `form:"validUntil" validate:"required"`
+	ValidAt    time.Time `json:"validAt" validate:"required"`
+	ValidUntil time.Time `json:"validUntil" validate:"required"`
 }
 
 type UpdateFavoritePayload struct {
 	WorkspacePath
-	Favorite bool `form:"favorite"`
+	Favorite bool `json:"favorite"`
 }
