@@ -246,3 +246,10 @@ func (u *workspaceUsecase) UpdateRole(
 	}
 	return nil
 }
+
+func (u *workspaceUsecase) UpdateFavorite(userId string, workspaceId int, favorite bool) error {
+	if err := u.workspaceRepository.UpdateFavorite(userId, workspaceId, favorite); err != nil {
+		return errs.New(errs.ErrWorkspaceUpdateFavorite, "cannot update favorite", err)
+	}
+	return nil
+}

@@ -59,6 +59,7 @@ const (
 	ErrInvitationNoPerm           = 3064
 	ErrInvitationInvalidDate      = 3065
 	ErrGetScoreboard              = 3070
+	ErrWorkspaceUpdateFavorite    = 3080
 
 	ErrGradingRequest = 4000
 

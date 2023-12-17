@@ -71,6 +71,7 @@ type WorkspaceRepository interface {
 	ListParticipant(workspaceId int) ([]WorkspaceParticipant, error)
 	UpdateRecent(userId string, workspaceId int) error
 	UpdateRole(userId string, workspaceId int, role WorkspaceRole) error
+	UpdateFavorite(userId string, workspaceId int, favorite bool) error
 }
 
 type WorkspaceUsecase interface {
@@ -88,4 +89,5 @@ type WorkspaceUsecase interface {
 	List(userId string) ([]Workspace, error)
 	ListParticipant(workspaceId int) ([]WorkspaceParticipant, error)
 	UpdateRole(updaterUserId string, targetUserId string, workspaceId int, role WorkspaceRole) error
+	UpdateFavorite(userId string, workspaceId int, favorite bool) error
 }
