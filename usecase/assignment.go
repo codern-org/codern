@@ -95,11 +95,6 @@ func (u *assignmentUsecase) Update(
 		return errs.New(errs.ErrWorkspaceNoPerm, "permission denied")
 	}
 
-	detailUrl := fmt.Sprintf(
-		"/workspaces/%d/assignments/%d/detail/problem.md",
-		assignment.WorkspaceId, assignment.Id,
-	)
-
 	if ua.Name != nil {
 		assignment.Name = *ua.Name
 	}
@@ -121,7 +116,7 @@ func (u *assignmentUsecase) Update(
 	}
 
 	// TODO: retry strategy, error
-	if err := u.seaweedfs.Upload(ua.DetailFile, 0, detailUrl); err != nil {
+	if err := u.seaweedfs.Upload(ua.DetailFile, 0, assignment.DetailUrl); err != nil {
 		return errs.New(errs.ErrFileSystem, "cannot upload detail file while updating assignment id %d", assignmentId, err)
 	}
 

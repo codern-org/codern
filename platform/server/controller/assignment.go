@@ -27,7 +27,7 @@ func NewAssignmentController(
 	}
 }
 
-func (c *AssignmentController) CreateAssignment(ctx *fiber.Ctx) error {
+func (c *AssignmentController) Create(ctx *fiber.Ctx) error {
 	var pl payload.CreateAssignmentPayload
 	if ok, err := c.validator.Validate(&pl, ctx); !ok {
 		return err
@@ -57,39 +57,6 @@ func (c *AssignmentController) CreateAssignment(ctx *fiber.Ctx) error {
 
 	return response.NewSuccessResponse(ctx, fiber.StatusOK, fiber.Map{
 		"created_at": time.Now(),
-	})
-}
-
-func (c *AssignmentController) UpdateAssignment(ctx *fiber.Ctx) error {
-	var pl payload.UpdateAssignment
-	if ok, err := c.validator.Validate(&pl, ctx); !ok {
-		return err
-	}
-	if err := payload.ValidateTestcaseFiles(*pl.TestcaseInputFiles, *pl.TestcaseOutputFiles); err != nil {
-		return err
-	}
-
-	user := middleware.GetUserFromCtx(ctx)
-	testcaseFiles := domain.CreateTestcaseFiles(*pl.TestcaseInputFiles, *pl.TestcaseOutputFiles)
-
-	if err := c.assignmentUsecase.Update(
-		user.Id,
-		pl.AssignmentId,
-		&domain.UpdateAssignment{
-			Name:          pl.Name,
-			Description:   pl.Description,
-			MemoryLimit:   pl.MemoryLimit,
-			TimeLimit:     pl.TimeLimit,
-			Level:         pl.Level,
-			DetailFile:    pl.DetailFile,
-			TestcaseFiles: &testcaseFiles,
-		},
-	); err != nil {
-		return err
-	}
-
-	return response.NewSuccessResponse(ctx, fiber.StatusOK, fiber.Map{
-		"updated_at": time.Now(),
 	})
 }
 
@@ -212,4 +179,37 @@ func (c *AssignmentController) Get(ctx *fiber.Ctx) error {
 	}
 
 	return response.NewSuccessResponse(ctx, fiber.StatusOK, assignment)
+}
+
+func (c *AssignmentController) Update(ctx *fiber.Ctx) error {
+	var pl payload.UpdateAssignment
+	if ok, err := c.validator.Validate(&pl, ctx); !ok {
+		return err
+	}
+	if err := payload.ValidateTestcaseFiles(*pl.TestcaseInputFiles, *pl.TestcaseOutputFiles); err != nil {
+		return err
+	}
+
+	user := middleware.GetUserFromCtx(ctx)
+	testcaseFiles := domain.CreateTestcaseFiles(*pl.TestcaseInputFiles, *pl.TestcaseOutputFiles)
+
+	if err := c.assignmentUsecase.Update(
+		user.Id,
+		pl.AssignmentId,
+		&domain.UpdateAssignment{
+			Name:          pl.Name,
+			Description:   pl.Description,
+			MemoryLimit:   pl.MemoryLimit,
+			TimeLimit:     pl.TimeLimit,
+			Level:         pl.Level,
+			DetailFile:    pl.DetailFile,
+			TestcaseFiles: &testcaseFiles,
+		},
+	); err != nil {
+		return err
+	}
+
+	return response.NewSuccessResponse(ctx, fiber.StatusOK, fiber.Map{
+		"updated_at": time.Now(),
+	})
 }

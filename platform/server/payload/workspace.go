@@ -19,7 +19,8 @@ type CreateInvitationPayload struct {
 	ValidUntil time.Time `json:"validUntil" validate:"required"`
 }
 
-type UpdateFavoritePayload struct {
+type UpdateWorkspacePayload struct {
 	WorkspacePath
-	Favorite bool `json:"favorite"`
+	Name     *string `json:"name"`
+	Favorite *bool   `json:"favorite"`
 }

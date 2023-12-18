@@ -231,6 +231,17 @@ func (r *workspaceRepository) ListParticipant(
 	return participants, nil
 }
 
+func (r *workspaceRepository) Update(workspace *domain.Workspace) error {
+	_, err := r.db.NamedExec(`
+		UPDATE workspace SET name = :name WHERE id = :id;
+		UPDATE workspace_participant SET favorite = :favorite WHERE workspace_id = :id;
+	`, workspace)
+	if err != nil {
+		return fmt.Errorf("cannot query to update workspace: %w", err)
+	}
+	return nil
+}
+
 func (r *workspaceRepository) UpdateRecent(userId string, workspaceId int) error {
 	_, err := r.db.Exec(`
 		UPDATE workspace_participant SET recently_visited_at = ? WHERE user_id = ? AND workspace_id = ?
@@ -252,21 +263,6 @@ func (r *workspaceRepository) UpdateRole(
 	)
 	if err != nil {
 		return fmt.Errorf("cannot query to update role: %w", err)
-	}
-	return nil
-}
-
-func (r *workspaceRepository) UpdateFavorite(
-	userId string,
-	workspaceId int,
-	favorite bool,
-) error {
-	_, err := r.db.Exec(
-		"UPDATE workspace_participant SET favorite = ? WHERE user_id = ? AND workspace_id = ?",
-		favorite, userId, workspaceId,
-	)
-	if err != nil {
-		return fmt.Errorf("cannot query to update favorite: %w", err)
 	}
 	return nil
 }

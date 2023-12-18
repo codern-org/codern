@@ -20,6 +20,11 @@ type Workspace struct {
 	RecentlyVisitedAt   time.Time `json:"recentlyVisitedAt" db:"recently_visited_at"`
 }
 
+type UpdateWorkspace struct {
+	Name     *string
+	Favorite *bool
+}
+
 type WorkspaceRole string
 
 const (
@@ -69,9 +74,9 @@ type WorkspaceRepository interface {
 	GetScoreboard(workspaceId int) ([]WorkspaceRank, error)
 	List(userId string) ([]Workspace, error)
 	ListParticipant(workspaceId int) ([]WorkspaceParticipant, error)
+	Update(workspace *Workspace) error
 	UpdateRecent(userId string, workspaceId int) error
 	UpdateRole(userId string, workspaceId int, role WorkspaceRole) error
-	UpdateFavorite(userId string, workspaceId int, favorite bool) error
 }
 
 type WorkspaceUsecase interface {
@@ -86,8 +91,9 @@ type WorkspaceUsecase interface {
 	Get(id int, userId string) (*Workspace, error)
 	GetRole(userId string, workspaceId int) (*WorkspaceRole, error)
 	GetScoreboard(workspaceId int) ([]WorkspaceRank, error)
+	CheckPerm(userId string, workspaceId int) (bool, error)
 	List(userId string) ([]Workspace, error)
 	ListParticipant(workspaceId int) ([]WorkspaceParticipant, error)
+	Update(userId string, workspaceId int, workspace *UpdateWorkspace) error
 	UpdateRole(updaterUserId string, targetUserId string, workspaceId int, role WorkspaceRole) error
-	UpdateFavorite(userId string, workspaceId int, favorite bool) error
 }

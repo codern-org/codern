@@ -128,9 +128,9 @@ func (s *FiberServer) applyRoutes() {
 	workspace := api.Group("/workspaces", middleware.PathType("workspace"))
 	workspace.Get("/", authMiddleware, workspaceMiddleware, workspaceController.List)
 	workspace.Get("/:workspaceId", authMiddleware, workspaceMiddleware, workspaceController.Get)
+	workspace.Patch("/:workspaceId", authMiddleware, workspaceMiddleware, workspaceController.Update)
 	workspace.Get("/:workspaceId/participants", authMiddleware, workspaceMiddleware, workspaceController.ListParticipant)
 	workspace.Get("/:workspaceId/scoreboard", authMiddleware, workspaceMiddleware, workspaceController.GetScoreboard)
-	workspace.Post("/:workspaceId/favorite", authMiddleware, workspaceMiddleware, workspaceController.UpdateFavorite)
 
 	invitation := workspace.Group("/:workspaceId/invitation", middleware.PathType("invitation"))
 	invitation.Get("/", authMiddleware, workspaceMiddleware, workspaceController.GetInvitations)
@@ -139,9 +139,9 @@ func (s *FiberServer) applyRoutes() {
 
 	assignment := workspace.Group("/:workspaceId/assignments")
 	assignment.Get("/", authMiddleware, workspaceMiddleware, assignmentController.List)
-	assignment.Put("/:assignmentId", authMiddleware, workspaceMiddleware, assignmentController.UpdateAssignment)
-	assignment.Post("/", authMiddleware, workspaceMiddleware, assignmentController.CreateAssignment)
+	assignment.Post("/", authMiddleware, workspaceMiddleware, assignmentController.Create)
 	assignment.Get("/:assignmentId", authMiddleware, workspaceMiddleware, assignmentController.Get)
+	assignment.Patch("/:assignmentId", authMiddleware, workspaceMiddleware, assignmentController.Update)
 	assignment.Get("/:assignmentId/submissions", authMiddleware, workspaceMiddleware, assignmentController.ListSubmission)
 	assignment.Post("/:assignmentId/submissions", authMiddleware, workspaceMiddleware, assignmentController.CreateSubmission)
 

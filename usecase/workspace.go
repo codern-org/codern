@@ -212,6 +212,14 @@ func (u *workspaceUsecase) GetScoreboard(workspaceId int) ([]domain.WorkspaceRan
 	return scoreboard, nil
 }
 
+func (u *workspaceUsecase) CheckPerm(userId string, workspaceId int) (bool, error) {
+	userRole, err := u.GetRole(userId, workspaceId)
+	if err != nil {
+		return false, errs.New(errs.SameCode, "cannot get workspace role", err)
+	}
+	return ((userRole != nil) && (*userRole == domain.AdminRole || *userRole == domain.OwnerRole)), nil
+}
+
 func (u *workspaceUsecase) List(userId string) ([]domain.Workspace, error) {
 	workspaces, err := u.workspaceRepository.List(userId)
 	if err != nil {
@@ -226,6 +234,34 @@ func (u *workspaceUsecase) ListParticipant(workspaceId int) ([]domain.WorkspaceP
 		return nil, errs.New(errs.ErrListWorkspaceParticipant, "cannot list workspace particpant", err)
 	}
 	return participants, nil
+}
+
+func (u *workspaceUsecase) Update(userId string, workspaceId int, uw *domain.UpdateWorkspace) error {
+	isAuthorized, err := u.CheckPerm(userId, workspaceId)
+	if err != nil {
+		return errs.New(errs.SameCode, "cannot get workspace role while updating workspace", err)
+	}
+	if !isAuthorized {
+		return errs.New(errs.ErrWorkspaceNoPerm, "permission denied")
+	}
+
+	workspace, err := u.Get(workspaceId, userId)
+	if err != nil {
+		return errs.New(errs.SameCode, "cannot get workspace id %d while updating workspace", workspaceId, err)
+	}
+
+	if uw.Name != nil {
+		workspace.Name = *uw.Name
+	}
+	if uw.Favorite != nil {
+		workspace.Favorite = *uw.Favorite
+	}
+
+	if err := u.workspaceRepository.Update(workspace); err != nil {
+		return errs.New(errs.ErrUpdateWorkspace, "cannot update workspace id %d", workspaceId, err)
+	}
+
+	return nil
 }
 
 func (u *workspaceUsecase) UpdateRole(
@@ -243,13 +279,6 @@ func (u *workspaceUsecase) UpdateRole(
 
 	if err := u.workspaceRepository.UpdateRole(targetUserId, workspaceId, role); err != nil {
 		return errs.New(errs.ErrWorkspaceUpdateRole, "cannot update role", err)
-	}
-	return nil
-}
-
-func (u *workspaceUsecase) UpdateFavorite(userId string, workspaceId int, favorite bool) error {
-	if err := u.workspaceRepository.UpdateFavorite(userId, workspaceId, favorite); err != nil {
-		return errs.New(errs.ErrWorkspaceUpdateFavorite, "cannot update favorite", err)
 	}
 	return nil
 }
