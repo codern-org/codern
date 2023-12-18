@@ -30,6 +30,19 @@ func (r *assignmentRepository) CreateAssignment(assignment *domain.RawAssignment
 	return nil
 }
 
+func (r *assignmentRepository) UpdateAssignment(assignment *domain.RawAssignment) error {
+	_, err := r.db.Exec(
+		`UPDATE assignment SET name = ?, description = ?, detail_url = ?, memory_limit = ?, time_limit = ?, level = ? WHERE id = ?`,
+		assignment.Name, assignment.Description, assignment.DetailUrl, assignment.MemoryLimit, assignment.TimeLimit, assignment.Level, assignment.Id,
+	)
+
+	if err != nil {
+		return fmt.Errorf("cannot query to update assignment: %w", err)
+	}
+
+	return nil
+}
+
 func (r *assignmentRepository) CreateTestcases(testcases []domain.Testcase) error {
 	query := "INSERT INTO testcase (id, assignment_id, input_file_url, output_file_url) VALUES "
 
@@ -45,6 +58,14 @@ func (r *assignmentRepository) CreateTestcases(testcases []domain.Testcase) erro
 		return fmt.Errorf("cannot query to create testcase: %w", err)
 	}
 
+	return nil
+}
+
+func (r *assignmentRepository) DeleteTestcasesByAssignmentId(assignmentId int) error {
+	_, err := r.db.Exec("DELETE FROM testcase WHERE assignment_id = ?", assignmentId)
+	if err != nil {
+		return fmt.Errorf("cannot query to delete testcase: %w", err)
+	}
 	return nil
 }
 

@@ -51,7 +51,7 @@ func (v *payloadValidator) Validate(payload interface{}, ctx *fiber.Ctx) (bool, 
 	}
 
 	if errors := v.validateStruct(payload); errors != nil {
-		return false, errs.NewValidationErr(errs.ErrPayloadValidator, "payload is invalid", errors)
+		return false, errs.NewPayloadError(errors)
 	}
 	return true, nil
 }

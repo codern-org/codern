@@ -33,7 +33,28 @@ func (c *AssignmentController) CreateAssignment(ctx *fiber.Ctx) error {
 		return err
 	}
 
+	if len(pl.TestcaseInputFiles) != len(pl.TestcaseOutputFiles) {
+		return errs.NewPayloadError([]errs.ValidationErrorDetail{
+			{
+				Field: "TestcaseInputFiles",
+				Type:  "length_mismatch",
+			},
+			{
+				Field: "TestcaseOutputFiles",
+				Type:  "length_mismatch",
+			},
+		})
+	}
+
 	user := middleware.GetUserFromCtx(ctx)
+
+	inputFiles := make([]domain.TestcaseFile, len(pl.TestcaseInputFiles))
+	for i, inputFile := range pl.TestcaseInputFiles {
+		inputFiles[i] = domain.TestcaseFile{
+			Input:  inputFile,
+			Output: pl.TestcaseOutputFiles[i],
+		}
+	}
 
 	if err := c.assignmentUsecase.CreateAssignment(
 		user.Id,
@@ -44,12 +65,61 @@ func (c *AssignmentController) CreateAssignment(ctx *fiber.Ctx) error {
 		pl.TimeLimit,
 		pl.Level,
 		pl.DetailFile,
+		inputFiles,
 	); err != nil {
 		return err
 	}
 
 	return response.NewSuccessResponse(ctx, fiber.StatusOK, fiber.Map{
 		"created_at": time.Now(),
+	})
+}
+
+func (c *AssignmentController) UpdateAssignment(ctx *fiber.Ctx) error {
+	var pl payload.UpdateAssignment
+	if ok, err := c.validator.Validate(&pl, ctx); !ok {
+		return err
+	}
+
+	if len(pl.TestcaseInputFiles) != len(pl.TestcaseOutputFiles) {
+		return errs.NewPayloadError([]errs.ValidationErrorDetail{
+			{
+				Field: "TestcaseInputFiles",
+				Type:  "length_mismatch",
+			},
+			{
+				Field: "TestcaseOutputFiles",
+				Type:  "length_mismatch",
+			},
+		})
+	}
+
+	user := middleware.GetUserFromCtx(ctx)
+
+	inputFiles := make([]domain.TestcaseFile, len(pl.TestcaseInputFiles))
+	for i, inputFile := range pl.TestcaseInputFiles {
+		inputFiles[i] = domain.TestcaseFile{
+			Input:  inputFile,
+			Output: pl.TestcaseOutputFiles[i],
+		}
+	}
+
+	if err := c.assignmentUsecase.UpdateAssignment(
+		user.Id,
+		pl.AssignmentId,
+		pl.Name,
+		pl.Description,
+		pl.MemoryLimit,
+		pl.TimeLimit,
+		pl.Level,
+		pl.DetailFile,
+		inputFiles,
+	); err != nil {
+		return err
+	}
+
+	return response.NewSuccessResponse(ctx, fiber.StatusOK, fiber.Map{
+		"updated_at": time.Now(),
 	})
 }
 

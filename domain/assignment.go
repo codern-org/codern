@@ -85,7 +85,9 @@ type TestcaseFile struct {
 
 type AssignmentRepository interface {
 	CreateAssignment(assignment *RawAssignment) error
+	UpdateAssignment(assignment *RawAssignment) error
 	CreateTestcases(testcases []Testcase) error
+	DeleteTestcasesByAssignmentId(assignmentId int) error
 	CreateSubmission(submission *Submission, testcases []Testcase) error
 	CreateSubmissionResults(submissionId int, compilationLog string, status AssignmentStatus, score int, results []SubmissionResult) error
 	Get(id int, userId string) (*Assignment, error)
@@ -96,8 +98,10 @@ type AssignmentRepository interface {
 }
 
 type AssignmentUsecase interface {
-	CreateAssignment(userId string, workspaceId int, name string, description string, memoryLimit int, timeLimit int, level AssignmentLevel, file io.Reader) error
+	CreateAssignment(userId string, workspaceId int, name string, description string, memoryLimit int, timeLimit int, level AssignmentLevel, file io.Reader, testcaseFiles []TestcaseFile) error
+	UpdateAssignment(userId string, assignmentId int, name string, description string, memoryLimit int, timeLimit int, level AssignmentLevel, detailFile io.Reader, testcaseFiles []TestcaseFile) error
 	CreateTestcase(assignmentId int, testcaseFiles []TestcaseFile) error
+	UpdateTestcases(assignmentId int, testcaseFiles []TestcaseFile) error
 	CreateSubmission(userId string, assignmentId int, workspaceId int, language string, file io.Reader) error
 	CreateSubmissionResults(submissionId int, compilationLog string, results []SubmissionResult) error
 	Get(id int, userId string) (*Assignment, error)

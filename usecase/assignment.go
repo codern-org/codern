@@ -40,6 +40,7 @@ func (u *assignmentUsecase) CreateAssignment(
 	timeLimit int,
 	level domain.AssignmentLevel,
 	detailFile io.Reader,
+	testcaseFiles []domain.TestcaseFile,
 ) error {
 	userRole, err := u.workspaceUsecase.GetRole(userId, workspaceId)
 	if err != nil {
@@ -74,6 +75,64 @@ func (u *assignmentUsecase) CreateAssignment(
 	// TODO: retry strategy, error
 	if err := u.seaweedfs.Upload(detailFile, 0, filePath); err != nil {
 		return errs.New(errs.ErrFileSystem, "cannot upload file", err)
+	}
+
+	if err := u.CreateTestcase(id, testcaseFiles); err != nil {
+		return errs.New(errs.ErrCreateTestcase, "cannot create testcase", err)
+	}
+
+	return nil
+}
+
+func (u *assignmentUsecase) UpdateAssignment(
+	userId string,
+	assignmentId int,
+	name string,
+	description string,
+	memoryLimit int,
+	timeLimit int,
+	level domain.AssignmentLevel,
+	detailFile io.Reader,
+	testcaseFiles []domain.TestcaseFile,
+) error {
+	assignment, err := u.GetRaw(assignmentId)
+	if err != nil {
+		return errs.New(errs.SameCode, "cannot get raw assignment id %d while updating assignment", assignmentId, err)
+	}
+
+	userRole, err := u.workspaceUsecase.GetRole(userId, assignment.WorkspaceId)
+	if err != nil {
+		return errs.New(errs.SameCode, "cannot get workspace role while updating assignment", err)
+	}
+
+	if (userRole == nil) || (*userRole != domain.AdminRole && *userRole != domain.OwnerRole) {
+		return errs.New(errs.ErrWorkspaceNoPerm, "permission denied")
+	}
+
+	detailUrl := fmt.Sprintf(
+		"/workspaces/%d/assignments/%d/detail/problem.md",
+		assignment.WorkspaceId, assignmentId,
+	)
+
+	assignment.Id = assignmentId
+	assignment.Name = name
+	assignment.Description = description
+	assignment.MemoryLimit = memoryLimit
+	assignment.TimeLimit = timeLimit
+	assignment.Level = level
+	assignment.DetailUrl = detailUrl
+
+	if err = u.assignmentRepository.UpdateAssignment(assignment); err != nil {
+		return errs.New(errs.ErrUpdateAssignment, "cannot update assignment id %d", assignmentId, err)
+	}
+
+	// TODO: retry strategy, error
+	if err = u.seaweedfs.Upload(detailFile, 0, detailUrl); err != nil {
+		return errs.New(errs.ErrFileSystem, "cannot upload detail file while updating assignment id %d", assignmentId, err)
+	}
+
+	if err = u.UpdateTestcases(assignmentId, testcaseFiles); err != nil {
+		return errs.New(errs.ErrUpdateAssignment, "cannot update testcases by assignment id %d", assignmentId, err)
 	}
 
 	return nil
@@ -122,6 +181,29 @@ func (u *assignmentUsecase) CreateTestcase(assignmentId int, testcaseFiles []dom
 	if err := u.assignmentRepository.CreateTestcases(testcases); err != nil {
 		return errs.New(errs.ErrCreateTestcase, "cannot create testcase", err)
 	}
+	return nil
+}
+
+func (u *assignmentUsecase) UpdateTestcases(assignmentId int, testcaseFiles []domain.TestcaseFile) error {
+	assignment, err := u.GetRaw(assignmentId)
+	if err != nil {
+		return errs.New(errs.SameCode, "cannot get raw assignment id %d while updating testcase", assignmentId, err)
+	}
+
+	testcaseFileUrl := fmt.Sprintf("/workspaces/%d/assignments/%d/testcase/", assignment.WorkspaceId, assignment.Id)
+
+	if err := u.assignmentRepository.DeleteTestcasesByAssignmentId(assignmentId); err != nil {
+		return errs.New(errs.ErrDeleteTestcase, "cannot delete old testcases by assignment id %d", assignmentId, err)
+	}
+
+	if err := u.seaweedfs.DeleteDirectory(testcaseFileUrl); err != nil {
+		return errs.New(errs.ErrFileSystem, "cannot delete testcase files while updating testcase by assignment id: %d", assignmentId, err)
+	}
+
+	if err := u.CreateTestcase(assignmentId, testcaseFiles); err != nil {
+		return errs.New(errs.ErrCreateTestcase, "cannot create new testcase by assignment id %d", assignmentId, err)
+	}
+
 	return nil
 }
 

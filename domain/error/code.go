@@ -46,8 +46,10 @@ const (
 	ErrAssignmentNotFound         = 3022
 	ErrAssignmentNoTestcase       = 3023
 	ErrCreateAssignment           = 3024
+	ErrUpdateAssignment           = 3025
 	ErrListTestcase               = 3030
 	ErrCreateTestcase             = 3031
+	ErrDeleteTestcase             = 3032
 	ErrGetSubmission              = 3040
 	ErrListSubmission             = 3041
 	ErrCreateSubmissionResult     = 3042

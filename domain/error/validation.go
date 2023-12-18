@@ -12,3 +12,7 @@ func NewValidationErr(code int, message string, details []ValidationErrorDetail)
 		Details: details,
 	}
 }
+
+func NewPayloadError(details []ValidationErrorDetail) *DomainError {
+	return NewValidationErr(ErrPayloadValidator, "payload is invalid", details)
+}

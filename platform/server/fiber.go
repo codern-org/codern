@@ -139,6 +139,7 @@ func (s *FiberServer) applyRoutes() {
 
 	assignment := workspace.Group("/:workspaceId/assignments")
 	assignment.Get("/", authMiddleware, workspaceMiddleware, assignmentController.List)
+	assignment.Put("/:assignmentId", authMiddleware, workspaceMiddleware, assignmentController.UpdateAssignment)
 	assignment.Post("/", authMiddleware, workspaceMiddleware, assignmentController.CreateAssignment)
 	assignment.Get("/:assignmentId", authMiddleware, workspaceMiddleware, assignmentController.Get)
 	assignment.Get("/:assignmentId/submissions", authMiddleware, workspaceMiddleware, assignmentController.ListSubmission)
