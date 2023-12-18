@@ -31,23 +31,16 @@ func NewAssignmentUsecase(
 	}
 }
 
-func (u *assignmentUsecase) CreateAssignment(
+func (u *assignmentUsecase) Create(
 	userId string,
 	workspaceId int,
-	name string,
-	description string,
-	memoryLimit int,
-	timeLimit int,
-	level domain.AssignmentLevel,
-	detailFile io.Reader,
-	testcaseFiles []domain.TestcaseFile,
+	ca *domain.CreateAssignment,
 ) error {
-	userRole, err := u.workspaceUsecase.GetRole(userId, workspaceId)
+	isAuthorized, err := u.CheckPerm(userId, workspaceId)
 	if err != nil {
 		return errs.New(errs.SameCode, "cannot get workspace role while creating assignment", err)
 	}
-
-	if (userRole == nil) || (*userRole != domain.AdminRole && *userRole != domain.OwnerRole) {
+	if !isAuthorized {
 		return errs.New(errs.ErrWorkspaceNoPerm, "permission denied")
 	}
 
@@ -57,99 +50,102 @@ func (u *assignmentUsecase) CreateAssignment(
 		workspaceId, id,
 	)
 
-	assignment := &domain.RawAssignment{
+	assignment := &domain.Assignment{
 		Id:          id,
 		WorkspaceId: workspaceId,
-		Name:        name,
-		Description: description,
+		Name:        ca.Name,
+		Description: ca.Description,
 		DetailUrl:   filePath,
-		MemoryLimit: memoryLimit,
-		TimeLimit:   timeLimit,
-		Level:       level,
+		MemoryLimit: ca.MemoryLimit,
+		TimeLimit:   ca.TimeLimit,
+		Level:       ca.Level,
 	}
 
-	if err = u.assignmentRepository.CreateAssignment(assignment); err != nil {
+	if err := u.assignmentRepository.Create(assignment); err != nil {
 		return errs.New(errs.ErrCreateAssignment, "cannot create assignment", err)
 	}
 
 	// TODO: retry strategy, error
-	if err := u.seaweedfs.Upload(detailFile, 0, filePath); err != nil {
+	if err := u.seaweedfs.Upload(ca.DetailFile, 0, filePath); err != nil {
 		return errs.New(errs.ErrFileSystem, "cannot upload file", err)
 	}
 
-	if err := u.CreateTestcase(id, testcaseFiles); err != nil {
-		return errs.New(errs.ErrCreateTestcase, "cannot create testcase", err)
+	if err := u.CreateTestcases(id, ca.TestcaseFiles); err != nil {
+		return errs.New(errs.SameCode, "cannot create testcase while creating assignment", err)
 	}
 
 	return nil
 }
 
-func (u *assignmentUsecase) UpdateAssignment(
+func (u *assignmentUsecase) Update(
 	userId string,
 	assignmentId int,
-	name string,
-	description string,
-	memoryLimit int,
-	timeLimit int,
-	level domain.AssignmentLevel,
-	detailFile io.Reader,
-	testcaseFiles []domain.TestcaseFile,
+	ua *domain.UpdateAssignment,
 ) error {
-	assignment, err := u.GetRaw(assignmentId)
+	assignment, err := u.Get(assignmentId)
 	if err != nil {
-		return errs.New(errs.SameCode, "cannot get raw assignment id %d while updating assignment", assignmentId, err)
+		return errs.New(errs.SameCode, "cannot get assignment id %d while updating assignment", assignmentId, err)
 	}
 
-	userRole, err := u.workspaceUsecase.GetRole(userId, assignment.WorkspaceId)
+	isAuthorized, err := u.CheckPerm(userId, assignment.WorkspaceId)
 	if err != nil {
 		return errs.New(errs.SameCode, "cannot get workspace role while updating assignment", err)
 	}
-
-	if (userRole == nil) || (*userRole != domain.AdminRole && *userRole != domain.OwnerRole) {
+	if !isAuthorized {
 		return errs.New(errs.ErrWorkspaceNoPerm, "permission denied")
 	}
 
 	detailUrl := fmt.Sprintf(
 		"/workspaces/%d/assignments/%d/detail/problem.md",
-		assignment.WorkspaceId, assignmentId,
+		assignment.WorkspaceId, assignment.Id,
 	)
 
-	assignment.Id = assignmentId
-	assignment.Name = name
-	assignment.Description = description
-	assignment.MemoryLimit = memoryLimit
-	assignment.TimeLimit = timeLimit
-	assignment.Level = level
-	assignment.DetailUrl = detailUrl
+	if ua.Name != nil {
+		assignment.Name = *ua.Name
+	}
+	if ua.Description != nil {
+		assignment.Description = *ua.Description
+	}
+	if ua.MemoryLimit != nil {
+		assignment.MemoryLimit = *ua.MemoryLimit
+	}
+	if ua.TimeLimit != nil {
+		assignment.TimeLimit = *ua.TimeLimit
+	}
+	if ua.Level != nil {
+		assignment.Level = *ua.Level
+	}
 
-	if err = u.assignmentRepository.UpdateAssignment(assignment); err != nil {
+	if err := u.assignmentRepository.Update(assignment); err != nil {
 		return errs.New(errs.ErrUpdateAssignment, "cannot update assignment id %d", assignmentId, err)
 	}
 
 	// TODO: retry strategy, error
-	if err = u.seaweedfs.Upload(detailFile, 0, detailUrl); err != nil {
+	if err := u.seaweedfs.Upload(ua.DetailFile, 0, detailUrl); err != nil {
 		return errs.New(errs.ErrFileSystem, "cannot upload detail file while updating assignment id %d", assignmentId, err)
 	}
 
-	if err = u.UpdateTestcases(assignmentId, testcaseFiles); err != nil {
-		return errs.New(errs.ErrUpdateAssignment, "cannot update testcases by assignment id %d", assignmentId, err)
+	if ua.TestcaseFiles != nil {
+		if err := u.UpdateTestcases(assignmentId, *ua.TestcaseFiles); err != nil {
+			return errs.New(errs.ErrUpdateAssignment, "cannot update testcases by assignment id %d", assignmentId, err)
+		}
 	}
 
 	return nil
 }
 
-func (u *assignmentUsecase) CreateTestcase(assignmentId int, testcaseFiles []domain.TestcaseFile) error {
-	if len(testcaseFiles) == 0 {
+func (u *assignmentUsecase) CreateTestcases(assignmentId int, files []domain.TestcaseFile) error {
+	if len(files) == 0 {
 		return errs.New(errs.ErrCreateTestcase, "cannot create testcase, testcase files is empty")
 	}
 
-	assignment, err := u.GetRaw(assignmentId)
+	assignment, err := u.Get(assignmentId)
 	if err != nil {
-		return errs.New(errs.SameCode, "cannot get raw assignment id %d while creating testcase", assignmentId)
+		return errs.New(errs.SameCode, "cannot get assignment id %d while creating testcase", assignmentId)
 	}
 
-	testcases := make([]domain.Testcase, len(testcaseFiles))
-	for i, testcaseFile := range testcaseFiles {
+	testcases := make([]domain.Testcase, len(files))
+	for i, file := range files {
 		id := generator.GetId()
 
 		inputFilePath := fmt.Sprintf(
@@ -170,10 +166,10 @@ func (u *assignmentUsecase) CreateTestcase(assignmentId int, testcaseFiles []dom
 		}
 
 		// TODO: retry strategy, error
-		if err := u.seaweedfs.Upload(testcaseFile.Input, 0, inputFilePath); err != nil {
+		if err := u.seaweedfs.Upload(file.Input, 0, inputFilePath); err != nil {
 			return errs.New(errs.ErrFileSystem, "cannot upload testcase input file", err)
 		}
-		if err := u.seaweedfs.Upload(testcaseFile.Output, 0, outputFilePath); err != nil {
+		if err := u.seaweedfs.Upload(file.Output, 0, outputFilePath); err != nil {
 			return errs.New(errs.ErrFileSystem, "cannot upload testcase output file", err)
 		}
 	}
@@ -185,14 +181,14 @@ func (u *assignmentUsecase) CreateTestcase(assignmentId int, testcaseFiles []dom
 }
 
 func (u *assignmentUsecase) UpdateTestcases(assignmentId int, testcaseFiles []domain.TestcaseFile) error {
-	assignment, err := u.GetRaw(assignmentId)
+	assignment, err := u.Get(assignmentId)
 	if err != nil {
-		return errs.New(errs.SameCode, "cannot get raw assignment id %d while updating testcase", assignmentId, err)
+		return errs.New(errs.SameCode, "cannot get assignment id %d while updating testcase", assignmentId, err)
 	}
 
 	testcaseFileUrl := fmt.Sprintf("/workspaces/%d/assignments/%d/testcase/", assignment.WorkspaceId, assignment.Id)
 
-	if err := u.assignmentRepository.DeleteTestcasesByAssignmentId(assignmentId); err != nil {
+	if err := u.assignmentRepository.DeleteTestcases(assignmentId); err != nil {
 		return errs.New(errs.ErrDeleteTestcase, "cannot delete old testcases by assignment id %d", assignmentId, err)
 	}
 
@@ -200,8 +196,8 @@ func (u *assignmentUsecase) UpdateTestcases(assignmentId int, testcaseFiles []do
 		return errs.New(errs.ErrFileSystem, "cannot delete testcase files while updating testcase by assignment id: %d", assignmentId, err)
 	}
 
-	if err := u.CreateTestcase(assignmentId, testcaseFiles); err != nil {
-		return errs.New(errs.ErrCreateTestcase, "cannot create new testcase by assignment id %d", assignmentId, err)
+	if err := u.CreateTestcases(assignmentId, testcaseFiles); err != nil {
+		return errs.New(errs.SameCode, "cannot create new testcase by assignment id %d", assignmentId, err)
 	}
 
 	return nil
@@ -227,7 +223,7 @@ func (u *assignmentUsecase) CreateSubmission(
 		FileUrl:      filePath,
 	}
 
-	assignment, err := u.Get(assignmentId, userId)
+	assignment, err := u.GetWithStatus(assignmentId, userId)
 	if err != nil {
 		return errs.New(errs.SameCode, "cannot get assignment id %d", assignmentId, err)
 	} else if assignment == nil {
@@ -274,20 +270,28 @@ func (u *assignmentUsecase) CreateSubmissionResults(
 	return nil
 }
 
-func (u *assignmentUsecase) Get(id int, userId string) (*domain.Assignment, error) {
-	assignment, err := u.assignmentRepository.Get(id, userId)
+func (u *assignmentUsecase) Get(id int) (*domain.Assignment, error) {
+	assignment, err := u.assignmentRepository.Get(id)
 	if err != nil {
 		return nil, errs.New(errs.ErrGetAssignment, "cannot get assignment id %d", id, err)
 	}
 	return assignment, nil
 }
 
-func (u *assignmentUsecase) GetRaw(id int) (*domain.RawAssignment, error) {
-	assignment, err := u.assignmentRepository.GetRaw(id)
+func (u *assignmentUsecase) GetWithStatus(id int, userId string) (*domain.AssignmentWithStatus, error) {
+	assignment, err := u.assignmentRepository.GetWithStatus(id, userId)
 	if err != nil {
-		return nil, errs.New(errs.ErrGetAssignment, "cannot get raw assignment id %d", id, err)
+		return nil, errs.New(errs.ErrGetAssignment, "cannot get assignment id %d", id, err)
 	}
 	return assignment, nil
+}
+
+func (u *assignmentUsecase) CheckPerm(userId string, workspaceId int) (bool, error) {
+	userRole, err := u.workspaceUsecase.GetRole(userId, workspaceId)
+	if err != nil {
+		return false, errs.New(errs.SameCode, "cannot get workspace role", err)
+	}
+	return ((userRole != nil) && (*userRole == domain.AdminRole || *userRole == domain.OwnerRole)), nil
 }
 
 func (u *assignmentUsecase) GetSubmission(id int) (*domain.Submission, error) {
@@ -298,7 +302,7 @@ func (u *assignmentUsecase) GetSubmission(id int) (*domain.Submission, error) {
 	return submission, nil
 }
 
-func (u *assignmentUsecase) List(userId string, workspaceId int) ([]domain.Assignment, error) {
+func (u *assignmentUsecase) List(userId string, workspaceId int) ([]domain.AssignmentWithStatus, error) {
 	assignments, err := u.assignmentRepository.List(userId, workspaceId)
 	if err != nil {
 		return nil, errs.New(errs.ErrListAssignment, "cannot list assignment", err)

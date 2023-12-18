@@ -91,7 +91,7 @@ func (r *workspaceRepository) HasUser(userId string, workspaceId int) (bool, err
 }
 
 func (r *workspaceRepository) HasAssignment(assignmentId int, workspaceId int) (bool, error) {
-	var result domain.Assignment
+	var result domain.AssignmentWithStatus
 	err := r.db.Get(
 		&result,
 		"SELECT id FROM assignment WHERE id = ? AND workspace_id = ?",

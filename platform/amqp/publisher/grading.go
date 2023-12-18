@@ -25,7 +25,7 @@ func NewGradingPublisher(cfg *config.Config, rabbitmq *platform.RabbitMq) domain
 	}
 }
 
-func (p *gradingPublisher) Grade(assignment *domain.Assignment, submission *domain.Submission) error {
+func (p *gradingPublisher) Grade(assignment *domain.AssignmentWithStatus, submission *domain.Submission) error {
 	testcaseIds := make([]int, 0)
 	testcases := make([]payload.GradeTestMessage, 0)
 

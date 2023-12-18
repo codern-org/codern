@@ -32,40 +32,25 @@ func (c *AssignmentController) CreateAssignment(ctx *fiber.Ctx) error {
 	if ok, err := c.validator.Validate(&pl, ctx); !ok {
 		return err
 	}
-
-	if len(pl.TestcaseInputFiles) != len(pl.TestcaseOutputFiles) {
-		return errs.NewPayloadError([]errs.ValidationErrorDetail{
-			{
-				Field: "TestcaseInputFiles",
-				Type:  "length_mismatch",
-			},
-			{
-				Field: "TestcaseOutputFiles",
-				Type:  "length_mismatch",
-			},
-		})
+	if err := payload.ValidateTestcaseFiles(pl.TestcaseInputFiles, pl.TestcaseOutputFiles); err != nil {
+		return err
 	}
 
 	user := middleware.GetUserFromCtx(ctx)
+	testcaseFiles := domain.CreateTestcaseFiles(pl.TestcaseInputFiles, pl.TestcaseOutputFiles)
 
-	inputFiles := make([]domain.TestcaseFile, len(pl.TestcaseInputFiles))
-	for i, inputFile := range pl.TestcaseInputFiles {
-		inputFiles[i] = domain.TestcaseFile{
-			Input:  inputFile,
-			Output: pl.TestcaseOutputFiles[i],
-		}
-	}
-
-	if err := c.assignmentUsecase.CreateAssignment(
+	if err := c.assignmentUsecase.Create(
 		user.Id,
 		pl.WorkspaceId,
-		pl.Name,
-		pl.Description,
-		pl.MemoryLimit,
-		pl.TimeLimit,
-		pl.Level,
-		pl.DetailFile,
-		inputFiles,
+		&domain.CreateAssignment{
+			Name:          pl.Name,
+			Description:   pl.Description,
+			MemoryLimit:   pl.MemoryLimit,
+			TimeLimit:     pl.TimeLimit,
+			Level:         pl.Level,
+			DetailFile:    pl.DetailFile,
+			TestcaseFiles: testcaseFiles,
+		},
 	); err != nil {
 		return err
 	}
@@ -80,40 +65,25 @@ func (c *AssignmentController) UpdateAssignment(ctx *fiber.Ctx) error {
 	if ok, err := c.validator.Validate(&pl, ctx); !ok {
 		return err
 	}
-
-	if len(pl.TestcaseInputFiles) != len(pl.TestcaseOutputFiles) {
-		return errs.NewPayloadError([]errs.ValidationErrorDetail{
-			{
-				Field: "TestcaseInputFiles",
-				Type:  "length_mismatch",
-			},
-			{
-				Field: "TestcaseOutputFiles",
-				Type:  "length_mismatch",
-			},
-		})
+	if err := payload.ValidateTestcaseFiles(*pl.TestcaseInputFiles, *pl.TestcaseOutputFiles); err != nil {
+		return err
 	}
 
 	user := middleware.GetUserFromCtx(ctx)
+	testcaseFiles := domain.CreateTestcaseFiles(*pl.TestcaseInputFiles, *pl.TestcaseOutputFiles)
 
-	inputFiles := make([]domain.TestcaseFile, len(pl.TestcaseInputFiles))
-	for i, inputFile := range pl.TestcaseInputFiles {
-		inputFiles[i] = domain.TestcaseFile{
-			Input:  inputFile,
-			Output: pl.TestcaseOutputFiles[i],
-		}
-	}
-
-	if err := c.assignmentUsecase.UpdateAssignment(
+	if err := c.assignmentUsecase.Update(
 		user.Id,
 		pl.AssignmentId,
-		pl.Name,
-		pl.Description,
-		pl.MemoryLimit,
-		pl.TimeLimit,
-		pl.Level,
-		pl.DetailFile,
-		inputFiles,
+		&domain.UpdateAssignment{
+			Name:          pl.Name,
+			Description:   pl.Description,
+			MemoryLimit:   pl.MemoryLimit,
+			TimeLimit:     pl.TimeLimit,
+			Level:         pl.Level,
+			DetailFile:    pl.DetailFile,
+			TestcaseFiles: &testcaseFiles,
+		},
 	); err != nil {
 		return err
 	}
@@ -234,7 +204,7 @@ func (c *AssignmentController) Get(ctx *fiber.Ctx) error {
 
 	user := middleware.GetUserFromCtx(ctx)
 
-	assignment, err := c.assignmentUsecase.Get(pl.AssignmentId, user.Id)
+	assignment, err := c.assignmentUsecase.GetWithStatus(pl.AssignmentId, user.Id)
 	if err != nil {
 		return err
 	} else if assignment == nil {

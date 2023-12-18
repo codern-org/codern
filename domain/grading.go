@@ -1,7 +1,7 @@
 package domain
 
 type GradingPublisher interface {
-	Grade(assignment *Assignment, submission *Submission) error
+	Grade(assignment *AssignmentWithStatus, submission *Submission) error
 }
 
 type GradingConsumer interface {

@@ -16,7 +16,7 @@ func NewAssignmentRepository(db *sqlx.DB) domain.AssignmentRepository {
 	return &assignmentRepository{db: db}
 }
 
-func (r *assignmentRepository) CreateAssignment(assignment *domain.RawAssignment) error {
+func (r *assignmentRepository) Create(assignment *domain.Assignment) error {
 	_, err := r.db.NamedExec(`
 		INSERT INTO assignment
 			(id, workspace_id, name, description, detail_url, memory_limit, time_limit, level)
@@ -30,7 +30,7 @@ func (r *assignmentRepository) CreateAssignment(assignment *domain.RawAssignment
 	return nil
 }
 
-func (r *assignmentRepository) UpdateAssignment(assignment *domain.RawAssignment) error {
+func (r *assignmentRepository) Update(assignment *domain.Assignment) error {
 	_, err := r.db.Exec(
 		`UPDATE assignment SET name = ?, description = ?, detail_url = ?, memory_limit = ?, time_limit = ?, level = ? WHERE id = ?`,
 		assignment.Name, assignment.Description, assignment.DetailUrl, assignment.MemoryLimit, assignment.TimeLimit, assignment.Level, assignment.Id,
@@ -61,7 +61,7 @@ func (r *assignmentRepository) CreateTestcases(testcases []domain.Testcase) erro
 	return nil
 }
 
-func (r *assignmentRepository) DeleteTestcasesByAssignmentId(assignmentId int) error {
+func (r *assignmentRepository) DeleteTestcases(assignmentId int) error {
 	_, err := r.db.Exec("DELETE FROM testcase WHERE assignment_id = ?", assignmentId)
 	if err != nil {
 		return fmt.Errorf("cannot query to delete testcase: %w", err)
@@ -133,7 +133,7 @@ func (r *assignmentRepository) CreateSubmissionResults(
 	return
 }
 
-func (r *assignmentRepository) Get(id int, userId string) (*domain.Assignment, error) {
+func (r *assignmentRepository) GetWithStatus(id int, userId string) (*domain.AssignmentWithStatus, error) {
 	assignments, err := r.list(userId, nil, &id)
 	if err != nil {
 		return nil, fmt.Errorf("cannot query to get assignment: %w", err)
@@ -143,7 +143,7 @@ func (r *assignmentRepository) Get(id int, userId string) (*domain.Assignment, e
 	return &assignments[0], nil
 }
 
-func (r *assignmentRepository) GetRaw(id int) (*domain.RawAssignment, error) {
+func (r *assignmentRepository) Get(id int) (*domain.Assignment, error) {
 	assignments, err := r.listRaw(nil, &id)
 	if err != nil {
 		return nil, fmt.Errorf("cannot query to get raw assignment: %w", err)
@@ -174,7 +174,7 @@ func (r *assignmentRepository) GetSubmission(id int) (*domain.Submission, error)
 	return &submission, nil
 }
 
-func (r *assignmentRepository) List(userId string, workspaceId int) ([]domain.Assignment, error) {
+func (r *assignmentRepository) List(userId string, workspaceId int) ([]domain.AssignmentWithStatus, error) {
 	return r.list(userId, &workspaceId, nil)
 }
 
@@ -182,8 +182,8 @@ func (r *assignmentRepository) list(
 	userId string,
 	workspaceId *int,
 	assignmentId *int,
-) ([]domain.Assignment, error) {
-	assignments := make([]domain.Assignment, 0)
+) ([]domain.AssignmentWithStatus, error) {
+	assignments := make([]domain.AssignmentWithStatus, 0)
 
 	query := `
 		SELECT
@@ -220,9 +220,9 @@ func (r *assignmentRepository) list(
 	}
 
 	if len(assignments) > 0 {
-		params := make([]*domain.RawAssignment, 0, len(assignments))
+		params := make([]*domain.Assignment, 0, len(assignments))
 		for i := range assignments {
-			params = append(params, &assignments[i].RawAssignment)
+			params = append(params, &assignments[i].Assignment)
 		}
 		if err := r.mutateTestcases(params); err != nil {
 			return nil, err
@@ -235,8 +235,8 @@ func (r *assignmentRepository) list(
 func (r *assignmentRepository) listRaw(
 	workspaceId *int,
 	assignmentId *int,
-) ([]domain.RawAssignment, error) {
-	rawAssignments := make([]domain.RawAssignment, 0)
+) ([]domain.Assignment, error) {
+	rawAssignments := make([]domain.Assignment, 0)
 
 	if workspaceId != nil {
 		query := `SELECT * FROM assignment WHERE workspace_id = ?`
@@ -253,7 +253,7 @@ func (r *assignmentRepository) listRaw(
 	}
 
 	if len(rawAssignments) > 0 {
-		params := make([]*domain.RawAssignment, 0, len(rawAssignments))
+		params := make([]*domain.Assignment, 0, len(rawAssignments))
 		for i := range rawAssignments {
 			params = append(params, &rawAssignments[i])
 		}
@@ -264,7 +264,7 @@ func (r *assignmentRepository) listRaw(
 	return rawAssignments, nil
 }
 
-func (r *assignmentRepository) mutateTestcases(assignments []*domain.RawAssignment) error {
+func (r *assignmentRepository) mutateTestcases(assignments []*domain.Assignment) error {
 	var assignmentIds []int
 	for i := range assignments {
 		assignmentIds = append(assignmentIds, assignments[i].Id)
@@ -275,7 +275,7 @@ func (r *assignmentRepository) mutateTestcases(assignments []*domain.RawAssignme
 		return fmt.Errorf("cannot query to list testcase for assignment: %w", err)
 	}
 
-	assignmentById := make(map[int]*domain.RawAssignment)
+	assignmentById := make(map[int]*domain.Assignment)
 	for i := range assignments {
 		assignmentById[assignments[i].Id] = assignments[i]
 	}

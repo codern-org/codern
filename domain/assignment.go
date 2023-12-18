@@ -2,6 +2,7 @@ package domain
 
 import (
 	"io"
+	"mime/multipart"
 	"time"
 )
 
@@ -22,7 +23,7 @@ const (
 	AssignmentStatusComplete    AssignmentStatus = "COMPLETED"
 )
 
-type RawAssignment struct {
+type Assignment struct {
 	Id          int             `json:"id" db:"id"`
 	WorkspaceId int             `json:"-" db:"workspace_id"`
 	Name        string          `json:"name" db:"name"`
@@ -39,8 +40,28 @@ type RawAssignment struct {
 	Testcases []Testcase `json:"-"`
 }
 
-type Assignment struct {
-	RawAssignment
+type CreateAssignment struct {
+	Name          string          `validate:"required"`
+	Description   string          `validate:"required"`
+	MemoryLimit   int             `validate:"required"`
+	TimeLimit     int             `validate:"required"`
+	Level         AssignmentLevel `validate:"required"`
+	DetailFile    io.Reader       `validate:"required"`
+	TestcaseFiles []TestcaseFile  `validate:"required"`
+}
+
+type UpdateAssignment struct {
+	Name          *string
+	Description   *string
+	MemoryLimit   *int
+	TimeLimit     *int
+	Level         *AssignmentLevel
+	DetailFile    io.Reader
+	TestcaseFiles *[]TestcaseFile
+}
+
+type AssignmentWithStatus struct {
+	Assignment
 
 	Status          AssignmentStatus `json:"status" db:"status"`
 	LastSubmittedAt *time.Time       `json:"lastSubmittedAt" db:"last_submitted_at"`
@@ -83,29 +104,42 @@ type TestcaseFile struct {
 	Output io.Reader
 }
 
+func CreateTestcaseFiles(inputs []multipart.File, outputs []multipart.File) []TestcaseFile {
+	files := make([]TestcaseFile, len(inputs))
+	for i, input := range inputs {
+		files[i] = TestcaseFile{
+			Input:  input,
+			Output: outputs[i],
+		}
+	}
+	return files
+}
+
 type AssignmentRepository interface {
-	CreateAssignment(assignment *RawAssignment) error
-	UpdateAssignment(assignment *RawAssignment) error
+	Create(assignment *Assignment) error
+	Update(assignment *Assignment) error
 	CreateTestcases(testcases []Testcase) error
-	DeleteTestcasesByAssignmentId(assignmentId int) error
+	DeleteTestcases(assignmentId int) error
 	CreateSubmission(submission *Submission, testcases []Testcase) error
 	CreateSubmissionResults(submissionId int, compilationLog string, status AssignmentStatus, score int, results []SubmissionResult) error
-	Get(id int, userId string) (*Assignment, error)
-	GetRaw(id int) (*RawAssignment, error)
+	Get(id int) (*Assignment, error)
+	GetWithStatus(id int, userId string) (*AssignmentWithStatus, error)
 	GetSubmission(id int) (*Submission, error)
-	List(userId string, workspaceId int) ([]Assignment, error)
+	List(userId string, workspaceId int) ([]AssignmentWithStatus, error)
 	ListSubmission(userId string, assignmentId int) ([]Submission, error)
 }
 
 type AssignmentUsecase interface {
-	CreateAssignment(userId string, workspaceId int, name string, description string, memoryLimit int, timeLimit int, level AssignmentLevel, file io.Reader, testcaseFiles []TestcaseFile) error
-	UpdateAssignment(userId string, assignmentId int, name string, description string, memoryLimit int, timeLimit int, level AssignmentLevel, detailFile io.Reader, testcaseFiles []TestcaseFile) error
-	CreateTestcase(assignmentId int, testcaseFiles []TestcaseFile) error
-	UpdateTestcases(assignmentId int, testcaseFiles []TestcaseFile) error
+	Create(userId string, workspaceId int, assignment *CreateAssignment) error
+	Update(userId string, assignmentId int, assignment *UpdateAssignment) error
+	CreateTestcases(assignmentId int, files []TestcaseFile) error
+	UpdateTestcases(assignmentId int, files []TestcaseFile) error
 	CreateSubmission(userId string, assignmentId int, workspaceId int, language string, file io.Reader) error
 	CreateSubmissionResults(submissionId int, compilationLog string, results []SubmissionResult) error
-	Get(id int, userId string) (*Assignment, error)
+	Get(id int) (*Assignment, error)
+	GetWithStatus(id int, userId string) (*AssignmentWithStatus, error)
+	CheckPerm(userId string, workspaceId int) (bool, error)
 	GetSubmission(id int) (*Submission, error)
-	List(userId string, workspaceId int) ([]Assignment, error)
+	List(userId string, workspaceId int) ([]AssignmentWithStatus, error)
 	ListSubmission(userId string, assignmentId int) ([]Submission, error)
 }
