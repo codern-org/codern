@@ -30,43 +30,46 @@ const (
 	ErrUpdateUser        = 2033
 	ErrGoogleAuth        = 2040
 
-	ErrWorkspaceNotFound          = 3000
-	ErrWorkspaceNoPerm            = 3001
-	ErrGetWorkspace               = 3002
-	ErrListWorkspace              = 3003
-	ErrWorkspaceHasUser           = 3004
-	ErrWorkspaceHasAssignment     = 3005
-	ErrWorkspaceUpdateRole        = 3006
-	ErrWorkspaceUpdateRolePerm    = 3007
-	ErrGetRole                    = 3008
-	ErrListWorkspaceParticipant   = 3009
-	ErrCreateSubmission           = 3010
-	ErrGetAssignment              = 3020
-	ErrListAssignment             = 3021
-	ErrAssignmentNotFound         = 3022
-	ErrAssignmentNoTestcase       = 3023
-	ErrCreateAssignment           = 3024
-	ErrUpdateAssignment           = 3025
-	ErrListTestcase               = 3030
-	ErrCreateTestcase             = 3031
-	ErrDeleteTestcase             = 3032
-	ErrGetSubmission              = 3040
-	ErrListSubmission             = 3041
-	ErrCreateSubmissionResult     = 3042
-	ErrCreateWorkspaceParticipant = 3050
-	ErrCreateInvitation           = 3060
-	ErrGetInvitation              = 3061
-	ErrDeleteInvitation           = 3062
-	ErrInvitationNotFound         = 3063
-	ErrInvitationNoPerm           = 3064
-	ErrInvitationInvalidDate      = 3065
-	ErrGetScoreboard              = 3070
-	ErrWorkspaceUpdateFavorite    = 3080
-	ErrUpdateWorkspace            = 3081
-
 	ErrGradingRequest = 4000
 
 	ErrFilePerm = 5000
 
 	ErrCreateUrlPath = 9000
+
+	ErrWorkspaceNotFound          = 30000
+	ErrWorkspaceNoPerm            = 30001
+	ErrGetWorkspace               = 30002
+	ErrListWorkspace              = 30003
+	ErrWorkspaceHasUser           = 30004
+	ErrWorkspaceHasAssignment     = 30005
+	ErrWorkspaceUpdateRole        = 30006
+	ErrWorkspaceUpdateRolePerm    = 30007
+	ErrGetRole                    = 30008
+	ErrListWorkspaceParticipant   = 30009
+	ErrGetScoreboard              = 30010
+	ErrUpdateWorkspace            = 30011
+	ErrCreateWorkspaceParticipant = 30012
+
+	ErrCreateInvitation      = 31000
+	ErrGetInvitation         = 31001
+	ErrDeleteInvitation      = 31002
+	ErrInvitationNotFound    = 31003
+	ErrInvitationNoPerm      = 31004
+	ErrInvitationInvalidDate = 31005
+
+	ErrGetAssignment        = 40000
+	ErrListAssignment       = 40001
+	ErrAssignmentNotFound   = 40002
+	ErrAssignmentNoTestcase = 40003
+	ErrCreateAssignment     = 40004
+	ErrUpdateAssignment     = 40005
+
+	ErrCreateSubmission       = 41000
+	ErrCreateSubmissionResult = 41001
+	ErrGetSubmission          = 41002
+	ErrListSubmission         = 41003
+
+	ErrListTestcase   = 42000
+	ErrCreateTestcase = 42001
+	ErrDeleteTestcase = 42002
 )
