@@ -35,6 +35,7 @@ type Assignment struct {
 	CreatedAt   time.Time       `json:"createdAt" db:"created_at"`
 	UpdatedAt   time.Time       `json:"updatedAt" db:"updated_at"`
 	DueDate     *time.Time      `json:"dueDate" db:"due_date"`
+	IsDeleted   bool            `json:"-" db:"is_deleted"`
 
 	// Always aggregation
 	Testcases []Testcase `json:"-"`
@@ -118,6 +119,7 @@ func CreateTestcaseFiles(inputs []multipart.File, outputs []multipart.File) []Te
 type AssignmentRepository interface {
 	Create(assignment *Assignment) error
 	Update(assignment *Assignment) error
+	Delete(id int) error
 	CreateTestcases(testcases []Testcase) error
 	DeleteTestcases(assignmentId int) error
 	CreateSubmission(submission *Submission, testcases []Testcase) error
@@ -134,6 +136,7 @@ type AssignmentUsecase interface {
 	Update(userId string, assignmentId int, assignment *UpdateAssignment) error
 	CreateTestcases(assignmentId int, files []TestcaseFile) error
 	UpdateTestcases(assignmentId int, files []TestcaseFile) error
+	Delete(userId string, id int) error
 	CreateSubmission(userId string, assignmentId int, workspaceId int, language string, file io.Reader) error
 	CreateSubmissionResults(submissionId int, compilationLog string, results []SubmissionResult) error
 	Get(id int) (*Assignment, error)

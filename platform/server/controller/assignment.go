@@ -213,3 +213,20 @@ func (c *AssignmentController) Update(ctx *fiber.Ctx) error {
 		"updated_at": time.Now(),
 	})
 }
+
+func (c *AssignmentController) Delete(ctx *fiber.Ctx) error {
+	var pl payload.DeleteAssignment
+	if ok, err := c.validator.Validate(&pl, ctx); !ok {
+		return err
+	}
+
+	user := middleware.GetUserFromCtx(ctx)
+
+	if err := c.assignmentUsecase.Delete(user.Id, pl.AssignmentId); err != nil {
+		return err
+	}
+
+	return response.NewSuccessResponse(ctx, fiber.StatusOK, fiber.Map{
+		"deleted_at": time.Now(),
+	})
+}

@@ -94,7 +94,7 @@ func (r *workspaceRepository) HasAssignment(assignmentId int, workspaceId int) (
 	var result domain.AssignmentWithStatus
 	err := r.db.Get(
 		&result,
-		"SELECT id FROM assignment WHERE id = ? AND workspace_id = ?",
+		"SELECT id FROM assignment WHERE id = ? AND workspace_id = ? AND is_deleted = FALSE",
 		assignmentId, workspaceId,
 	)
 	if err == sql.ErrNoRows {
@@ -148,10 +148,10 @@ func (r *workspaceRepository) GetScoreboard(workspaceId int) ([]domain.Workspace
 					WHERE
 						s2.user_id = s.user_id
 						AND status = 'COMPLETED'
-						AND assignment_id IN (SELECT id FROM assignment WHERE workspace_id = ?)
+						AND assignment_id IN (SELECT id FROM assignment WHERE workspace_id = ? AND is_deleted = FALSE)
 				) AS completed_assignment
 			FROM submission s
-			WHERE assignment_id IN (SELECT id FROM assignment WHERE workspace_id = ?)
+			WHERE assignment_id IN (SELECT id FROM assignment WHERE workspace_id = ? AND is_deleted = FALSE)
 			GROUP BY user_id, assignment_id
 		) t1
 		INNER JOIN user u ON u.id = t1.user_id
@@ -189,12 +189,12 @@ func (r *workspaceRepository) list(ids []int, userId string) ([]domain.Workspace
 			user.display_name AS owner_name,
 			user.profile_url AS owner_profile_url,
 			(SELECT COUNT(*) FROM workspace_participant wp WHERE wp.workspace_id = w.id) AS participant_count,
-			(SELECT COUNT(*) FROM assignment a WHERE a.workspace_id = w.id) AS total_assignment,
+			(SELECT COUNT(*) FROM assignment a WHERE a.workspace_id = w.id AND is_deleted = FALSE) AS total_assignment,
 			wp.role, wp.favorite, wp.joined_at, wp.recently_visited_at,
 			(SELECT
 				COUNT(DISTINCT(s.status))
 				FROM submission s
-				WHERE s.assignment_id IN (SELECT id FROM assignment WHERE workspace_id = w.id) AND s.user_id = ? AND s.status = 'COMPLETED'
+				WHERE s.assignment_id IN (SELECT id FROM assignment WHERE workspace_id = w.id AND is_deleted = FALSE) AND s.user_id = ? AND s.status = 'COMPLETED'
 			) AS completed_assignment
 		FROM workspace w
 		INNER JOIN user ON user.id = (SELECT user_id FROM workspace_participant WHERE workspace_id = w.id AND role = 'OWNER')

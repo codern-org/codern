@@ -43,6 +43,14 @@ func (r *assignmentRepository) Update(assignment *domain.Assignment) error {
 	return nil
 }
 
+func (r *assignmentRepository) Delete(id int) error {
+	_, err := r.db.Exec("UPDATE assignment SET is_deleted = TRUE WHERE id = ?", id)
+	if err != nil {
+		return fmt.Errorf("cannot query to soft delete assignment: %w", err)
+	}
+	return nil
+}
+
 func (r *assignmentRepository) CreateTestcases(testcases []domain.Testcase) error {
 	query := "INSERT INTO testcase (id, assignment_id, input_file_url, output_file_url) VALUES "
 
@@ -207,7 +215,7 @@ func (r *assignmentRepository) list(
 		WHERE a.id %[1]s
 	`
 
-	whereAssignmentId := "IN (SELECT id FROM assignment WHERE workspace_id = ?)"
+	whereAssignmentId := "IN (SELECT id FROM assignment WHERE workspace_id = ? AND is_deleted = FALSE)"
 	param := workspaceId
 	if assignmentId != nil {
 		whereAssignmentId = "= ?"
@@ -239,14 +247,14 @@ func (r *assignmentRepository) listRaw(
 	rawAssignments := make([]domain.Assignment, 0)
 
 	if workspaceId != nil {
-		query := `SELECT * FROM assignment WHERE workspace_id = ?`
+		query := `SELECT * FROM assignment WHERE workspace_id = ? AND is_deleted = FALSE`
 		if err := r.db.Select(&rawAssignments, query, workspaceId); err != nil {
 			return nil, fmt.Errorf("cannot query to list raw assignment with workspace id: %w", err)
 		}
 	}
 
 	if assignmentId != nil {
-		query := `SELECT * FROM assignment WHERE id = ?`
+		query := `SELECT * FROM assignment WHERE id = ? AND is_deleted = FALSE`
 		if err := r.db.Select(&rawAssignments, query, assignmentId); err != nil {
 			return nil, fmt.Errorf("cannot query to list raw assignment with id: %w", err)
 		}

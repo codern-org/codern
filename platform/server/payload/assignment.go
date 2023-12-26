@@ -42,6 +42,10 @@ type UpdateAssignment struct {
 	TestcaseOutputFiles *[]multipart.File       `file:"testcaseOutput"`
 }
 
+type DeleteAssignment struct {
+	AssignmentPath
+}
+
 func ValidateTestcaseFiles(inputs []multipart.File, outputs []multipart.File) error {
 	if len(inputs) != len(outputs) {
 		return errs.NewPayloadError([]errs.ValidationErrorDetail{

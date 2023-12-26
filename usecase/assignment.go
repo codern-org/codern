@@ -86,6 +86,9 @@ func (u *assignmentUsecase) Update(
 	if err != nil {
 		return errs.New(errs.SameCode, "cannot get assignment id %d while updating assignment", assignmentId, err)
 	}
+	if assignment == nil {
+		return errs.New(errs.ErrAssignmentNotFound, "assignment id %d not found", assignmentId)
+	}
 
 	isAuthorized, err := u.CheckPerm(userId, assignment.WorkspaceId)
 	if err != nil {
@@ -124,6 +127,30 @@ func (u *assignmentUsecase) Update(
 		if err := u.UpdateTestcases(assignmentId, *ua.TestcaseFiles); err != nil {
 			return errs.New(errs.ErrUpdateAssignment, "cannot update testcases by assignment id %d", assignmentId, err)
 		}
+	}
+
+	return nil
+}
+
+func (u *assignmentUsecase) Delete(userId string, id int) error {
+	assignment, err := u.Get(id)
+	if err != nil {
+		return errs.New(errs.SameCode, "cannot get assignment id %d while deleting assignment", id, err)
+	}
+	if assignment == nil {
+		return errs.New(errs.ErrAssignmentNotFound, "assignment id %d not found", id)
+	}
+
+	isAuthorized, err := u.CheckPerm(userId, assignment.WorkspaceId)
+	if err != nil {
+		return errs.New(errs.SameCode, "cannot get workspace role while deleting assignment", err)
+	}
+	if !isAuthorized {
+		return errs.New(errs.ErrWorkspaceNoPerm, "permission denied")
+	}
+
+	if err := u.assignmentRepository.Delete(id); err != nil {
+		return err
 	}
 
 	return nil
