@@ -143,7 +143,7 @@ func (r *workspaceRepository) GetScoreboard(workspaceId int) ([]domain.Workspace
 				MAX(score) AS score,
 				(
 					SELECT
-						COUNT(DISTINCT status)
+						COUNT(DISTINCT assignment_id)
 					FROM submission s2
 					WHERE
 						s2.user_id = s.user_id
