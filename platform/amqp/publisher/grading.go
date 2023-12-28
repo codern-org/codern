@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/url"
+	"time"
 
 	"github.com/codern-org/codern/domain"
 	errs "github.com/codern-org/codern/domain/error"
@@ -68,6 +69,7 @@ func (p *gradingPublisher) Grade(assignment *domain.AssignmentWithStatus, submis
 		Metadata: payload.GradeMetadataMessage{
 			SubmissionId: submission.Id,
 			TestcaseIds:  testcaseIds,
+			StartTime:    time.Now(),
 		},
 	}
 	body, err := json.Marshal(message)
