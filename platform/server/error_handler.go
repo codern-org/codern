@@ -15,7 +15,12 @@ import (
 func errorHandler(logger *zap.Logger) fiber.ErrorHandler {
 	return func(ctx *fiber.Ctx, err error) error {
 		resStatus := fiber.StatusInternalServerError
-		requestId := ctx.Locals(constant.RequestIdCtxLocal).(string)
+		requestId, _ := ctx.Locals(constant.RequestIdCtxLocal).(string)
+
+		// Error from fiber
+		if requestId == "" {
+			logger.Error("Fiber internal error", zap.NamedError("error", err))
+		}
 
 		var domainError *errs.DomainError
 		if errors.As(err, &domainError) {
