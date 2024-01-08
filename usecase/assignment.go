@@ -339,3 +339,20 @@ func (u *assignmentUsecase) ListSubmission(userId string, assignmentId int) ([]d
 	}
 	return submissions, nil
 }
+
+func (u *assignmentUsecase) ListSubmissionByWorkspaceId(workspaceId int, userId string) ([]domain.Submission, error) {
+	isAuthorized, err := u.CheckPerm(userId, workspaceId)
+	if err != nil {
+		return nil, errs.New(errs.SameCode, "cannot get workspace role while list submission", err)
+	}
+	if !isAuthorized {
+		return nil, errs.New(errs.ErrWorkspaceNoPerm, "permission denied")
+	}
+
+	submissions, err := u.assignmentRepository.ListSubmissionByWorkspaceId(workspaceId)
+	if err != nil {
+		return nil, errs.New(errs.ErrListSubmission, "cannot list submission", err)
+	}
+
+	return submissions, nil
+}

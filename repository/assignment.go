@@ -353,3 +353,21 @@ func (r *assignmentRepository) ListSubmission(userId string, assignmentId int) (
 
 	return submissions, nil
 }
+
+func (r *assignmentRepository) ListSubmissionByWorkspaceId(workspaceId int) ([]domain.Submission, error) {
+	submissions := make([]domain.Submission, 0)
+
+	query := `
+		SELECT s.*
+		FROM submission s
+		INNER JOIN assignment a on a.id = s.assignment_id
+		WHERE a.workspace_id = ?
+	`
+
+	err := r.db.Select(&submissions, query, workspaceId)
+	if err != nil {
+		return nil, fmt.Errorf("cannot query to list submission: %w", err)
+	}
+
+	return submissions, nil
+}
