@@ -151,6 +151,7 @@ func (s *FiberServer) applyRoutes() {
 	fs.Get("/user/:userId/profile", fileController.GetUserProfile)
 	fs.Get("/workspaces/:workspaceId/profile", workspaceMiddleware, fileController.GetWorkspaceProfile)
 	fs.Get("/workspaces/:workspaceId/assignments/:assignmentId/detail/*", workspaceMiddleware, fileController.GetAssignmentDetail)
+	fs.Get("/workspaces/:workspaceId/assignments/:assignmentId/testcase/:testcaseFile", workspaceMiddleware, fileController.GetAssignmentTestcase)
 	fs.Get("/workspaces/:workspaceId/assignments/:assignmentId/submissions/:userId/:submissionId", workspaceMiddleware, fileController.GetSubmission)
 
 	// WebSocket

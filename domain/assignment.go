@@ -38,7 +38,7 @@ type Assignment struct {
 	IsDeleted   bool            `json:"-" db:"is_deleted"`
 
 	// Always aggregation
-	Testcases []Testcase `json:"-"`
+	Testcases []Testcase `json:"testcases"`
 }
 
 type CreateAssignment struct {
@@ -95,7 +95,7 @@ type SubmissionResult struct {
 
 type Testcase struct {
 	Id            int    `json:"id" db:"id"`
-	AssignmentId  int    `json:"assignmentId" db:"assignment_id"`
+	AssignmentId  int    `json:"-" db:"assignment_id"`
 	InputFileUrl  string `json:"inputFileUrl" db:"input_file_url"`
 	OutputFileUrl string `json:"outputFileUrl" db:"output_file_url"`
 }

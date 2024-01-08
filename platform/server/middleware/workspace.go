@@ -41,6 +41,16 @@ func NewWorkspaceMiddleware(
 			} else if err != nil {
 				return err
 			}
+
+			if ctx.Params("testcaseFile") != "" {
+				isAuthorized, err := workspaceUsecase.CheckPerm(user.Id, pl.WorkspaceId)
+				if err != nil {
+					return errs.New(errs.SameCode, "cannot get workspace role", err)
+				}
+				if !isAuthorized {
+					return errs.New(errs.ErrWorkspaceNoPerm, "cannot access testcase of assignment id %d", pl.AssignmentId)
+				}
+			}
 		}
 
 		return ctx.Next()

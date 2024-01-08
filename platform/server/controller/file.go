@@ -87,7 +87,7 @@ func (c *FileController) GetWorkspaceProfile(ctx *fiber.Ctx) error {
 // @Param				subPath					path string false "Sub path"
 // @Security 		ApiKeyAuth
 // @Param 			sid header string true "Session ID"
-// @Router			/file/workspaces/{workspaceId}/assignments/{assignmentId}/{subPath} [get]
+// @Router			/file/workspaces/{workspaceId}/assignments/{assignmentId}/detail/{subPath} [get]
 func (c *FileController) GetAssignmentDetail(ctx *fiber.Ctx) error {
 	var pl payload.AssignmentPath
 	if ok, err := c.validator.Validate(&pl, ctx); !ok {
@@ -102,6 +102,24 @@ func (c *FileController) GetAssignmentDetail(ctx *fiber.Ctx) error {
 	path := fmt.Sprintf(
 		"/workspaces/%d/assignments/%d/detail/%s",
 		pl.WorkspaceId, pl.AssignmentId, subPath,
+	)
+	url, err := url.JoinPath(c.filerUrl, path)
+	if err != nil {
+		return errs.New(errs.ErrCreateUrlPath, "invalid url", err)
+	}
+	return proxy.Forward(url)(ctx)
+}
+
+func (c *FileController) GetAssignmentTestcase(ctx *fiber.Ctx) error {
+	var pl payload.AssignmentPath
+	if ok, err := c.validator.Validate(&pl, ctx); !ok {
+		return err
+	}
+
+	testcaseFile := ctx.Params("testcaseFile")
+	path := fmt.Sprintf(
+		"/workspaces/%d/assignments/%d/testcase/%s",
+		pl.WorkspaceId, pl.AssignmentId, testcaseFile,
 	)
 	url, err := url.JoinPath(c.filerUrl, path)
 	if err != nil {
