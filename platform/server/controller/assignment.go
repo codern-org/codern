@@ -159,7 +159,7 @@ func (c *AssignmentController) ListSubmissionByWorkspaceId(ctx *fiber.Ctx) error
 
 	user := middleware.GetUserFromCtx(ctx)
 
-	submissions, err := c.assignmentUsecase.ListSubmissionByWorkspaceId(pl.WorkspaceId, user.Id)
+	submissions, err := c.assignmentUsecase.ListSubmissionByWorkspaceId(user.Id, pl.WorkspaceId)
 	if err != nil {
 		return err
 	}
