@@ -78,8 +78,9 @@ func (p *gradingPublisher) Grade(assignment *domain.AssignmentWithStatus, submis
 	}
 
 	err = p.ch.PublishWithContext(context.Background(), "grading", "request", false, false, amqp.Publishing{
-		ContentType: "application/json",
-		Body:        body,
+		ContentType:  "application/json",
+		Body:         body,
+		DeliveryMode: amqp.Persistent,
 	})
 	if err != nil {
 		return errs.New(errs.ErrGradingRequest, "cannot publish grading request message", err)
