@@ -28,7 +28,7 @@ client:
 google:
   clientId: replace_with_your_google_client_id
   clientSecret: replace_with_your_google_client_secret
-  redirectUri: http://localhost:3000/auth/google/callback
+  redirectUri: http://localhost:3000/callback/auth/google
 auth:
   session:
     prefix: $
