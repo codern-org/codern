@@ -38,8 +38,8 @@ type UpdateAssignment struct {
 	TimeLimit           *int                    `json:"timeLimit"`
 	Level               *domain.AssignmentLevel `json:"level"`
 	DetailFile          multipart.File          `file:"detail"`
-	TestcaseInputFiles  *[]multipart.File       `file:"testcaseInput"`
-	TestcaseOutputFiles *[]multipart.File       `file:"testcaseOutput"`
+	TestcaseInputFiles  []multipart.File        `file:"testcaseInput"`
+	TestcaseOutputFiles []multipart.File        `file:"testcaseOutput"`
 }
 
 type DeleteAssignment struct {

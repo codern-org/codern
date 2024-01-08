@@ -186,12 +186,12 @@ func (c *AssignmentController) Update(ctx *fiber.Ctx) error {
 	if ok, err := c.validator.Validate(&pl, ctx); !ok {
 		return err
 	}
-	if err := payload.ValidateTestcaseFiles(*pl.TestcaseInputFiles, *pl.TestcaseOutputFiles); err != nil {
+	if err := payload.ValidateTestcaseFiles(pl.TestcaseInputFiles, pl.TestcaseOutputFiles); err != nil {
 		return err
 	}
 
 	user := middleware.GetUserFromCtx(ctx)
-	testcaseFiles := domain.CreateTestcaseFiles(*pl.TestcaseInputFiles, *pl.TestcaseOutputFiles)
+	testcaseFiles := domain.CreateTestcaseFiles(pl.TestcaseInputFiles, pl.TestcaseOutputFiles)
 
 	if err := c.assignmentUsecase.Update(
 		user.Id,
