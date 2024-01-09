@@ -3,6 +3,7 @@ package repository
 import (
 	"database/sql"
 	"fmt"
+	"strings"
 
 	"github.com/codern-org/codern/domain"
 	"github.com/jmoiron/sqlx"
@@ -307,9 +308,33 @@ func (r *assignmentRepository) listTestcase(assignmentIds []int) ([]domain.Testc
 	return testcases, nil
 }
 
-func (r *assignmentRepository) ListSubmission(userId string, assignmentId int) ([]domain.Submission, error) {
+func (r *assignmentRepository) ListSubmission(
+	userId *string,
+	assignmentId *int,
+	workspaceId *int,
+) ([]domain.Submission, error) {
 	submissions := make([]domain.Submission, 0)
-	query := `
+
+	queryArgs := make([]interface{}, 0)
+	whereQueries := make([]string, 0)
+
+	if userId != nil {
+		queryArgs = append(queryArgs, userId)
+		whereQueries = append(whereQueries, "s.user_id = ?")
+	}
+
+	if assignmentId != nil {
+		queryArgs = append(queryArgs, assignmentId)
+		whereQueries = append(whereQueries, "s.assignment_id = ?")
+	}
+
+	if workspaceId != nil {
+		queryArgs = append(queryArgs, workspaceId)
+		whereQueries = append(whereQueries, "a.workspace_id = ?")
+	}
+
+	whereQueryString := fmt.Sprintf("WHERE %s", strings.Join(whereQueries, " AND "))
+	query := fmt.Sprintf(`
 		SELECT
 			s.*,
 			CASE
@@ -319,10 +344,11 @@ func (r *assignmentRepository) ListSubmission(userId string, assignmentId int) (
 				ELSE FALSE
 			END AS is_late
 		FROM submission s
-		INNER JOIN assignment a on a.id = s.assignment_id
-		WHERE s.assignment_id = ? AND s.user_id = ?
-	`
-	err := r.db.Select(&submissions, query, assignmentId, userId)
+		INNER JOIN assignment a ON a.id = s.assignment_id
+		%s
+	`, whereQueryString)
+
+	err := r.db.Select(&submissions, query, queryArgs...)
 	if err != nil {
 		return nil, fmt.Errorf("cannot query to list submission: %w", err)
 	}

@@ -128,7 +128,7 @@ type AssignmentRepository interface {
 	GetWithStatus(id int, userId string) (*AssignmentWithStatus, error)
 	GetSubmission(id int) (*Submission, error)
 	List(userId string, workspaceId int) ([]AssignmentWithStatus, error)
-	ListSubmission(userId string, assignmentId int) ([]Submission, error)
+	ListSubmission(userId *string, assignmentId *int, workspaceId *int) ([]Submission, error)
 }
 
 type AssignmentUsecase interface {
@@ -145,4 +145,5 @@ type AssignmentUsecase interface {
 	GetSubmission(id int) (*Submission, error)
 	List(userId string, workspaceId int) ([]AssignmentWithStatus, error)
 	ListSubmission(userId string, assignmentId int) ([]Submission, error)
+	ListSubmissionByWorkspaceId(userId string, workspaceId int) ([]Submission, error)
 }
