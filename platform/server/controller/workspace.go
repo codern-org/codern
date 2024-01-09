@@ -156,12 +156,12 @@ func (c *WorkspaceController) JoinByInvitationCode(ctx *fiber.Ctx) error {
 	user := middleware.GetUserFromCtx(ctx)
 	invitationCode := ctx.Params("invitationId")
 
-	err := c.workspaceUsecase.JoinByInvitation(user.Id, invitationCode)
+	workspace, err := c.workspaceUsecase.JoinByInvitation(user.Id, invitationCode)
 	if err != nil {
 		return err
 	}
 
-	return response.NewSuccessResponse(ctx, fiber.StatusOK, nil)
+	return response.NewSuccessResponse(ctx, fiber.StatusOK, workspace)
 }
 
 func (c *WorkspaceController) Update(ctx *fiber.Ctx) error {

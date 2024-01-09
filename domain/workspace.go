@@ -85,7 +85,7 @@ type WorkspaceUsecase interface {
 	GetInvitations(workspaceId int) ([]WorkspaceInvitation, error)
 	DeleteInvitation(invitationId string, userId string) error
 	CreateParticipant(workspaceId int, userId string, role WorkspaceRole) error
-	JoinByInvitation(userId string, invitationCode string) error
+	JoinByInvitation(userId string, invitationCode string) (*Workspace, error)
 	HasUser(userId string, workspaceId int) (bool, error)
 	HasAssignment(assignmentId int, workspaceId int) (bool, error)
 	Get(id int, userId string) (*Workspace, error)

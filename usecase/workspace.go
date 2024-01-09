@@ -138,28 +138,36 @@ func (u *workspaceUsecase) CreateParticipant(workspaceId int, userId string, rol
 	return nil
 }
 
-func (u *workspaceUsecase) JoinByInvitation(userId string, invitationCode string) error {
+func (u *workspaceUsecase) JoinByInvitation(
+	userId string,
+	invitationCode string,
+) (*domain.Workspace, error) {
 	invitation, err := u.GetInvitation(invitationCode)
 	if err != nil {
-		return errs.New(errs.SameCode, "cannot get invitation id %s while joining", invitationCode, err)
+		return nil, errs.New(errs.SameCode, "cannot get invitation id %s while joining", invitationCode, err)
 	} else if invitation == nil {
-		return errs.New(errs.ErrInvitationNotFound, "invitation id %s not found while joining", invitationCode)
+		return nil, errs.New(errs.ErrInvitationNotFound, "invitation id %s not found while joining", invitationCode)
 	}
 
 	if invitation.ValidAt.After(time.Now()) {
-		return errs.New(errs.ErrInvitationInvalidDate, "invitation id %s is not valid at this time yet", invitationCode)
+		return nil, errs.New(errs.ErrInvitationInvalidDate, "invitation id %s is not valid at this time yet", invitationCode)
 	}
 	if invitation.ValidUntil.Before(time.Now()) {
-		return errs.New(errs.ErrInvitationInvalidDate, "invitation id %s is expired", invitationCode)
+		return nil, errs.New(errs.ErrInvitationInvalidDate, "invitation id %s is expired", invitationCode)
 	}
 
 	err = u.CreateParticipant(invitation.WorkspaceId, userId, domain.MemberRole)
 	if errs.HasCode(err, errs.ErrWorkspaceHasUser) {
-		return errs.New(errs.ErrWorkspaceHasUser, "user id %s is already in workspace", userId)
+		return nil, errs.New(errs.ErrWorkspaceHasUser, "user id %s is already in workspace", userId)
 	} else if err != nil {
-		return errs.New(errs.SameCode, "cannot create participant while joining", err)
+		return nil, errs.New(errs.SameCode, "cannot create participant while joining", err)
 	}
-	return nil
+
+	workspace, err := u.Get(invitation.WorkspaceId, userId)
+	if err != nil {
+		return nil, errs.New(errs.SameCode, "cannot get workspace while joining", err)
+	}
+	return workspace, nil
 }
 
 func (u *workspaceUsecase) HasUser(userId string, workspaceId int) (bool, error) {
