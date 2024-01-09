@@ -53,12 +53,25 @@ func (r *assignmentRepository) Delete(id int) error {
 }
 
 func (r *assignmentRepository) CreateTestcases(testcases []domain.Testcase) error {
-	query := "INSERT INTO testcase (id, assignment_id, input_file_url, output_file_url) VALUES "
+	var revision int
+	err := r.db.Get(
+		&revision,
+		"SELECT MAX(revision) AS revision FROM testcase WHERE assignment_id = ? GROUP BY assignment_id",
+		testcases[0].AssignmentId,
+	)
+	if err == sql.ErrNoRows {
+		revision = 1
+	} else if err != nil {
+		return fmt.Errorf("cannot query revision to create testcase: %w", err)
+	} else {
+		revision += 1
+	}
 
+	query := "INSERT INTO testcase (id, assignment_id, revision, input_file_url, output_file_url) VALUES "
 	args := make([]interface{}, 0, len(testcases)*4)
-	for i := range testcases {
-		query += "(?, ?, ?, ?),"
-		args = append(args, testcases[i].Id, testcases[i].AssignmentId, testcases[i].InputFileUrl, testcases[i].OutputFileUrl)
+	for _, testcase := range testcases {
+		query += "(?, ?, ?, ?, ?),"
+		args = append(args, testcase.Id, testcase.AssignmentId, revision, testcase.InputFileUrl, testcase.OutputFileUrl)
 	}
 
 	query = query[:len(query)-1]
@@ -298,7 +311,17 @@ func (r *assignmentRepository) mutateTestcases(assignments []*domain.Assignment)
 
 func (r *assignmentRepository) listTestcase(assignmentIds []int) ([]domain.Testcase, error) {
 	var testcases []domain.Testcase
-	query, args, err := sqlx.In("SELECT * FROM testcase WHERE assignment_id IN (?)", assignmentIds)
+	query, args, err := sqlx.In(`
+		WITH assignment_latest_revision AS (
+			SELECT assignment_id, MAX(revision) AS lastet_revision
+			FROM testcase
+			WHERE assignment_id IN (?)
+			GROUP BY assignment_id
+		)
+		SELECT testcase.*
+		FROM assignment_latest_revision t1
+		INNER JOIN testcase ON testcase.assignment_id = t1.assignment_id AND revision = t1.lastet_revision
+	`, assignmentIds)
 	if err != nil {
 		return nil, fmt.Errorf("cannot query to create query to list testcase: %w", err)
 	}

@@ -96,6 +96,7 @@ type SubmissionResult struct {
 type Testcase struct {
 	Id            int    `json:"id" db:"id"`
 	AssignmentId  int    `json:"-" db:"assignment_id"`
+	Revision      int    `json:"-" db:"revision"`
 	InputFileUrl  string `json:"inputFileUrl" db:"input_file_url"`
 	OutputFileUrl string `json:"outputFileUrl" db:"output_file_url"`
 }

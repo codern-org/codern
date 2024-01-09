@@ -210,10 +210,6 @@ func (u *assignmentUsecase) UpdateTestcases(assignmentId int, testcaseFiles []do
 
 	testcaseFileUrl := fmt.Sprintf("/workspaces/%d/assignments/%d/testcase/", assignment.WorkspaceId, assignment.Id)
 
-	if err := u.assignmentRepository.DeleteTestcases(assignmentId); err != nil {
-		return errs.New(errs.ErrDeleteTestcase, "cannot delete old testcases by assignment id %d", assignmentId, err)
-	}
-
 	if err := u.seaweedfs.DeleteDirectory(testcaseFileUrl); err != nil {
 		return errs.New(errs.ErrFileSystem, "cannot delete testcase files while updating testcase by assignment id: %d", assignmentId, err)
 	}
