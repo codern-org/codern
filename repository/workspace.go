@@ -191,10 +191,14 @@ func (r *workspaceRepository) list(ids []int, userId string) ([]domain.Workspace
 			(SELECT COUNT(*) FROM workspace_participant wp WHERE wp.workspace_id = w.id) AS participant_count,
 			(SELECT COUNT(*) FROM assignment a WHERE a.workspace_id = w.id AND is_deleted = FALSE) AS total_assignment,
 			wp.role, wp.favorite, wp.joined_at, wp.recently_visited_at,
-			(SELECT
-				COUNT(DISTINCT(s.status))
+			(
+				SELECT
+					COUNT(DISTINCT(s.assignment_id))
 				FROM submission s
-				WHERE s.assignment_id IN (SELECT id FROM assignment WHERE workspace_id = w.id AND is_deleted = FALSE) AND s.user_id = ? AND s.status = 'COMPLETED'
+				WHERE
+					s.user_id = ?
+					AND s.status = 'COMPLETED'
+					AND s.assignment_id IN (SELECT id FROM assignment WHERE workspace_id = w.id AND is_deleted = FALSE)
 			) AS completed_assignment
 		FROM workspace w
 		INNER JOIN user ON user.id = (SELECT user_id FROM workspace_participant WHERE workspace_id = w.id AND role = 'OWNER')
