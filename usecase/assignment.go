@@ -266,23 +266,35 @@ func (u *assignmentUsecase) CreateSubmission(
 }
 
 func (u *assignmentUsecase) CreateSubmissionResults(
+	assignment *domain.Assignment,
 	submissionId int,
 	compilationLog string,
 	results []domain.SubmissionResult,
 ) error {
-	status := domain.AssignmentStatusComplete
-	score := 0
+	status := domain.AssignmentStatusIncompleted
+	score := 0.0
 
-	for _, result := range results {
-		if result.IsPassed {
-			score += 1
-		} else {
-			status = domain.AssignmentStatusIncompleted
+	maxScore := assignment.GetMaxScore()
+	testcaseScore := maxScore / float64(len(assignment.Testcases))
+
+	if len(compilationLog) == 0 {
+		for _, result := range results {
+			if result.IsPassed {
+				score += testcaseScore
+			}
+		}
+		if score == maxScore {
+			status = domain.AssignmentStatusComplete
 		}
 	}
 
-	err := u.assignmentRepository.CreateSubmissionResults(submissionId, compilationLog, status, score, results)
-	if err != nil {
+	if err := u.assignmentRepository.CreateSubmissionResults(
+		submissionId,
+		compilationLog,
+		status,
+		score,
+		results,
+	); err != nil {
 		return errs.New(errs.ErrCreateSubmissionResult, "cannot update submission result", err)
 	}
 	return nil

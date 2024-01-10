@@ -109,7 +109,7 @@ func (r *assignmentRepository) CreateSubmissionResults(
 	submissionId int,
 	compilationLog string,
 	status domain.AssignmentStatus,
-	score int,
+	score float64,
 	results []domain.SubmissionResult,
 ) (retErr error) {
 	tx, err := r.db.Beginx()

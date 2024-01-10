@@ -51,8 +51,16 @@ func (c *gradingConsumer) ConsumeSubmssionResult() error {
 				continue
 			}
 
+			assignmentId := message.Metadata.AssignmentId
 			submissionId := message.Metadata.SubmissionId
 			results := make([]domain.SubmissionResult, 0)
+
+			assignment, err := c.assignmentUsecase.Get(assignmentId)
+			if err != nil {
+				delivery.Reject(false)
+				c.logger.Error("Cannot get assignment when consuming submission result")
+				continue
+			}
 
 			for i := range message.Results {
 				results = append(results, domain.SubmissionResult{
@@ -66,6 +74,7 @@ func (c *gradingConsumer) ConsumeSubmssionResult() error {
 			}
 
 			if err := c.assignmentUsecase.CreateSubmissionResults(
+				assignment,
 				submissionId,
 				message.CompileOutput,
 				results,
@@ -78,7 +87,7 @@ func (c *gradingConsumer) ConsumeSubmssionResult() error {
 			submission, err := c.assignmentUsecase.GetSubmission(submissionId)
 			if err != nil || submission == nil {
 				delivery.Reject(false)
-				c.logger.Error("Cannot get submission data when consuming submission result", zap.Error(err))
+				c.logger.Error("Cannot get submission when consuming submission result", zap.Error(err))
 				continue
 			}
 

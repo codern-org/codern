@@ -1,0 +1,1 @@
+ALTER TABLE submission MODIFY score SMALLINT UNSIGNED;

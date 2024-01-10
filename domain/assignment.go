@@ -6,6 +6,12 @@ import (
 	"time"
 )
 
+var assignmentScoreMap = map[AssignmentLevel]float64{
+	AssignmentEasyLevel:   5.0,
+	AssignmentMediumLevel: 15.0,
+	AssignmentHardLevel:   30.0,
+}
+
 type AssignmentLevel string
 
 const (
@@ -39,6 +45,10 @@ type Assignment struct {
 
 	// Always aggregation
 	Testcases []Testcase `json:"testcases"`
+}
+
+func (a *Assignment) GetMaxScore() float64 {
+	return assignmentScoreMap[a.Level]
 }
 
 type CreateAssignment struct {
@@ -124,7 +134,7 @@ type AssignmentRepository interface {
 	CreateTestcases(testcases []Testcase) error
 	DeleteTestcases(assignmentId int) error
 	CreateSubmission(submission *Submission, testcases []Testcase) error
-	CreateSubmissionResults(submissionId int, compilationLog string, status AssignmentStatus, score int, results []SubmissionResult) error
+	CreateSubmissionResults(submissionId int, compilationLog string, status AssignmentStatus, score float64, results []SubmissionResult) error
 	Get(id int) (*Assignment, error)
 	GetWithStatus(id int, userId string) (*AssignmentWithStatus, error)
 	GetSubmission(id int) (*Submission, error)
@@ -139,7 +149,7 @@ type AssignmentUsecase interface {
 	UpdateTestcases(assignmentId int, files []TestcaseFile) error
 	Delete(userId string, id int) error
 	CreateSubmission(userId string, assignmentId int, workspaceId int, language string, file io.Reader) error
-	CreateSubmissionResults(submissionId int, compilationLog string, results []SubmissionResult) error
+	CreateSubmissionResults(assignment *Assignment, sumbissionId int, compilationLog string, results []SubmissionResult) error
 	Get(id int) (*Assignment, error)
 	GetWithStatus(id int, userId string) (*AssignmentWithStatus, error)
 	CheckPerm(userId string, workspaceId int) (bool, error)

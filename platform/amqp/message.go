@@ -21,6 +21,7 @@ type GradeTestMessage struct {
 }
 
 type GradeMetadataMessage struct {
+	AssignmentId int       `json:"assignmentId"`
 	SubmissionId int       `json:"submissionId"`
 	TestcaseIds  []int     `json:"testcaseIds"`
 	StartTime    time.Time `json:"startTime"`
