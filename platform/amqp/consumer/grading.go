@@ -91,15 +91,6 @@ func (c *gradingConsumer) ConsumeSubmssionResult() error {
 				continue
 			}
 
-			if err := c.wsHub.SendMessage(submission.UserId, "onSubmissionUpdate", submission); err != nil {
-				delivery.Reject(false)
-				c.logger.Error("Cannot send websocket message after consuming submission result", zap.Error(err))
-				continue
-			}
-
-			c.logger.Info("Consumed submission result", zap.Int("submission_id", submissionId))
-			delivery.Ack(true)
-
 			c.influxDb.WritePoint(
 				"gradingLatency", map[string]string{
 					"language": submission.Language,
@@ -110,6 +101,15 @@ func (c *gradingConsumer) ConsumeSubmssionResult() error {
 					"latency":      time.Since(message.Metadata.StartTime).Nanoseconds(),
 				},
 			)
+
+			if err := c.wsHub.SendMessage(submission.UserId, "onSubmissionUpdate", submission); err != nil {
+				delivery.Reject(false)
+				c.logger.Error("Cannot send websocket message after consuming submission result", zap.Error(err))
+				continue
+			}
+
+			c.logger.Info("Consumed submission result", zap.Int("submission_id", submissionId))
+			delivery.Ack(true)
 		}
 	}()
 
