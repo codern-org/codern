@@ -211,7 +211,8 @@ func (r *assignmentRepository) list(
 		SELECT
 			a.*,
 			t1.last_submitted_at,
-			IFNULL(t1.status, 'TODO') AS status
+			IFNULL(t1.status, 'TODO') AS status,
+			t1.score
 		FROM (
 			SELECT
 				s.assignment_id,
@@ -220,7 +221,8 @@ func (r *assignmentRepository) list(
 					WHEN SUM(CASE WHEN s.status = 'GRADING' THEN 1 ELSE 0 END) > 0 THEN 'GRADING'
 					WHEN SUM(CASE WHEN s.status = 'COMPLETED' THEN 1 ELSE 0 END) > 0 THEN 'COMPLETED'
 					ELSE 'INCOMPLETED'
-				END AS status
+				END AS status,
+				MAX(s.score) AS score
 			FROM submission s
 			WHERE s.user_id = ? AND s.assignment_id %[1]s
 			GROUP BY s.assignment_id

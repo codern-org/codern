@@ -313,6 +313,7 @@ func (u *assignmentUsecase) GetWithStatus(id int, userId string) (*domain.Assign
 	if err != nil {
 		return nil, errs.New(errs.ErrGetAssignment, "cannot get assignment id %d", id, err)
 	}
+	assignment.MaxScore = assignment.GetMaxScore()
 	return assignment, nil
 }
 
@@ -336,6 +337,9 @@ func (u *assignmentUsecase) List(userId string, workspaceId int) ([]domain.Assig
 	assignments, err := u.assignmentRepository.List(userId, workspaceId)
 	if err != nil {
 		return nil, errs.New(errs.ErrListAssignment, "cannot list assignment", err)
+	}
+	for i := range assignments {
+		assignments[i].MaxScore = assignments[i].GetMaxScore()
 	}
 	return assignments, nil
 }

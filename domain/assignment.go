@@ -74,6 +74,8 @@ type UpdateAssignment struct {
 type AssignmentWithStatus struct {
 	Assignment
 
+	MaxScore        float64          `json:"maxScore"`
+	Score           *float64         `json:"score" db:"score"`
 	Status          AssignmentStatus `json:"status" db:"status"`
 	LastSubmittedAt *time.Time       `json:"lastSubmittedAt" db:"last_submitted_at"`
 }
