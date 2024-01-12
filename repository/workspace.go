@@ -133,50 +133,50 @@ func (r *workspaceRepository) GetRole(userId string, workspaceId int) (*domain.W
 func (r *workspaceRepository) GetScoreboard(workspaceId int) ([]domain.WorkspaceRank, error) {
 	scoreboard := make([]domain.WorkspaceRank, 0)
 	err := r.db.Select(&scoreboard, `
-	SELECT
-		u.id, u.display_name, u.profile_url,
-		SUM(t1.score) AS score,
-		t1.completed_assignment,
-		(
-			SELECT
-				SUM(CASE
-					WHEN s.status = 'INCOMPLETED' THEN
-						CASE
-							WHEN (
-								SELECT COUNT(*)
-								FROM submission_result sr
-								WHERE sr.submission_id = s.id AND status = 'SYSTEM_FAIL_FETCH_FILE'
-							) > 0
-							THEN 0
-							ELSE 1
-						END
-					WHEN s.status = 'GRADING' THEN 0
-					ELSE 1
-				END)
-			FROM submission s WHERE s.user_id = u.id
-		) AS total_submission,
-		(SELECT MAX(submitted_at) AS last_submitted_at FROM submission s WHERE s.user_id = u.id) AS last_submitted_at
-	FROM (
-		SELECT
-			user_id,
-			MAX(score) AS score,
-			(
+		WITH filtered_submission AS (
+			SELECT *
+			FROM (
 				SELECT
-					COUNT(DISTINCT assignment_id)
-				FROM submission s2
+					*,
+					COALESCE(
+						(SELECT assignment.due_date FROM assignment WHERE assignment.id = submission.assignment_id),
+						'9999-01-01 00:00:00'
+					) as due_date
+				FROM submission
 				WHERE
-					s2.user_id = s.user_id
-					AND status = 'COMPLETED'
-					AND assignment_id IN (SELECT id FROM assignment WHERE workspace_id = ? AND is_deleted = FALSE)
-			) AS completed_assignment
-		FROM submission s
-		WHERE assignment_id IN (SELECT id FROM assignment WHERE workspace_id = ? AND is_deleted = FALSE)
-		GROUP BY user_id, assignment_id
-	) t1
-	INNER JOIN user u ON u.id = t1.user_id
-	GROUP BY t1.user_id
-	ORDER BY score DESC, total_submission ASC, last_submitted_at ASC
-	`, workspaceId, workspaceId)
+					assignment_id IN (SELECT id FROM assignment WHERE workspace_id = ? AND is_deleted = FALSE)
+					AND id NOT IN (SELECT submission_id FROM submission_result WHERE status LIKE 'SYSTEM%')) as i1
+					WHERE i1.submitted_at < i1.due_date
+			)
+		SELECT
+			t1.user_id AS id, u.display_name, u.profile_url, t1.score, t2.total_submission, t3.last_submitted_at,
+			(SELECT COUNT(DISTINCT assignment_id) FROM filtered_submission WHERE user_id = t1.user_id AND status = 'COMPLETED') AS completed_assignment
+		FROM (
+			WITH user_assignment_score AS (
+				SELECT user_id, assignment_id, MAX(score) as max_score
+				FROM filtered_submission
+				GROUP BY user_id, assignment_id
+				ORDER BY max_score DESC
+			)
+			SELECT user_id, SUM(max_score) AS score
+			FROM user_assignment_score
+			GROUP BY user_id
+			ORDER BY score DESC) as t1
+				LEFT JOIN (
+					SELECT user_id, COUNT(*) as total_submission
+					FROM filtered_submission
+					WHERE (status = 'COMPLETED' OR status = 'INCOMPLETED')
+					GROUP BY user_id
+					ORDER BY total_submission ASC
+				) as t2 ON t1.user_id = t2.user_id
+				LEFT JOIN (
+					SELECT user_id, MAX(submitted_at) as last_submitted_at
+					FROM filtered_submission
+					GROUP BY user_id
+				) as t3 ON t1.user_id = t3.user_id
+		INNER JOIN user u ON u.id = t1.user_id
+		ORDER BY score DESC, t2.total_submission ASC, t3.last_submitted_at ASC
+	`, workspaceId)
 	if err != nil {
 		return nil, fmt.Errorf("cannot query to get workspace scoreboard: %w", err)
 	}
