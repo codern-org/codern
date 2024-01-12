@@ -74,4 +74,6 @@ var DomainErrCodeToHttpStatus = map[int]int{
 	errs.ErrListTestcase:   fiber.StatusInternalServerError,
 	errs.ErrCreateTestcase: fiber.StatusInternalServerError,
 	errs.ErrDeleteTestcase: fiber.StatusInternalServerError,
+
+	errs.ErrCreateSurvey : fiber.StatusInternalServerError,
 }

@@ -18,6 +18,7 @@ type Repository struct {
 	User       UserRepository
 	Workspace  WorkspaceRepository
 	Assignment AssignmentRepository
+	Survey     SurveyRepository
 }
 
 type Usecase struct {
@@ -27,6 +28,7 @@ type Usecase struct {
 	Auth       AuthUsecase
 	Workspace  WorkspaceUsecase
 	Assignment AssignmentUsecase
+	Survey     SurveyUsecase
 }
 
 type Publisher struct {

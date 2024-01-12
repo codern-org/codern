@@ -106,6 +106,7 @@ func (s *FiberServer) applyRoutes() {
 	workspaceController := controller.NewWorkspaceController(validator, s.usecase.Workspace)
 	assignmentController := controller.NewAssignmentController(validator, s.usecase.Assignment)
 	userController := controller.NewUserController(validator, s.usecase.User)
+	surveyController := controller.NewSurveyController(validator, s.usecase.Survey)
 
 	// Initialize Routes
 	api := s.app.Group("/")
@@ -156,6 +157,9 @@ func (s *FiberServer) applyRoutes() {
 	fs.Get("/workspaces/:workspaceId/assignments/:assignmentId/testcase/:testcaseFile", workspaceMiddleware, fileController.GetAssignmentTestcase)
 	fs.Get("/workspaces/:workspaceId/assignments/:assignmentId/submissions/:userId/:submissionId", workspaceMiddleware, fileController.GetSubmission)
 
+	survey := s.app.Group("/survey")
+	survey.Post("/", authMiddleware, surveyController.CreateSurvey)
+	
 	// WebSocket
 	ws := s.app.Group("/ws", authMiddleware, webSocketController.Upgrade)
 	ws.Get("/", webSocketController.Portal())

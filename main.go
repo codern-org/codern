@@ -139,6 +139,7 @@ func initRepository(mysql *sqlx.DB) *domain.Repository {
 		User:       repository.NewUserRepository(mysql),
 		Workspace:  repository.NewWorkspaceRepository(mysql),
 		Assignment: repository.NewAssignmentRepository(mysql),
+		Survey:     repository.NewSurveyRepository(mysql),
 	}
 }
 
@@ -155,6 +156,7 @@ func initUsecase(
 	authUsecase := usecase.NewAuthUsecase(googleUsecase, sessionUsecase, userUsecase)
 	workspaceUsecase := usecase.NewWorkspaceUsecase(repository.Workspace, userUsecase)
 	assignmentUsecase := usecase.NewAssignmentUsecase(platform.SeaweedFs, repository.Assignment, publisher.Grading, workspaceUsecase)
+	surveyUsecase := usecase.NewSurveyUsecase(repository.Survey)
 
 	return &domain.Usecase{
 		Google:     googleUsecase,
@@ -163,6 +165,7 @@ func initUsecase(
 		Auth:       authUsecase,
 		Workspace:  workspaceUsecase,
 		Assignment: assignmentUsecase,
+		Survey:     surveyUsecase,
 	}
 }
 

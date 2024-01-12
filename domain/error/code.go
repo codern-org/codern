@@ -72,4 +72,6 @@ const (
 	ErrListTestcase   = 42000
 	ErrCreateTestcase = 42001
 	ErrDeleteTestcase = 42002
+
+	ErrCreateSurvey = 50000
 )
