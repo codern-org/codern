@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"fmt"
 	"net/mail"
 	"time"
 
@@ -128,6 +129,9 @@ func (u *userUsecase) Update(userId string, uu *domain.UpdateUser) error {
 		user.DisplayName = *uu.DisplayName
 	}
 	if uu.Profile != nil {
+		if user.ProfileUrl == "" {
+			user.ProfileUrl = fmt.Sprintf("/user/%s/profile", user.Id)
+		}
 		if err := u.seaweedfs.Upload(uu.Profile, 0, user.ProfileUrl); err != nil {
 			return errs.New(errs.ErrUpdateUser, "cannot upload profile of user id %s", userId, err)
 		}
