@@ -133,30 +133,49 @@ func (r *workspaceRepository) GetRole(userId string, workspaceId int) (*domain.W
 func (r *workspaceRepository) GetScoreboard(workspaceId int) ([]domain.WorkspaceRank, error) {
 	scoreboard := make([]domain.WorkspaceRank, 0)
 	err := r.db.Select(&scoreboard, `
-		SELECT
-			u.id, u.display_name, u.profile_url,
-			SUM(t1.score) AS score,
-			t1.completed_assignment
-		FROM (
+	SELECT
+		u.id, u.display_name, u.profile_url,
+		SUM(t1.score) AS score,
+		t1.completed_assignment,
+		(
 			SELECT
-				user_id,
-				MAX(score) AS score,
-				(
-					SELECT
-						COUNT(DISTINCT assignment_id)
-					FROM submission s2
-					WHERE
-						s2.user_id = s.user_id
-						AND status = 'COMPLETED'
-						AND assignment_id IN (SELECT id FROM assignment WHERE workspace_id = ? AND is_deleted = FALSE)
-				) AS completed_assignment
-			FROM submission s
-			WHERE assignment_id IN (SELECT id FROM assignment WHERE workspace_id = ? AND is_deleted = FALSE)
-			GROUP BY user_id, assignment_id
-		) t1
-		INNER JOIN user u ON u.id = t1.user_id
-		GROUP BY t1.user_id
-		ORDER BY score DESC
+				SUM(CASE
+					WHEN s.status = 'INCOMPLETED' THEN
+						CASE
+							WHEN (
+								SELECT COUNT(*)
+								FROM submission_result sr
+								WHERE sr.submission_id = s.id AND status = 'SYSTEM_FAIL_FETCH_FILE'
+							) > 0
+							THEN 0
+							ELSE 1
+						END
+					WHEN s.status = 'GRADING' THEN 0
+					ELSE 1
+				END)
+			FROM submission s WHERE s.user_id = u.id
+		) AS total_submission,
+		(SELECT MAX(submitted_at) AS last_submitted_at FROM submission s WHERE s.user_id = u.id) AS last_submitted_at
+	FROM (
+		SELECT
+			user_id,
+			MAX(score) AS score,
+			(
+				SELECT
+					COUNT(DISTINCT assignment_id)
+				FROM submission s2
+				WHERE
+					s2.user_id = s.user_id
+					AND status = 'COMPLETED'
+					AND assignment_id IN (SELECT id FROM assignment WHERE workspace_id = ? AND is_deleted = FALSE)
+			) AS completed_assignment
+		FROM submission s
+		WHERE assignment_id IN (SELECT id FROM assignment WHERE workspace_id = ? AND is_deleted = FALSE)
+		GROUP BY user_id, assignment_id
+	) t1
+	INNER JOIN user u ON u.id = t1.user_id
+	GROUP BY t1.user_id
+	ORDER BY score DESC, total_submission ASC, last_submitted_at ASC
 	`, workspaceId, workspaceId)
 	if err != nil {
 		return nil, fmt.Errorf("cannot query to get workspace scoreboard: %w", err)
