@@ -1,6 +1,9 @@
 package domain
 
-import "time"
+import (
+	"io"
+	"time"
+)
 
 type AuthProvider string
 
@@ -27,12 +30,17 @@ type User struct {
 	CreatedAt   time.Time    `json:"createdAt" db:"created_at"`
 }
 
+type UpdateUser struct {
+	DisplayName *string
+	Profile     io.Reader
+}
+
 type UserRepository interface {
 	Create(user *User) error
 	Get(id string) (*User, error)
 	GetBySessionId(id string) (*User, error)
 	GetByEmail(email string, provider AuthProvider) (*User, error)
-	UpdatePassword(id string, newHashedPassword string) error
+	Update(user *User) error
 }
 
 type UserUsecase interface {
@@ -41,5 +49,6 @@ type UserUsecase interface {
 	Get(id string) (*User, error)
 	GetBySessionId(id string) (*User, error)
 	GetByEmail(email string, provider AuthProvider) (*User, error)
+	Update(id string, user *UpdateUser) error
 	UpdatePassword(id string, oldPlainPassword string, newPlainPassword string) error
 }

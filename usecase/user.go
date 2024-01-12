@@ -6,20 +6,24 @@ import (
 
 	"github.com/codern-org/codern/domain"
 	errs "github.com/codern-org/codern/domain/error"
+	"github.com/codern-org/codern/platform"
 	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type userUsecase struct {
+	seaweedfs      *platform.SeaweedFs
 	userRepository domain.UserRepository
 	sessionUsecase domain.SessionUsecase
 }
 
 func NewUserUsecase(
+	seaweedfs *platform.SeaweedFs,
 	userRepository domain.UserRepository,
 	sessionUsecase domain.SessionUsecase,
 ) domain.UserUsecase {
 	return &userUsecase{
+		seaweedfs:      seaweedfs,
 		userRepository: userRepository,
 		sessionUsecase: sessionUsecase,
 	}
@@ -111,6 +115,30 @@ func (u *userUsecase) GetByEmail(email string, provider domain.AuthProvider) (*d
 	return user, nil
 }
 
+func (u *userUsecase) Update(userId string, uu *domain.UpdateUser) error {
+	user, err := u.Get(userId)
+	if err != nil {
+		return errs.New(errs.SameCode, "cannot get user id %d while updating user", userId, err)
+	}
+	if user == nil {
+		return errs.New(errs.ErrGetUser, "user id %d not found", userId)
+	}
+
+	if uu.DisplayName != nil {
+		user.DisplayName = *uu.DisplayName
+	}
+	if uu.Profile != nil {
+		if err := u.seaweedfs.Upload(uu.Profile, 0, user.ProfileUrl); err != nil {
+			return errs.New(errs.ErrUpdateUser, "cannot upload profile of user id %s", userId, err)
+		}
+	}
+
+	if err := u.userRepository.Update(user); err != nil {
+		return errs.New(errs.ErrUpdateUser, "cannot update user id %s", userId, err)
+	}
+	return nil
+}
+
 func (u *userUsecase) UpdatePassword(userId string, oldPassword string, newPassword string) error {
 	user, err := u.Get(userId)
 	if err != nil {
@@ -127,8 +155,9 @@ func (u *userUsecase) UpdatePassword(userId string, oldPassword string, newPassw
 	if err != nil {
 		return errs.New(errs.ErrUpdateUser, "cannot generate new password", err)
 	}
+	user.Password = string(hashedPassword)
 
-	if err := u.userRepository.UpdatePassword(userId, string(hashedPassword)); err != nil {
+	if err := u.userRepository.Update(user); err != nil {
 		return errs.New(errs.SameCode, "cannot update password", err)
 	}
 

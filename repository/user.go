@@ -72,13 +72,20 @@ func (r *userRepository) GetByEmail(
 	return &user, nil
 }
 
-func (r *userRepository) UpdatePassword(userId string, password string) error {
-	_, err := r.db.Exec(
-		"UPDATE user SET password = ? WHERE id = ?",
-		password, userId,
-	)
+func (r *userRepository) Update(user *domain.User) error {
+	_, err := r.db.NamedExec(`
+		UPDATE user
+		SET
+			email = :email,
+			password = :password,
+			display_name = :display_name,
+			profile_url = :profile_url,
+			account_type = :account_type,
+			provider = :provider
+		WHERE id = :id
+	`, user)
 	if err != nil {
-		return fmt.Errorf("cannot query to update password: %w", err)
+		return fmt.Errorf("cannot query to update user: %w", err)
 	}
 	return nil
 }

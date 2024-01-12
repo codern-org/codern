@@ -151,7 +151,7 @@ func initUsecase(
 ) *domain.Usecase {
 	googleUsecase := usecase.NewGoogleUsecase(cfg)
 	sessionUsecase := usecase.NewSessionUsecase(cfg, repository.Session)
-	userUsecase := usecase.NewUserUsecase(repository.User, sessionUsecase)
+	userUsecase := usecase.NewUserUsecase(platform.SeaweedFs, repository.User, sessionUsecase)
 	authUsecase := usecase.NewAuthUsecase(googleUsecase, sessionUsecase, userUsecase)
 	workspaceUsecase := usecase.NewWorkspaceUsecase(repository.Workspace, userUsecase)
 	assignmentUsecase := usecase.NewAssignmentUsecase(platform.SeaweedFs, repository.Assignment, publisher.Grading, workspaceUsecase)
