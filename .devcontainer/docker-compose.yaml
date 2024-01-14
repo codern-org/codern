@@ -9,20 +9,8 @@ services:
       - 3000:3000
     volumes:
       - ../:/workspace:cached
-  influxdb:
-    image: influxdb:2.7-alpine
-    volumes:
-      - ./.docker/influxdb/data/:/var/lib/influxdb2/
-      - ./.docker/influxdb/config/:/etc/influxdb2/
-    ports:
-      - 8086:8086
-    environment:
-      DOCKER_INFLUXDB_INIT_MODE: setup
-      DOCKER_INFLUXDB_INIT_USERNAME: root
-      DOCKER_INFLUXDB_INIT_PASSWORD: password
-      DOCKER_INFLUXDB_INIT_ORG: codern
-      DOCKER_INFLUXDB_INIT_BUCKET: api
-      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: token
+
+  # Data storage
   mysql:
     image: mysql:8
     ports:
@@ -39,6 +27,8 @@ services:
       PMA_HOST: mysql
       PMA_USER: root
       PMA_PASSWORD: password
+
+  # Message broker
   rabbitmq:
     image: rabbitmq:3.12-management-alpine
     ports:
@@ -47,6 +37,8 @@ services:
     environment:
       RABBITMQ_DEFAULT_USER: root
       RABBITMQ_DEFAULT_PASS: password
+
+  # File system
   seaweedfs-master:
     image: chrislusf/seaweedfs:dev
     ports:
@@ -74,9 +66,39 @@ services:
     depends_on:
       - seaweedfs-master
       - seaweedfs-volume
+
+  # Monitoring
   grafana:
     image: grafana/grafana-oss:10.0.3
     ports:
       - 4000:3000
     volumes:
       - ./.docker/grafana:/var/lib/grafana/
+
+  # Measurement & Logging (Datasources of Grafana)
+  influxdb:
+    image: influxdb:2.7-alpine
+    volumes:
+      - ./.docker/influxdb/data/:/var/lib/influxdb2/
+      - ./.docker/influxdb/config/:/etc/influxdb2/
+    ports:
+      - 8086:8086
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: root
+      DOCKER_INFLUXDB_INIT_PASSWORD: password
+      DOCKER_INFLUXDB_INIT_ORG: codern
+      DOCKER_INFLUXDB_INIT_BUCKET: api
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: token
+  prometheus:
+    image: prom/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yaml"
+    ports:
+      - 9090:9090
+    volumes:
+      - prom_data:/prometheus/
+      - ./.docker/prometheus/prometheus.yaml:/etc/prometheus/prometheus.yaml
+
+volumes:
+  prom_data:
