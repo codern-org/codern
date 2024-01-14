@@ -7,6 +7,9 @@ import (
 	"github.com/codern-org/codern/internal/constant"
 	"github.com/codern-org/codern/platform/server/response"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/adaptor"
+
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 type HealthController struct {
@@ -32,4 +35,8 @@ func (c *HealthController) Check(ctx *fiber.Ctx) error {
 	return response.NewSuccessResponse(ctx, fiber.StatusOK, fiber.Map{
 		"hostname": hostname,
 	})
+}
+
+func (c *HealthController) Metrics(ctx *fiber.Ctx) error {
+	return adaptor.HTTPHandler(promhttp.Handler())(ctx)
 }

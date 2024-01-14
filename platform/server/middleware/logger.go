@@ -70,7 +70,7 @@ func NewLogger(logger *zap.Logger, influxdb *platform.InfluxDb) fiber.Handler {
 		}
 
 		if chainErr == nil {
-			if path != "/health" { // Ignore health check path
+			if pathType != "healthcheck" {
 				logger.Info(logMessage, logFields...)
 			}
 		} else {

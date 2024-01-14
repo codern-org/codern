@@ -84,6 +84,8 @@ func main() {
 }
 
 func initPlatform(cfg *config.Config, logger *zap.Logger) *domain.Platform {
+	prometheus := platform.NewPrometheus()
+
 	start := time.Now()
 	influxdb, err := platform.NewInfluxDb(
 		cfg.Client.InfluxDb.Url,
@@ -122,9 +124,10 @@ func initPlatform(cfg *config.Config, logger *zap.Logger) *domain.Platform {
 	}
 	logger.Info("Connected to RabbitMq", zap.String("connection_time", time.Since(start).String()))
 
-	webSocketHub := platform.NewWebSocketHub()
+	webSocketHub := platform.NewWebSocketHub(prometheus)
 
 	return &domain.Platform{
+		Prometheus:   prometheus,
 		InfluxDb:     influxdb,
 		MySql:        mysql,
 		SeaweedFs:    seaweedfs,

@@ -6,6 +6,7 @@ import (
 )
 
 type Platform struct {
+	Prometheus   *platform.Prometheus
 	InfluxDb     *platform.InfluxDb
 	MySql        *sqlx.DB
 	SeaweedFs    *platform.SeaweedFs

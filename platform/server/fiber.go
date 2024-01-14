@@ -114,6 +114,7 @@ func (s *FiberServer) applyRoutes() {
 
 	api.Get("/", middleware.PathType("healthcheck"), healtController.Index)
 	api.Get("/health", middleware.PathType("healthcheck"), healtController.Check)
+	api.Get("/metrics", middleware.PathType("healthcheck"), healtController.Metrics)
 
 	api.Get("/join/:invitationId", authMiddleware, workspaceController.JoinByInvitationCode)
 

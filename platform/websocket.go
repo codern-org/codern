@@ -22,14 +22,16 @@ type WebSocketPayload struct {
 type WebSocketChannelHandler func(message interface{})
 
 type WebSocketHub struct {
-	mu       sync.Mutex
-	connPool map[string][]wsConnInfo
-	handlers map[string]WebSocketChannelHandler
+	prometheus *Prometheus
+	mu         sync.Mutex
+	connPool   map[string][]wsConnInfo
+	handlers   map[string]WebSocketChannelHandler
 }
 
-func NewWebSocketHub() *WebSocketHub {
+func NewWebSocketHub(prometheus *Prometheus) *WebSocketHub {
 	return &WebSocketHub{
-		connPool: make(map[string][]wsConnInfo),
+		prometheus: prometheus,
+		connPool:   make(map[string][]wsConnInfo),
 	}
 }
 
@@ -44,6 +46,7 @@ func (h *WebSocketHub) RegisterUser(userId string, conn *websocket.Conn) {
 		for i := range h.connPool[userId] {
 			h.connPool[userId][i].createdTime = time.Now()
 		}
+		h.prometheus.GetUniqueActiveUserGauge().Inc()
 	}
 
 	// Find the oldest connection of the same user id
@@ -61,7 +64,7 @@ func (h *WebSocketHub) RegisterUser(userId string, conn *websocket.Conn) {
 
 	oldest.conn = conn
 	oldest.createdTime = time.Now()
-
+	h.prometheus.GetActiveUserGauge().Inc()
 }
 
 func (h *WebSocketHub) UnregisterUser(userId string, conn *websocket.Conn) {
@@ -76,6 +79,19 @@ func (h *WebSocketHub) UnregisterUser(userId string, conn *websocket.Conn) {
 		}
 	}
 
+	needToCleanUp := true
+	for i := range h.connPool[userId] {
+		if h.connPool[userId][i].conn != nil {
+			needToCleanUp = false
+			break
+		}
+	}
+	if needToCleanUp {
+		h.connPool[userId] = nil
+		h.prometheus.GetUniqueActiveUserGauge().Dec()
+	}
+
+	h.prometheus.GetActiveUserGauge().Dec()
 }
 
 func (h *WebSocketHub) RegisterHandler(channel string, handler WebSocketChannelHandler) {
@@ -107,4 +123,19 @@ func (h *WebSocketHub) SendMessage(userId string, channel string, message interf
 	}
 
 	return nil
+}
+
+func (h *WebSocketHub) GetActiveCount() int {
+	count := 0
+	for i := range h.connPool {
+		if len(h.connPool[i]) > 0 {
+			for j := range h.connPool[i] {
+				if h.connPool[i][j].conn != nil {
+					count += 1
+					continue
+				}
+			}
+		}
+	}
+	return count
 }
