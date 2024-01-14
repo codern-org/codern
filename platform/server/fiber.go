@@ -11,6 +11,7 @@ import (
 	"github.com/codern-org/codern/platform/server/controller"
 	"github.com/codern-org/codern/platform/server/middleware"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cache"
 	"github.com/gofiber/fiber/v2/middleware/favicon"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
 	"github.com/gofiber/swagger"
@@ -132,7 +133,7 @@ func (s *FiberServer) applyRoutes() {
 	workspace.Get("/:workspaceId", authMiddleware, workspaceMiddleware, workspaceController.Get)
 	workspace.Patch("/:workspaceId", authMiddleware, workspaceMiddleware, workspaceController.Update)
 	workspace.Get("/:workspaceId/participants", authMiddleware, workspaceMiddleware, workspaceController.ListParticipant)
-	workspace.Get("/:workspaceId/scoreboard", authMiddleware, workspaceMiddleware, workspaceController.GetScoreboard)
+	workspace.Get("/:workspaceId/scoreboard", authMiddleware, workspaceMiddleware, cache.New(), workspaceController.GetScoreboard)
 	workspace.Get("/:workspaceId/submissions", authMiddleware, workspaceMiddleware, assignmentController.ListSubmissionByWorkspaceId)
 
 	invitation := workspace.Group("/:workspaceId/invitation", middleware.PathType("invitation"))
@@ -149,6 +150,9 @@ func (s *FiberServer) applyRoutes() {
 	assignment.Get("/:assignmentId/submissions", authMiddleware, workspaceMiddleware, assignmentController.ListSubmission)
 	assignment.Post("/:assignmentId/submissions", authMiddleware, workspaceMiddleware, assignmentController.CreateSubmission)
 
+	survey := s.app.Group("/survey")
+	survey.Post("/", authMiddleware, surveyController.CreateSurvey)
+
 	// File proxy from SeaweedFS
 	fs := s.app.Group("/file", middleware.PathType("file"), authMiddleware, fileMiddleware)
 	fs.Get("/user/:userId/profile", fileController.GetUserProfile)
@@ -157,9 +161,6 @@ func (s *FiberServer) applyRoutes() {
 	fs.Get("/workspaces/:workspaceId/assignments/:assignmentId/testcase/:testcaseFile", workspaceMiddleware, fileController.GetAssignmentTestcase)
 	fs.Get("/workspaces/:workspaceId/assignments/:assignmentId/submissions/:userId/:submissionId", workspaceMiddleware, fileController.GetSubmission)
 
-	survey := s.app.Group("/survey")
-	survey.Post("/", authMiddleware, surveyController.CreateSurvey)
-	
 	// WebSocket
 	ws := s.app.Group("/ws", authMiddleware, webSocketController.Upgrade)
 	ws.Get("/", webSocketController.Portal())
