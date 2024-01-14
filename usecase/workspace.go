@@ -122,7 +122,7 @@ func (u *workspaceUsecase) CreateParticipant(workspaceId int, userId string, rol
 	if err != nil {
 		return errs.New(errs.SameCode, "cannot validate if user id %s already exist in workspace", userId, err)
 	} else if isUserAlreadyJoined {
-		return errs.New(errs.ErrWorkspaceHasUser, "user id %s is already in workspace", userId)
+		return errs.New(errs.ErrWorkspaceAlreadyJoin, "user id %s is already in workspace", userId)
 	}
 
 	participant := &domain.WorkspaceParticipant{
@@ -157,8 +157,8 @@ func (u *workspaceUsecase) JoinByInvitation(
 	}
 
 	err = u.CreateParticipant(invitation.WorkspaceId, userId, domain.MemberRole)
-	if errs.HasCode(err, errs.ErrWorkspaceHasUser) {
-		return nil, errs.New(errs.ErrWorkspaceHasUser, "user id %s is already in workspace", userId)
+	if errs.HasCode(err, errs.ErrWorkspaceAlreadyJoin) {
+		return nil, errs.New(errs.SameCode, "user id %s is already in workspace", userId)
 	} else if err != nil {
 		return nil, errs.New(errs.SameCode, "cannot create participant while joining", err)
 	}

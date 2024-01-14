@@ -51,6 +51,7 @@ var DomainErrCodeToHttpStatus = map[int]int{
 	errs.ErrGetScoreboard:              fiber.StatusInternalServerError,
 	errs.ErrUpdateWorkspace:            fiber.StatusInternalServerError,
 	errs.ErrCreateWorkspaceParticipant: fiber.StatusInternalServerError,
+	errs.ErrWorkspaceAlreadyJoin:       fiber.StatusConflict,
 
 	errs.ErrCreateInvitation:      fiber.StatusInternalServerError,
 	errs.ErrGetInvitation:         fiber.StatusInternalServerError,
@@ -75,5 +76,5 @@ var DomainErrCodeToHttpStatus = map[int]int{
 	errs.ErrCreateTestcase: fiber.StatusInternalServerError,
 	errs.ErrDeleteTestcase: fiber.StatusInternalServerError,
 
-	errs.ErrCreateSurvey : fiber.StatusInternalServerError,
+	errs.ErrCreateSurvey: fiber.StatusInternalServerError,
 }
