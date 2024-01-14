@@ -145,9 +145,11 @@ func (r *workspaceRepository) GetScoreboard(workspaceId int) ([]domain.Workspace
 				FROM submission
 				WHERE
 					assignment_id IN (SELECT id FROM assignment WHERE workspace_id = ? AND is_deleted = FALSE)
-					AND id NOT IN (SELECT submission_id FROM submission_result WHERE status LIKE 'SYSTEM%')) as i1
-					WHERE i1.submitted_at < i1.due_date
-			)
+					AND id NOT IN (SELECT submission_id FROM submission_result WHERE status LIKE 'SYSTEM%')
+					AND status != 'GRADING'
+			) as i1
+			WHERE i1.submitted_at < i1.due_date
+		)
 		SELECT
 			t1.user_id AS id, u.display_name, u.profile_url, t1.score, t2.total_submission, t3.last_submitted_at,
 			(SELECT COUNT(DISTINCT assignment_id) FROM filtered_submission WHERE user_id = t1.user_id AND status = 'COMPLETED') AS completed_assignment
@@ -161,19 +163,20 @@ func (r *workspaceRepository) GetScoreboard(workspaceId int) ([]domain.Workspace
 			SELECT user_id, SUM(max_score) AS score
 			FROM user_assignment_score
 			GROUP BY user_id
-			ORDER BY score DESC) as t1
-				LEFT JOIN (
-					SELECT user_id, COUNT(*) as total_submission
-					FROM filtered_submission
-					WHERE (status = 'COMPLETED' OR status = 'INCOMPLETED')
-					GROUP BY user_id
-					ORDER BY total_submission ASC
-				) as t2 ON t1.user_id = t2.user_id
-				LEFT JOIN (
-					SELECT user_id, MAX(submitted_at) as last_submitted_at
-					FROM filtered_submission
-					GROUP BY user_id
-				) as t3 ON t1.user_id = t3.user_id
+			ORDER BY score DESC
+		) as t1
+		INNER JOIN (
+			SELECT user_id, COUNT(*) as total_submission
+			FROM filtered_submission
+			WHERE (status = 'COMPLETED' OR status = 'INCOMPLETED')
+			GROUP BY user_id
+			ORDER BY total_submission ASC
+		) as t2 ON t1.user_id = t2.user_id
+		INNER JOIN (
+			SELECT user_id, MAX(submitted_at) as last_submitted_at
+			FROM filtered_submission
+			GROUP BY user_id
+		) as t3 ON t1.user_id = t3.user_id
 		INNER JOIN user u ON u.id = t1.user_id
 		ORDER BY score DESC, t2.total_submission ASC, t3.last_submitted_at ASC
 	`, workspaceId)
