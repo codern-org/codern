@@ -54,13 +54,13 @@ type WorkspaceInvitation struct {
 }
 
 type WorkspaceRank struct {
-	UserId              string `json:"userId" db:"id"`
-	DisplayName         string `json:"displayName" db:"display_name"`
-	ProfileUrl          string `json:"profileUrl" db:"profile_url"`
-	Score               int    `json:"score" db:"score"`
-	CompletedAssignment int    `json:"completedAssignment" db:"completed_assignment"`
-	TotalSubmissions    int    `json:"totalSubmissions" db:"total_submission"`
-	LastSubmittedAt     string `json:"lastSubmittedAt" db:"last_submitted_at"`
+	UserId              string  `json:"userId" db:"id"`
+	DisplayName         string  `json:"displayName" db:"display_name"`
+	ProfileUrl          string  `json:"profileUrl" db:"profile_url"`
+	Score               float64 `json:"score" db:"score"`
+	CompletedAssignment int     `json:"completedAssignment" db:"completed_assignment"`
+	TotalSubmissions    int     `json:"totalSubmissions" db:"total_submission"`
+	LastSubmittedAt     string  `json:"lastSubmittedAt" db:"last_submitted_at"`
 }
 
 type WorkspaceRepository interface {

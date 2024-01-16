@@ -86,7 +86,7 @@ type Submission struct {
 	UserId         string           `json:"-" db:"user_id"`
 	Language       string           `json:"language" db:"language"`
 	Status         AssignmentStatus `json:"status" db:"status"`
-	Score          int              `json:"score" db:"score"`
+	Score          float64          `json:"score" db:"score"`
 	FileUrl        string           `json:"fileUrl" db:"file_url"`
 	SubmittedAt    time.Time        `json:"submittedAt" db:"submitted_at"`
 	CompilationLog *string          `json:"compilationLog,omitempty" db:"compilation_log"`
