@@ -9,6 +9,8 @@
 > [!NOTE]
 > This repository contains the API server of Codern only. If you are interested in exploring how the Codern user interface was created, please visit the link [here](https://github.com/codern-org/ui).
 
+We utilize [third-party software](https://github.com/Porama6400/GradingCore2), developed by Porama6400, for grading the source code submitted by users on our platform.
+
 ## Proposal
 
 ### Architecture
