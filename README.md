@@ -11,11 +11,9 @@
 
 We utilize [third-party software](https://github.com/Porama6400/GradingCore2), developed by Porama6400, for grading the source code submitted by users on our platform.
 
-## Proposal
+## 📚 Proposal
 
 ### Architecture
-
-<details><summary>Click to expand!</summary>
 
 ```mermaid
 %%{init: {'theme': 'neutral' } }%%
@@ -94,7 +92,15 @@ _Thanks to Uncle Bob, for the [article](https://blog.cleancoder.com/uncle-bob/20
 
 This project utilizes [InfluxDB](https://www.influxdata.com/), [Prometheus](https://prometheus.io/), [Grafana](https://grafana.com/) and to achieve a robust log and metric management system. With InfluxDB for time-series storage, Prometheus for monitoring, and Grafana for visualization, we ensure optimal performance and proactive issue detection.
 
-</details>
+### Early access stage
+
+We are currently in the beta version of the development phase, and we had the opportunity to run and exeperiment with our system design during the Bangmod Hacakthon 2024. This event, organized by [King Mongkut University of Technology Thonburi](https://www.kmutt.ac.th/), saw participation from approximately 200 schools across Thailand in this coding competition.
+
+During the 3-hour event, we encountered a high traffic load on our system, with around **`400,000 requests (40 req/s)`**. It's important to note that we were using only one instance of the main server (4 CPU cores / 8 GB RAM) and two instances of worker servers (1 CPU core / 1 GB RAM). Users had a positive experience, receiving code results quickly from our system, with an average grading latency of about 7 seconds.
+
+>We are proud to share that our system demonstrated an impressive success rate of **`99.99%`** on API requests during the Bangmod Hackathon 2024, showcasing the robustness and reliability of our platform even under high traffic conditions.
+
+<img src="https://i.imgur.com/OFHvqW5.png" width="650" />
 
 ## Contribution
 
@@ -102,6 +108,11 @@ There are many ways in which you can participate in this project, for example:
 
 - [Submit bugs and feature requests](https://github.com/codern-org/codern/issues).
 - Fixing issues and contributing directly to the code base by [submitting pull requests](https://github.com/codern-org/codern/pulls).
+
+## Supporters
+
+<img src="https://avatars.githubusercontent.com/u/42472574?s=200&v=4" height="100">&nbsp;&nbsp;
+<img src="https://i.imgur.com/6M4Xz4F.jpg" height="100">
 
 ## License
 
