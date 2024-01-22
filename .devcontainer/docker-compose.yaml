@@ -98,7 +98,7 @@ services:
       - 9090:9090
     volumes:
       - prom_data:/prometheus/
-      - ./.docker/prometheus/prometheus.yaml:/etc/prometheus/prometheus.yaml
+      - ./prometheus.yaml:/etc/prometheus/prometheus.yaml
 
 volumes:
   prom_data:
