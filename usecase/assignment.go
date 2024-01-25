@@ -3,6 +3,7 @@ package usecase
 import (
 	"fmt"
 	"io"
+	"math"
 
 	"github.com/codern-org/codern/domain"
 	errs "github.com/codern-org/codern/domain/error"
@@ -271,7 +272,7 @@ func (u *assignmentUsecase) CreateSubmissionResults(
 	compilationLog string,
 	results []domain.SubmissionResult,
 ) error {
-	status := domain.AssignmentStatusIncompleted
+	status := domain.AssignmentStatusComplete
 	score := 0.0
 
 	maxScore := assignment.GetMaxScore()
@@ -281,11 +282,13 @@ func (u *assignmentUsecase) CreateSubmissionResults(
 		for _, result := range results {
 			if result.IsPassed {
 				score += testcaseScore
+			} else {
+				status = domain.AssignmentStatusIncompleted
 			}
 		}
-		if score == maxScore {
-			status = domain.AssignmentStatusComplete
-		}
+		score = math.Round(score*100) / 100
+	} else {
+		status = domain.AssignmentStatusIncompleted
 	}
 
 	if err := u.assignmentRepository.CreateSubmissionResults(
