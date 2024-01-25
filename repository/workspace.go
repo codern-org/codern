@@ -178,7 +178,7 @@ func (r *workspaceRepository) GetScoreboard(workspaceId int) ([]domain.Workspace
 			GROUP BY user_id
 		) as t3 ON t1.user_id = t3.user_id
 		INNER JOIN user u ON u.id = t1.user_id
-		ORDER BY score DESC, t2.total_submission ASC, t3.last_submitted_at ASC
+		ORDER BY score DESC, t3.last_submitted_at ASC, t2.total_submission ASC
 	`, workspaceId)
 	if err != nil {
 		return nil, fmt.Errorf("cannot query to get workspace scoreboard: %w", err)
