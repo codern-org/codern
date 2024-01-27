@@ -237,7 +237,7 @@ func (u *assignmentUsecase) CreateSubmission(
 	submission := &domain.Submission{
 		Id:           id,
 		AssignmentId: assignmentId,
-		UserId:       userId,
+		SubmitterId:  userId,
 		Language:     language,
 		FileUrl:      filePath,
 	}
@@ -348,26 +348,29 @@ func (u *assignmentUsecase) List(userId string, workspaceId int) ([]domain.Assig
 }
 
 func (u *assignmentUsecase) ListSubmission(userId string, assignmentId int) ([]domain.Submission, error) {
-	submissions, err := u.assignmentRepository.ListSubmission(&userId, &assignmentId, nil)
+	submissions, err := u.assignmentRepository.ListSubmission(&userId, &assignmentId)
 	if err != nil {
 		return nil, errs.New(errs.ErrListSubmission, "cannot list submission", err)
 	}
 	return submissions, nil
 }
 
-func (u *assignmentUsecase) ListSubmissionByWorkspaceId(userId string, workspaceId int) ([]domain.Submission, error) {
+func (u *assignmentUsecase) ListAllSubmission(
+	userId string,
+	workspaceId int,
+	assignmentId int,
+) ([]domain.Submission, error) {
 	isAuthorized, err := u.CheckPerm(userId, workspaceId)
 	if err != nil {
-		return nil, errs.New(errs.SameCode, "cannot get workspace role while list submission", err)
+		return nil, errs.New(errs.SameCode, "cannot get workspace role while list all submission", err)
 	}
 	if !isAuthorized {
 		return nil, errs.New(errs.ErrWorkspaceNoPerm, "permission denied")
 	}
 
-	submissions, err := u.assignmentRepository.ListSubmission(nil, nil, &workspaceId)
+	submissions, err := u.assignmentRepository.ListSubmission(nil, &assignmentId)
 	if err != nil {
-		return nil, errs.New(errs.ErrListSubmission, "cannot list submission", err)
+		return nil, errs.New(errs.ErrListSubmission, "cannot list all submission", err)
 	}
-
 	return submissions, nil
 }

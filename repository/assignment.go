@@ -336,7 +336,6 @@ func (r *assignmentRepository) listTestcase(assignmentIds []int) ([]domain.Testc
 func (r *assignmentRepository) ListSubmission(
 	userId *string,
 	assignmentId *int,
-	workspaceId *int,
 ) ([]domain.Submission, error) {
 	submissions := make([]domain.Submission, 0)
 
@@ -353,15 +352,12 @@ func (r *assignmentRepository) ListSubmission(
 		whereQueries = append(whereQueries, "s.assignment_id = ?")
 	}
 
-	if workspaceId != nil {
-		queryArgs = append(queryArgs, workspaceId)
-		whereQueries = append(whereQueries, "a.workspace_id = ?")
-	}
-
 	whereQueryString := fmt.Sprintf("WHERE %s", strings.Join(whereQueries, " AND "))
 	query := fmt.Sprintf(`
 		SELECT
 			s.*,
+			u.display_name AS user_display_name,
+			u.profile_url AS user_profile_url,
 			CASE
 				WHEN s.submitted_at > a.due_date THEN TRUE
 				WHEN s.submitted_at < a.due_date THEN FALSE
@@ -369,6 +365,7 @@ func (r *assignmentRepository) ListSubmission(
 				ELSE FALSE
 			END AS is_late
 		FROM submission s
+		INNER JOIN user u ON u.id = s.user_id
 		INNER JOIN assignment a ON a.id = s.assignment_id
 		%s
 	`, whereQueryString)

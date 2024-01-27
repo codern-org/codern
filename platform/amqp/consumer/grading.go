@@ -96,13 +96,13 @@ func (c *gradingConsumer) ConsumeSubmssionResult() error {
 					"language": submission.Language,
 				},
 				map[string]interface{}{
-					"userId":       submission.UserId,
+					"userId":       submission.SubmitterId,
 					"assignmentId": submission.AssignmentId,
 					"latency":      time.Since(message.Metadata.StartTime).Nanoseconds(),
 				},
 			)
 
-			if err := c.wsHub.SendMessage(submission.UserId, "onSubmissionUpdate", submission); err != nil {
+			if err := c.wsHub.SendMessage(submission.SubmitterId, "onSubmissionUpdate", submission); err != nil {
 				delivery.Reject(false)
 				c.logger.Error("Cannot send websocket message after consuming submission result", zap.Error(err))
 				continue

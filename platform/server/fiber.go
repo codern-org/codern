@@ -135,7 +135,6 @@ func (s *FiberServer) applyRoutes() {
 	workspace.Patch("/:workspaceId", authMiddleware, workspaceMiddleware, workspaceController.Update)
 	workspace.Get("/:workspaceId/participants", authMiddleware, workspaceMiddleware, workspaceController.ListParticipant)
 	workspace.Get("/:workspaceId/scoreboard", authMiddleware, workspaceMiddleware, cache.New(), workspaceController.GetScoreboard)
-	workspace.Get("/:workspaceId/submissions", authMiddleware, workspaceMiddleware, assignmentController.ListSubmissionByWorkspaceId)
 
 	invitation := workspace.Group("/:workspaceId/invitation", middleware.PathType("invitation"))
 	invitation.Get("/", authMiddleware, workspaceMiddleware, workspaceController.GetInvitations)

@@ -136,30 +136,21 @@ func (c *AssignmentController) List(ctx *fiber.Ctx) error {
 // @Param 			sid header string true "Session ID"
 // @Router 			/workspaces/{workspaceId}/assignments/{assignmentId}/submissions [get]
 func (c *AssignmentController) ListSubmission(ctx *fiber.Ctx) error {
-	var pl payload.AssignmentPath
+	var pl payload.ListSubmissionPayload
 	if ok, err := c.validator.Validate(&pl, ctx); !ok {
 		return err
 	}
 
 	user := middleware.GetUserFromCtx(ctx)
+	var submissions []domain.Submission
+	var err error
 
-	submissions, err := c.assignmentUsecase.ListSubmission(user.Id, pl.AssignmentId)
-	if err != nil {
-		return err
+	if pl.All {
+		submissions, err = c.assignmentUsecase.ListAllSubmission(user.Id, pl.WorkspaceId, pl.AssignmentId)
+	} else {
+		submissions, err = c.assignmentUsecase.ListSubmission(user.Id, pl.AssignmentId)
 	}
 
-	return response.NewSuccessResponse(ctx, fiber.StatusOK, submissions)
-}
-
-func (c *AssignmentController) ListSubmissionByWorkspaceId(ctx *fiber.Ctx) error {
-	var pl payload.WorkspacePath
-	if ok, err := c.validator.Validate(&pl, ctx); !ok {
-		return err
-	}
-
-	user := middleware.GetUserFromCtx(ctx)
-
-	submissions, err := c.assignmentUsecase.ListSubmissionByWorkspaceId(user.Id, pl.WorkspaceId)
 	if err != nil {
 		return err
 	}

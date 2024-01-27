@@ -81,16 +81,18 @@ type AssignmentWithStatus struct {
 }
 
 type Submission struct {
-	Id             int              `json:"id" db:"id"`
-	AssignmentId   int              `json:"-" db:"assignment_id"`
-	UserId         string           `json:"-" db:"user_id"`
-	Language       string           `json:"language" db:"language"`
-	Status         AssignmentStatus `json:"status" db:"status"`
-	Score          float64          `json:"score" db:"score"`
-	FileUrl        string           `json:"fileUrl" db:"file_url"`
-	SubmittedAt    time.Time        `json:"submittedAt" db:"submitted_at"`
-	CompilationLog *string          `json:"compilationLog,omitempty" db:"compilation_log"`
-	IsLate         bool             `json:"isLate" db:"is_late"`
+	Id                  int              `json:"id" db:"id"`
+	AssignmentId        int              `json:"-" db:"assignment_id"`
+	SubmitterId         string           `json:"submitterId" db:"user_id"`
+	SubmitterName       string           `json:"submitterName" db:"user_display_name"`
+	SubmitterProfileUrl string           `json:"submitterProfileUrl" db:"user_profile_url"`
+	Language            string           `json:"language" db:"language"`
+	Status              AssignmentStatus `json:"status" db:"status"`
+	Score               float64          `json:"score" db:"score"`
+	FileUrl             string           `json:"fileUrl" db:"file_url"`
+	SubmittedAt         time.Time        `json:"submittedAt" db:"submitted_at"`
+	CompilationLog      *string          `json:"compilationLog,omitempty" db:"compilation_log"`
+	IsLate              bool             `json:"isLate" db:"is_late"`
 
 	// Always aggregation
 	Results []SubmissionResult `json:"results,omitempty"`
@@ -141,7 +143,7 @@ type AssignmentRepository interface {
 	GetWithStatus(id int, userId string) (*AssignmentWithStatus, error)
 	GetSubmission(id int) (*Submission, error)
 	List(userId string, workspaceId int) ([]AssignmentWithStatus, error)
-	ListSubmission(userId *string, assignmentId *int, workspaceId *int) ([]Submission, error)
+	ListSubmission(userId *string, assignmentId *int) ([]Submission, error)
 }
 
 type AssignmentUsecase interface {
@@ -158,5 +160,5 @@ type AssignmentUsecase interface {
 	GetSubmission(id int) (*Submission, error)
 	List(userId string, workspaceId int) ([]AssignmentWithStatus, error)
 	ListSubmission(userId string, assignmentId int) ([]Submission, error)
-	ListSubmissionByWorkspaceId(userId string, workspaceId int) ([]Submission, error)
+	ListAllSubmission(userId string, workspaceId int, assignmentId int) ([]Submission, error)
 }

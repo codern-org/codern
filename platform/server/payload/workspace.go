@@ -19,6 +19,11 @@ type CreateInvitationPayload struct {
 	ValidUntil time.Time `json:"validUntil" validate:"required"`
 }
 
+type ListSubmissionPayload struct {
+	AssignmentPath
+	All bool `query:"all"`
+}
+
 type UpdateWorkspacePayload struct {
 	WorkspacePath
 	Name     *string `json:"name"`
