@@ -33,4 +33,4 @@ auth:
   session:
     prefix: $
     secret: secret
-    maxAge: 604800 # 7 days in second unit
+    maxAge: 1296000 # 15 days in second unit

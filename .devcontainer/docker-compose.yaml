@@ -58,7 +58,7 @@ services:
   seaweedfs-filer:
     image: chrislusf/seaweedfs:dev
     ports:
-      - 8889:8888
+      - 8888:8888
       - 18888:18888
     volumes:
       - ./.docker/seaweedfs/filerldb2/:/data/filerldb2/
