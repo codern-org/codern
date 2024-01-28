@@ -4,15 +4,21 @@ import (
 	"time"
 )
 
+type RawWorkspace struct {
+	Id               int       `json:"id" db:"id"`
+	Name             string    `json:"name" db:"name"`
+	ProfileUrl       string    `json:"profileUrl" db:"profile_url"`
+	CreatedAt        time.Time `json:"createdAt" db:"created_at"`
+	OwnerName        string    `json:"ownerName" db:"owner_name"`
+	OwnerProfileUrl  string    `json:"ownerProfileUrl" db:"owner_profile_url"`
+	ParticipantCount int       `json:"participantCount" db:"participant_count"`
+	TotalAssignment  int       `json:"totalAssignment" db:"total_assignment"`
+	IsOpenScoreboard bool      `json:"-" db:"is_open_scoreboard"`
+}
+
 type Workspace struct {
-	Id                  int       `json:"id" db:"id"`
-	Name                string    `json:"name" db:"name"`
-	ProfileUrl          string    `json:"profileUrl" db:"profile_url"`
-	CreatedAt           time.Time `json:"createdAt" db:"created_at"`
-	OwnerName           string    `json:"ownerName" db:"owner_name"`
-	OwnerProfileUrl     string    `json:"ownerProfileUrl" db:"owner_profile_url"`
-	ParticipantCount    int       `json:"participantCount" db:"participant_count"`
-	TotalAssignment     int       `json:"totalAssignment" db:"total_assignment"`
+	RawWorkspace
+
 	CompletedAssignment int       `json:"completedAssignment" db:"completed_assignment"`
 	Role                string    `json:"role" db:"role"`
 	Favorite            bool      `json:"favorite" db:"favorite"`
@@ -72,6 +78,7 @@ type WorkspaceRepository interface {
 	HasUser(userId string, workspaceId int) (bool, error)
 	HasAssignment(assignmentId int, workspaceId int) (bool, error)
 	Get(id int, userId string) (*Workspace, error)
+	GetRaw(id int) (*RawWorkspace, error)
 	GetRole(userId string, workspaceId int) (*WorkspaceRole, error)
 	GetScoreboard(workspaceId int) ([]WorkspaceRank, error)
 	List(userId string) ([]Workspace, error)
@@ -91,6 +98,7 @@ type WorkspaceUsecase interface {
 	HasUser(userId string, workspaceId int) (bool, error)
 	HasAssignment(assignmentId int, workspaceId int) (bool, error)
 	Get(id int, userId string) (*Workspace, error)
+	GetRaw(id int) (*RawWorkspace, error)
 	GetRole(userId string, workspaceId int) (*WorkspaceRole, error)
 	GetScoreboard(workspaceId int) ([]WorkspaceRank, error)
 	CheckPerm(userId string, workspaceId int) (bool, error)

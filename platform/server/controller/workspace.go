@@ -80,8 +80,15 @@ func (c *WorkspaceController) Get(ctx *fiber.Ctx) error {
 	}
 
 	user := middleware.GetUserFromCtx(ctx)
+	var workspace interface{}
+	var err error
 
-	workspace, err := c.workspaceUsecase.Get(pl.WorkspaceId, user.Id)
+	if user != nil {
+		workspace, err = c.workspaceUsecase.Get(pl.WorkspaceId, user.Id)
+	} else {
+		workspace, err = c.workspaceUsecase.GetRaw(pl.WorkspaceId)
+	}
+
 	if err != nil {
 		return err
 	} else if workspace == nil {

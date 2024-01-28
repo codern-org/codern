@@ -115,6 +115,27 @@ func (r *workspaceRepository) Get(id int, userId string) (*domain.Workspace, err
 	return &workspaces[0], nil
 }
 
+func (r *workspaceRepository) GetRaw(id int) (*domain.RawWorkspace, error) {
+	var workspace domain.RawWorkspace
+	err := r.db.Get(&workspace, `
+		SELECT
+			w.*,
+			user.display_name AS owner_name,
+			user.profile_url AS owner_profile_url,
+			(SELECT COUNT(*) FROM workspace_participant wp WHERE wp.workspace_id = w.id) AS participant_count,
+			(SELECT COUNT(*) FROM assignment a WHERE a.workspace_id = w.id AND is_deleted = FALSE) AS total_assignment
+		FROM workspace w
+		INNER JOIN user ON user.id = (SELECT user_id FROM workspace_participant WHERE workspace_id = w.id AND role = 'OWNER')
+		WHERE w.id IN (?)
+	`, id)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	} else if err != nil {
+		return nil, fmt.Errorf("cannot query to get raw workspace: %w", err)
+	}
+	return &workspace, nil
+}
+
 func (r *workspaceRepository) GetRole(userId string, workspaceId int) (*domain.WorkspaceRole, error) {
 	var role domain.WorkspaceRole
 	err := r.db.Get(

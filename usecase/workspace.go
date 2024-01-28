@@ -16,11 +16,11 @@ type workspaceUsecase struct {
 
 func NewWorkspaceUsecase(
 	workspaceRepository domain.WorkspaceRepository,
-	useruserUsecase domain.UserUsecase,
+	userUsecase domain.UserUsecase,
 ) domain.WorkspaceUsecase {
 	return &workspaceUsecase{
 		workspaceRepository: workspaceRepository,
-		userUsecase:         useruserUsecase,
+		userUsecase:         userUsecase,
 	}
 }
 
@@ -197,6 +197,14 @@ func (u *workspaceUsecase) Get(id int, userId string) (*domain.Workspace, error)
 	}
 	if workspace != nil {
 		go u.workspaceRepository.UpdateRecent(userId, workspace.Id)
+	}
+	return workspace, nil
+}
+
+func (u *workspaceUsecase) GetRaw(id int) (*domain.RawWorkspace, error) {
+	workspace, err := u.workspaceRepository.GetRaw(id)
+	if err != nil {
+		return nil, errs.New(errs.ErrGetWorkspace, "cannot get raw workspace id %d", id, err)
 	}
 	return workspace, nil
 }
