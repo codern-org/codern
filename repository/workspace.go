@@ -147,6 +147,7 @@ func (r *workspaceRepository) GetScoreboard(workspaceId int) ([]domain.Workspace
 					assignment_id IN (SELECT id FROM assignment WHERE workspace_id = ? AND is_deleted = FALSE)
 					AND id NOT IN (SELECT submission_id FROM submission_result WHERE status LIKE 'SYSTEM%')
 					AND status != 'GRADING'
+					AND user_id NOT IN (SELECT user_id FROM workspace_participant WHERE workspace_id = ? AND role IN ('ADMIN', 'OWNER'))
 			) as i1
 			WHERE i1.submitted_at < i1.due_date
 		)
@@ -179,7 +180,7 @@ func (r *workspaceRepository) GetScoreboard(workspaceId int) ([]domain.Workspace
 		) as t3 ON t1.user_id = t3.user_id
 		INNER JOIN user u ON u.id = t1.user_id
 		ORDER BY score DESC, t3.last_submitted_at ASC, t2.total_submission ASC
-	`, workspaceId)
+	`, workspaceId, workspaceId)
 	if err != nil {
 		return nil, fmt.Errorf("cannot query to get workspace scoreboard: %w", err)
 	}
