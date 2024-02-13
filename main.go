@@ -75,10 +75,10 @@ func main() {
 	logger.Info("Running cleanup tasks")
 
 	// Clean up
-	platform.InfluxDb.Close()
-	platform.MySql.Close()
-	platform.SeaweedFs.Close()
 	platform.RabbitMq.Close()
+	platform.SeaweedFs.Close()
+	platform.MySql.Close()
+	platform.InfluxDb.Close()
 
 	logger.Info("Server was successful shutdown")
 }

@@ -1,7 +1,6 @@
 package publisher
 
 import (
-	"context"
 	"encoding/json"
 	"net/url"
 	"time"
@@ -11,18 +10,17 @@ import (
 	"github.com/codern-org/codern/internal/config"
 	"github.com/codern-org/codern/platform"
 	payload "github.com/codern-org/codern/platform/amqp"
-	amqp "github.com/rabbitmq/amqp091-go"
 )
 
 type gradingPublisher struct {
-	cfg *config.Config
-	ch  *amqp.Channel
+	cfg      *config.Config
+	rabbitMq *platform.RabbitMq
 }
 
 func NewGradingPublisher(cfg *config.Config, rabbitmq *platform.RabbitMq) domain.GradingPublisher {
 	return &gradingPublisher{
-		cfg: cfg,
-		ch:  rabbitmq.Ch,
+		cfg:      cfg,
+		rabbitMq: rabbitmq,
 	}
 }
 
@@ -78,12 +76,7 @@ func (p *gradingPublisher) Grade(assignment *domain.AssignmentWithStatus, submis
 		return errs.New(errs.ErrGradingRequest, "cannot marshal grading request message", err)
 	}
 
-	err = p.ch.PublishWithContext(context.Background(), "grading", "request", false, false, amqp.Publishing{
-		ContentType:  "application/json",
-		Body:         body,
-		DeliveryMode: amqp.Persistent,
-	})
-	if err != nil {
+	if err := p.rabbitMq.Publish("grading", "request", body); err != nil {
 		return errs.New(errs.ErrGradingRequest, "cannot publish grading request message", err)
 	}
 
