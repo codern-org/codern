@@ -25,6 +25,28 @@ func NewWorkspaceController(
 	}
 }
 
+func (c *WorkspaceController) Create(ctx *fiber.Ctx) error {
+	var pl payload.CreateWorkspacePayload
+	if ok, err := c.validator.Validate(&pl, ctx); !ok {
+		return err
+	}
+
+	user := middleware.GetUserFromCtx(ctx)
+
+	workspace, err := c.workspaceUsecase.Create(
+		user.Id,
+		&domain.CreateWorkspace{
+			Name:    pl.Name,
+			Profile: pl.Profile,
+		},
+	)
+	if err != nil {
+		return err
+	}
+
+	return response.NewSuccessResponse(ctx, fiber.StatusOK, workspace)
+}
+
 // List godoc
 //
 // @Summary 		List workspaces

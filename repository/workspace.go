@@ -17,6 +17,26 @@ func NewWorkspaceRepository(db *sqlx.DB) domain.WorkspaceRepository {
 	return &workspaceRepository{db: db}
 }
 
+func (r *workspaceRepository) Create(userId string, workspace *domain.RawWorkspace) error {
+	_, err := r.db.NamedExec(`
+		INSERT INTO workspace (id, name, profile_url, created_at)
+		VALUES (:id, :name, :profile_url, :created_at)
+	`, workspace)
+	if err != nil {
+		return fmt.Errorf("cannot query to create workspace: %w", err)
+	}
+
+	_, err = r.db.Exec(`
+		INSERT INTO workspace_participant (workspace_id, user_id, role, favorite, joined_at, recently_visited_at)
+		VALUES (?, ?, ?, ?, ?, ?)
+	`, workspace.Id, userId, domain.OwnerRole, false, time.Now(), time.Now())
+	if err != nil {
+		return fmt.Errorf("cannot query to insert owner into created workspace: %w", err)
+	}
+
+	return nil
+}
+
 func (r *workspaceRepository) CreateInvitation(invitation *domain.WorkspaceInvitation) error {
 	_, err := r.db.Exec(`
 		INSERT INTO workspace_invitation (id, workspace_id, inviter_id, created_at, valid_at, valid_until)

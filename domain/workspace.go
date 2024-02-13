@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"io"
 	"time"
 )
 
@@ -26,8 +27,14 @@ type Workspace struct {
 	RecentlyVisitedAt   time.Time `json:"recentlyVisitedAt" db:"recently_visited_at"`
 }
 
+type CreateWorkspace struct {
+	Name    string `validate:"required"`
+	Profile io.Reader
+}
+
 type UpdateWorkspace struct {
 	Name     *string
+	Profile  io.Reader
 	Favorite *bool
 }
 
@@ -70,6 +77,7 @@ type WorkspaceRank struct {
 }
 
 type WorkspaceRepository interface {
+	Create(userId string, workspace *RawWorkspace) error
 	CreateInvitation(invitation *WorkspaceInvitation) error
 	GetInvitation(id string) (*WorkspaceInvitation, error)
 	GetInvitations(workspaceId int) ([]WorkspaceInvitation, error)
@@ -89,6 +97,7 @@ type WorkspaceRepository interface {
 }
 
 type WorkspaceUsecase interface {
+	Create(userId string, workspace *CreateWorkspace) (*RawWorkspace, error)
 	CreateInvitation(workspaceId int, inviterId string, validAt time.Time, validUntil time.Time) (string, error)
 	GetInvitation(id string) (*WorkspaceInvitation, error)
 	GetInvitations(workspaceId int) ([]WorkspaceInvitation, error)
