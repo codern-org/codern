@@ -314,7 +314,9 @@ func (u *workspaceUsecase) Update(userId string, workspaceId int, uw *domain.Upd
 		workspace.Favorite = *uw.Favorite
 	}
 
-	if err := u.workspaceRepository.Update(workspace); err != nil {
+	// TODO: Add code for uploading profile picture to seaweedfs
+
+	if err := u.workspaceRepository.Update(userId, workspace); err != nil {
 		return errs.New(errs.ErrUpdateWorkspace, "cannot update workspace id %d", workspaceId, err)
 	}
 

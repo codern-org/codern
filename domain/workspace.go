@@ -91,7 +91,7 @@ type WorkspaceRepository interface {
 	GetScoreboard(workspaceId int) ([]WorkspaceRank, error)
 	List(userId string) ([]Workspace, error)
 	ListParticipant(workspaceId int) ([]WorkspaceParticipant, error)
-	Update(workspace *Workspace) error
+	Update(userId string, workspace *Workspace) error
 	UpdateRecent(userId string, workspaceId int) error
 	UpdateRole(userId string, workspaceId int, role WorkspaceRole) error
 }
