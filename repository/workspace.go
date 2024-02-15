@@ -299,26 +299,45 @@ func (r *workspaceRepository) ListParticipant(
 	return participants, nil
 }
 
-func (r *workspaceRepository) Update(userId string, workspace *domain.Workspace) error {
-	_, err := r.db.NamedExec(`
+func (r *workspaceRepository) Update(userId string, workspace *domain.Workspace) (retErr error) {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("cannot begin transaction to update workspace: %w", err)
+	}
+
+	defer func() {
+		if err := recover(); err != nil {
+			if rbErr := tx.Rollback(); rbErr != nil {
+				retErr = fmt.Errorf("cannot rollback transaction: %w", err.(error))
+			} else {
+				retErr = err.(error)
+			}
+		}
+	}()
+
+	_, err = tx.NamedExec(`
 		UPDATE workspace SET name = :name WHERE id = :id;
 	`, workspace.RawWorkspace)
 	if err != nil {
 		return fmt.Errorf("cannot query to update workspace: %w", err)
 	}
 
-	_, err = r.db.NamedExec(`
+	_, err = tx.NamedExec(`
 		UPDATE workspace SET profile_url = :profile_url WHERE id = :id;
 	`, workspace.RawWorkspace)
 	if err != nil {
 		return fmt.Errorf("cannot query to update workspace profile: %w", err)
 	}
 
-	_, err = r.db.Exec(`
+	_, err = tx.Exec(`
 		UPDATE workspace_participant SET favorite = ? WHERE workspace_id = ? AND user_id = ?;
 	`, workspace.Favorite, workspace.Id, userId)
 	if err != nil {
 		return fmt.Errorf("cannot query to update favorite flag of workspace: %w", err)
+	}
+
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("cannot commit transaction to update workspace: %w", err)
 	}
 
 	return nil
