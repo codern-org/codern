@@ -32,7 +32,7 @@ type ListSubmissionPayload struct {
 
 type UpdateWorkspacePayload struct {
 	WorkspacePath
-	Name     *string `json:"name"`
-	Favorite *bool   `json:"favorite"`
-	Profile  multipart.File
+	Name     *string        `json:"name"`
+	Favorite *bool          `json:"favorite"`
+	Profile  multipart.File `file:"profile"`
 }

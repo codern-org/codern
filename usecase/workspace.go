@@ -8,20 +8,24 @@ import (
 	errs "github.com/codern-org/codern/domain/error"
 	"github.com/codern-org/codern/internal/constant"
 	"github.com/codern-org/codern/internal/generator"
+	"github.com/codern-org/codern/platform"
 )
 
 type workspaceUsecase struct {
+	seaweedfs           *platform.SeaweedFs
 	workspaceRepository domain.WorkspaceRepository
 	userRepository      domain.UserRepository
 	userUsecase         domain.UserUsecase
 }
 
 func NewWorkspaceUsecase(
+	seaweedfs *platform.SeaweedFs,
 	workspaceRepository domain.WorkspaceRepository,
 	userRepository domain.UserRepository,
 	userUsecase domain.UserUsecase,
 ) domain.WorkspaceUsecase {
 	return &workspaceUsecase{
+		seaweedfs:           seaweedfs,
 		workspaceRepository: workspaceRepository,
 		userRepository:      userRepository,
 		userUsecase:         userUsecase,
@@ -45,6 +49,9 @@ func (u *workspaceUsecase) Create(creatorId string, cw *domain.CreateWorkspace) 
 		profilePath = constant.DefaultProfileUrl
 	} else {
 		profilePath = fmt.Sprintf("/workspaces/%d/profile", id)
+		if err := u.seaweedfs.Upload(cw.Profile, 0, profilePath); err != nil {
+			return nil, errs.New(errs.ErrCreateWorkspace, "cannot upload profile of workspace id %d while creating workspace", id, err)
+		}
 	}
 
 	workspace := &domain.RawWorkspace{
@@ -313,8 +320,14 @@ func (u *workspaceUsecase) Update(userId string, workspaceId int, uw *domain.Upd
 	if uw.Favorite != nil {
 		workspace.Favorite = *uw.Favorite
 	}
-
-	// TODO: Add code for uploading profile picture to seaweedfs
+	if uw.Profile != nil {
+		if workspace.ProfileUrl == constant.DefaultProfileUrl {
+			workspace.ProfileUrl = fmt.Sprintf("/workspaces/%d/profile", workspaceId)
+		}
+		if err := u.seaweedfs.Upload(uw.Profile, 0, workspace.ProfileUrl); err != nil {
+			return errs.New(errs.ErrUpdateWorkspace, "cannot upload profile of workspace id %d while updating workspace", workspaceId, err)
+		}
+	}
 
 	if err := u.workspaceRepository.Update(userId, workspace); err != nil {
 		return errs.New(errs.ErrUpdateWorkspace, "cannot update workspace id %d", workspaceId, err)

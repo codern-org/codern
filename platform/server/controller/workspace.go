@@ -207,6 +207,7 @@ func (c *WorkspaceController) Update(ctx *fiber.Ctx) error {
 		&domain.UpdateWorkspace{
 			Name:     pl.Name,
 			Favorite: pl.Favorite,
+			Profile:  pl.Profile,
 		},
 	); err != nil {
 		return err
