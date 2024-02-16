@@ -15,6 +15,7 @@ type RawWorkspace struct {
 	ParticipantCount int       `json:"participantCount" db:"participant_count"`
 	TotalAssignment  int       `json:"totalAssignment" db:"total_assignment"`
 	IsOpenScoreboard bool      `json:"-" db:"is_open_scoreboard"`
+	IsDeleted        bool      `json:"-" db:"is_deleted"`
 }
 
 type Workspace struct {

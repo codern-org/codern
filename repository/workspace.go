@@ -131,6 +131,8 @@ func (r *workspaceRepository) Get(id int, userId string) (*domain.Workspace, err
 		return nil, fmt.Errorf("cannot query to get workspace: %w", err)
 	} else if len(workspaces) == 0 {
 		return nil, nil
+	} else if workspaces[0].IsDeleted {
+		return nil, nil
 	}
 	return &workspaces[0], nil
 }
@@ -230,11 +232,13 @@ func (r *workspaceRepository) GetScoreboard(workspaceId int) ([]domain.Workspace
 
 func (r *workspaceRepository) List(userId string) ([]domain.Workspace, error) {
 	var workspaceIds []int
-	err := r.db.Select(
-		&workspaceIds,
-		"SELECT workspace_id FROM workspace_participant WHERE user_id = ?",
-		userId,
-	)
+
+	err := r.db.Select(&workspaceIds, `
+		SELECT wp.workspace_id
+		FROM workspace_participant wp
+		INNER JOIN workspace w ON wp.workspace_id = w.id
+		WHERE wp.user_id = ? AND is_deleted IS FALSE;
+	`, userId)
 	if err != nil {
 		return nil, fmt.Errorf("cannot query to list workspace id: %w", err)
 	}
