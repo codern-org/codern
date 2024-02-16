@@ -137,7 +137,6 @@ func (s *FiberServer) applyRoutes() {
 	workspace.Patch("/:workspaceId", authMiddleware, workspaceMiddleware, workspaceController.Update)
 	// workspace.Delete("/:workspaceId", authMiddleware, workspaceMiddleware, workspaceController.Delete)
 	workspace.Get("/:workspaceId", publishableWorkspaceMiddleware, workspaceController.Get)
-	workspace.Patch("/:workspaceId", authMiddleware, workspaceMiddleware, workspaceController.Update)
 	workspace.Get("/:workspaceId/participants", authMiddleware, workspaceMiddleware, workspaceController.ListParticipant)
 	workspace.Get("/:workspaceId/scoreboard", scoreboardMiddleware, cache.New(), workspaceController.GetScoreboard)
 
