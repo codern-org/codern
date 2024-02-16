@@ -354,3 +354,20 @@ func (u *workspaceUsecase) UpdateRole(
 	}
 	return nil
 }
+
+func (u *workspaceUsecase) Delete(userId string, workspaceId int) error {
+	isAuthorized, err := u.CheckPerm(userId, workspaceId)
+	if err != nil {
+		return errs.New(errs.SameCode, "cannot get workspace role while deleting workspace", err)
+	}
+
+	// TODO: Disallow admin from deleting workspace, only owners are allowed to delete workspace
+	if !isAuthorized {
+		return errs.New(errs.ErrWorkspaceNoPerm, "permission denied")
+	}
+
+	if err := u.workspaceRepository.Delete(workspaceId); err != nil {
+		return errs.New(errs.ErrDeleteWorkspace, "cannot delete workspace id %d", workspaceId, err)
+	}
+	return nil
+}

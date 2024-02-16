@@ -95,6 +95,7 @@ type WorkspaceRepository interface {
 	Update(userId string, workspace *Workspace) error
 	UpdateRecent(userId string, workspaceId int) error
 	UpdateRole(userId string, workspaceId int, role WorkspaceRole) error
+	Delete(workspaceId int) error
 }
 
 type WorkspaceUsecase interface {
@@ -116,4 +117,5 @@ type WorkspaceUsecase interface {
 	ListParticipant(workspaceId int) ([]WorkspaceParticipant, error)
 	Update(userId string, workspaceId int, workspace *UpdateWorkspace) error
 	UpdateRole(updaterUserId string, targetUserId string, workspaceId int, role WorkspaceRole) error
+	Delete(userId string, workspaceId int) error
 }

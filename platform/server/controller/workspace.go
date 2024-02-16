@@ -215,3 +215,18 @@ func (c *WorkspaceController) Update(ctx *fiber.Ctx) error {
 
 	return response.NewSuccessResponse(ctx, fiber.StatusOK, nil)
 }
+
+func (c *WorkspaceController) Delete(ctx *fiber.Ctx) error {
+	var pl payload.WorkspacePath
+	if ok, err := c.validator.Validate(&pl, ctx); !ok {
+		return err
+	}
+
+	user := middleware.GetUserFromCtx(ctx)
+
+	if err := c.workspaceUsecase.Delete(user.Id, pl.WorkspaceId); err != nil {
+		return err
+	}
+
+	return response.NewSuccessResponse(ctx, fiber.StatusOK, nil)
+}

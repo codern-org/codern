@@ -371,3 +371,13 @@ func (r *workspaceRepository) UpdateRole(
 	}
 	return nil
 }
+
+func (r *workspaceRepository) Delete(workspaceId int) error {
+	_, err := r.db.Exec(`
+		UPDATE workspace SET is_deleted = TRUE WHERE id = ?
+	`, workspaceId)
+	if err != nil {
+		return fmt.Errorf("cannot query to soft delete workspace: %w", err)
+	}
+	return nil
+}

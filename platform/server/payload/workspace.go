@@ -19,6 +19,13 @@ type CreateWorkspacePayload struct {
 	Profile multipart.File `file:"profile"`
 }
 
+type UpdateWorkspacePayload struct {
+	WorkspacePath
+	Name     *string        `json:"name"`
+	Favorite *bool          `json:"favorite"`
+	Profile  multipart.File `file:"profile"`
+}
+
 type CreateInvitationPayload struct {
 	WorkspacePath
 	ValidAt    time.Time `json:"validAt" validate:"required"`
@@ -28,11 +35,4 @@ type CreateInvitationPayload struct {
 type ListSubmissionPayload struct {
 	AssignmentPath
 	All bool `query:"all"`
-}
-
-type UpdateWorkspacePayload struct {
-	WorkspacePath
-	Name     *string        `json:"name"`
-	Favorite *bool          `json:"favorite"`
-	Profile  multipart.File `file:"profile"`
 }
