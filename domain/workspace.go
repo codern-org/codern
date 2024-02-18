@@ -113,6 +113,7 @@ type WorkspaceUsecase interface {
 	GetRole(userId string, workspaceId int) (*WorkspaceRole, error)
 	GetScoreboard(workspaceId int) ([]WorkspaceRank, error)
 	CheckPerm(userId string, workspaceId int) (bool, error)
+	CheckPermRole(userId string, workspaceId int, roles []WorkspaceRole) (bool, error)
 	List(userId string) ([]Workspace, error)
 	ListParticipant(workspaceId int) ([]WorkspaceParticipant, error)
 	Update(userId string, workspaceId int, workspace *UpdateWorkspace) error

@@ -279,9 +279,23 @@ func (u *workspaceUsecase) GetScoreboard(workspaceId int) ([]domain.WorkspaceRan
 func (u *workspaceUsecase) CheckPerm(userId string, workspaceId int) (bool, error) {
 	userRole, err := u.GetRole(userId, workspaceId)
 	if err != nil {
-		return false, errs.New(errs.SameCode, "cannot get workspace role", err)
+		return false, errs.New(errs.SameCode, "cannot get workspace role for checking perms", err)
 	}
 	return ((userRole != nil) && (*userRole == domain.AdminRole || *userRole == domain.OwnerRole)), nil
+}
+
+func (u *workspaceUsecase) CheckPermRole(userId string, workspaceId int, roles []domain.WorkspaceRole) (bool, error) {
+	userRole, err := u.GetRole(userId, workspaceId)
+	if err != nil {
+		return false, errs.New(errs.SameCode, "cannot get workspace role for checking perms", err)
+	}
+
+	roleMap := make(map[domain.WorkspaceRole]bool)
+	for _, role := range roles {
+		roleMap[role] = true
+	}
+
+	return ((userRole != nil) && (roleMap[*userRole])), nil
 }
 
 func (u *workspaceUsecase) List(userId string) ([]domain.Workspace, error) {
@@ -301,7 +315,7 @@ func (u *workspaceUsecase) ListParticipant(workspaceId int) ([]domain.WorkspaceP
 }
 
 func (u *workspaceUsecase) Update(userId string, workspaceId int, uw *domain.UpdateWorkspace) error {
-	isAuthorized, err := u.CheckPerm(userId, workspaceId)
+	isAuthorized, err := u.CheckPermRole(userId, workspaceId, []domain.WorkspaceRole{domain.OwnerRole, domain.AdminRole})
 	if err != nil {
 		return errs.New(errs.SameCode, "cannot get workspace role while updating workspace", err)
 	}
@@ -356,12 +370,11 @@ func (u *workspaceUsecase) UpdateRole(
 }
 
 func (u *workspaceUsecase) Delete(userId string, workspaceId int) error {
-	isAuthorized, err := u.CheckPerm(userId, workspaceId)
+	isAuthorized, err := u.CheckPermRole(userId, workspaceId, []domain.WorkspaceRole{domain.OwnerRole})
 	if err != nil {
 		return errs.New(errs.SameCode, "cannot get workspace role while deleting workspace", err)
 	}
 
-	// TODO: Disallow admin from deleting workspace, only owners are allowed to delete workspace
 	if !isAuthorized {
 		return errs.New(errs.ErrWorkspaceNoPerm, "permission denied")
 	}
