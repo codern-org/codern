@@ -17,8 +17,24 @@ func NewWorkspaceRepository(db *sqlx.DB) domain.WorkspaceRepository {
 	return &workspaceRepository{db: db}
 }
 
-func (r *workspaceRepository) Create(userId string, workspace *domain.RawWorkspace) error {
-	_, err := r.db.NamedExec(`
+func (r *workspaceRepository) Create(userId string, workspace *domain.RawWorkspace) (retErr error) {
+
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("cannot begin transaction to update workspace: %w", err)
+	}
+
+	defer func() {
+		if err := recover(); err != nil {
+			if rbErr := tx.Rollback(); rbErr != nil {
+				retErr = fmt.Errorf("cannot rollback transaction: %w", err.(error))
+			} else {
+				retErr = err.(error)
+			}
+		}
+	}()
+
+	_, err = tx.NamedExec(`
 		INSERT INTO workspace (id, name, profile_url, created_at)
 		VALUES (:id, :name, :profile_url, :created_at)
 	`, workspace)
@@ -26,12 +42,16 @@ func (r *workspaceRepository) Create(userId string, workspace *domain.RawWorkspa
 		return fmt.Errorf("cannot query to create workspace: %w", err)
 	}
 
-	_, err = r.db.Exec(`
+	_, err = tx.Exec(`
 		INSERT INTO workspace_participant (workspace_id, user_id, role, favorite, joined_at, recently_visited_at)
 		VALUES (?, ?, ?, ?, ?, ?)
 	`, workspace.Id, userId, domain.OwnerRole, false, time.Now(), time.Now())
 	if err != nil {
 		return fmt.Errorf("cannot query to insert owner into created workspace: %w", err)
+	}
+
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("cannot commit transaction to create workspace: %w", err)
 	}
 
 	return nil
