@@ -29,7 +29,7 @@ type Workspace struct {
 }
 
 type CreateWorkspace struct {
-	Name    string `validate:"required"`
+	Name    string
 	Profile io.Reader
 }
 
