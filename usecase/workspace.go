@@ -206,7 +206,7 @@ func (u *workspaceUsecase) JoinByInvitation(
 
 	err = u.CreateParticipant(invitation.WorkspaceId, userId, domain.MemberRole)
 	if errs.HasCode(err, errs.ErrWorkspaceAlreadyJoin) {
-		return nil, errs.New(errs.SameCode, "user id %s is already in workspace", userId)
+		return nil, errs.New(errs.ErrWorkspaceAlreadyJoin, "user id %s is already in workspace", userId)
 	} else if err != nil {
 		return nil, errs.New(errs.SameCode, "cannot create participant while joining", err)
 	}
