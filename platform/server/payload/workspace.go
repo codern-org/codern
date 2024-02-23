@@ -1,6 +1,7 @@
 package payload
 
 import (
+	"mime/multipart"
 	"time"
 )
 
@@ -13,6 +14,18 @@ type AssignmentPath struct {
 	AssignmentId int `params:"assignmentId" validate:"required" json:"-"`
 }
 
+type CreateWorkspacePayload struct {
+	Name    string         `json:"name" validate:"required"`
+	Profile multipart.File `file:"profile"`
+}
+
+type UpdateWorkspacePayload struct {
+	WorkspacePath
+	Name     *string        `json:"name"`
+	Favorite *bool          `json:"favorite"`
+	Profile  multipart.File `file:"profile"`
+}
+
 type CreateInvitationPayload struct {
 	WorkspacePath
 	ValidAt    time.Time `json:"validAt" validate:"required"`
@@ -22,10 +35,4 @@ type CreateInvitationPayload struct {
 type ListSubmissionPayload struct {
 	AssignmentPath
 	All bool `query:"all"`
-}
-
-type UpdateWorkspacePayload struct {
-	WorkspacePath
-	Name     *string `json:"name"`
-	Favorite *bool   `json:"favorite"`
 }

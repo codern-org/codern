@@ -47,9 +47,11 @@ const (
 	ErrGetRole                    = 30008
 	ErrListWorkspaceParticipant   = 30009
 	ErrGetScoreboard              = 30010
-	ErrUpdateWorkspace            = 30011
-	ErrCreateWorkspaceParticipant = 30012
-	ErrWorkspaceAlreadyJoin       = 30013
+	ErrCreateWorkspace            = 30011
+	ErrUpdateWorkspace            = 30012
+	ErrDeleteWorkspace            = 30013
+	ErrCreateWorkspaceParticipant = 30014
+	ErrWorkspaceAlreadyJoin       = 30015
 
 	ErrCreateInvitation      = 31000
 	ErrGetInvitation         = 31001

@@ -17,6 +17,46 @@ func NewWorkspaceRepository(db *sqlx.DB) domain.WorkspaceRepository {
 	return &workspaceRepository{db: db}
 }
 
+func (r *workspaceRepository) Create(userId string, workspace *domain.RawWorkspace) (retErr error) {
+
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("cannot begin transaction to update workspace: %w", err)
+	}
+
+	defer func() {
+		if err := recover(); err != nil {
+			if rbErr := tx.Rollback(); rbErr != nil {
+				retErr = fmt.Errorf("cannot rollback transaction: %w", err.(error))
+			} else {
+				retErr = err.(error)
+			}
+		}
+	}()
+
+	_, err = tx.NamedExec(`
+		INSERT INTO workspace (id, name, profile_url, created_at)
+		VALUES (:id, :name, :profile_url, :created_at)
+	`, workspace)
+	if err != nil {
+		return fmt.Errorf("cannot query to create workspace: %w", err)
+	}
+
+	_, err = tx.Exec(`
+		INSERT INTO workspace_participant (workspace_id, user_id, role, favorite, joined_at, recently_visited_at)
+		VALUES (?, ?, ?, ?, ?, ?)
+	`, workspace.Id, userId, domain.OwnerRole, false, time.Now(), time.Now())
+	if err != nil {
+		return fmt.Errorf("cannot query to insert owner into created workspace: %w", err)
+	}
+
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("cannot commit transaction to create workspace: %w", err)
+	}
+
+	return nil
+}
+
 func (r *workspaceRepository) CreateInvitation(invitation *domain.WorkspaceInvitation) error {
 	_, err := r.db.Exec(`
 		INSERT INTO workspace_invitation (id, workspace_id, inviter_id, created_at, valid_at, valid_until)
@@ -110,6 +150,8 @@ func (r *workspaceRepository) Get(id int, userId string) (*domain.Workspace, err
 	if err != nil {
 		return nil, fmt.Errorf("cannot query to get workspace: %w", err)
 	} else if len(workspaces) == 0 {
+		return nil, nil
+	} else if workspaces[0].IsDeleted {
 		return nil, nil
 	}
 	return &workspaces[0], nil
@@ -210,11 +252,13 @@ func (r *workspaceRepository) GetScoreboard(workspaceId int) ([]domain.Workspace
 
 func (r *workspaceRepository) List(userId string) ([]domain.Workspace, error) {
 	var workspaceIds []int
-	err := r.db.Select(
-		&workspaceIds,
-		"SELECT workspace_id FROM workspace_participant WHERE user_id = ?",
-		userId,
-	)
+
+	err := r.db.Select(&workspaceIds, `
+		SELECT wp.workspace_id
+		FROM workspace_participant wp
+		INNER JOIN workspace w ON wp.workspace_id = w.id
+		WHERE wp.user_id = ? AND is_deleted IS FALSE;
+	`, userId)
 	if err != nil {
 		return nil, fmt.Errorf("cannot query to list workspace id: %w", err)
 	}
@@ -279,14 +323,47 @@ func (r *workspaceRepository) ListParticipant(
 	return participants, nil
 }
 
-func (r *workspaceRepository) Update(workspace *domain.Workspace) error {
-	_, err := r.db.NamedExec(`
+func (r *workspaceRepository) Update(userId string, workspace *domain.Workspace) (retErr error) {
+	tx, err := r.db.Beginx()
+	if err != nil {
+		return fmt.Errorf("cannot begin transaction to update workspace: %w", err)
+	}
+
+	defer func() {
+		if err := recover(); err != nil {
+			if rbErr := tx.Rollback(); rbErr != nil {
+				retErr = fmt.Errorf("cannot rollback transaction: %w", err.(error))
+			} else {
+				retErr = err.(error)
+			}
+		}
+	}()
+
+	_, err = tx.NamedExec(`
 		UPDATE workspace SET name = :name WHERE id = :id;
-		UPDATE workspace_participant SET favorite = :favorite WHERE workspace_id = :id;
-	`, workspace)
+	`, workspace.RawWorkspace)
 	if err != nil {
 		return fmt.Errorf("cannot query to update workspace: %w", err)
 	}
+
+	_, err = tx.NamedExec(`
+		UPDATE workspace SET profile_url = :profile_url WHERE id = :id;
+	`, workspace.RawWorkspace)
+	if err != nil {
+		return fmt.Errorf("cannot query to update workspace profile: %w", err)
+	}
+
+	_, err = tx.Exec(`
+		UPDATE workspace_participant SET favorite = ? WHERE workspace_id = ? AND user_id = ?;
+	`, workspace.Favorite, workspace.Id, userId)
+	if err != nil {
+		return fmt.Errorf("cannot query to update favorite flag of workspace: %w", err)
+	}
+
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("cannot commit transaction to update workspace: %w", err)
+	}
+
 	return nil
 }
 
@@ -311,6 +388,16 @@ func (r *workspaceRepository) UpdateRole(
 	)
 	if err != nil {
 		return fmt.Errorf("cannot query to update role: %w", err)
+	}
+	return nil
+}
+
+func (r *workspaceRepository) Delete(workspaceId int) error {
+	_, err := r.db.Exec(`
+		UPDATE workspace SET is_deleted = TRUE WHERE id = ?
+	`, workspaceId)
+	if err != nil {
+		return fmt.Errorf("cannot query to soft delete workspace: %w", err)
 	}
 	return nil
 }

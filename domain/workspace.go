@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"io"
 	"time"
 )
 
@@ -14,6 +15,7 @@ type RawWorkspace struct {
 	ParticipantCount int       `json:"participantCount" db:"participant_count"`
 	TotalAssignment  int       `json:"totalAssignment" db:"total_assignment"`
 	IsOpenScoreboard bool      `json:"-" db:"is_open_scoreboard"`
+	IsDeleted        bool      `json:"-" db:"is_deleted"`
 }
 
 type Workspace struct {
@@ -26,8 +28,14 @@ type Workspace struct {
 	RecentlyVisitedAt   time.Time `json:"recentlyVisitedAt" db:"recently_visited_at"`
 }
 
+type CreateWorkspace struct {
+	Name    string
+	Profile io.Reader
+}
+
 type UpdateWorkspace struct {
 	Name     *string
+	Profile  io.Reader
 	Favorite *bool
 }
 
@@ -70,6 +78,7 @@ type WorkspaceRank struct {
 }
 
 type WorkspaceRepository interface {
+	Create(userId string, workspace *RawWorkspace) error
 	CreateInvitation(invitation *WorkspaceInvitation) error
 	GetInvitation(id string) (*WorkspaceInvitation, error)
 	GetInvitations(workspaceId int) ([]WorkspaceInvitation, error)
@@ -83,12 +92,14 @@ type WorkspaceRepository interface {
 	GetScoreboard(workspaceId int) ([]WorkspaceRank, error)
 	List(userId string) ([]Workspace, error)
 	ListParticipant(workspaceId int) ([]WorkspaceParticipant, error)
-	Update(workspace *Workspace) error
+	Update(userId string, workspace *Workspace) error
 	UpdateRecent(userId string, workspaceId int) error
 	UpdateRole(userId string, workspaceId int, role WorkspaceRole) error
+	Delete(workspaceId int) error
 }
 
 type WorkspaceUsecase interface {
+	Create(userId string, workspace *CreateWorkspace) (*RawWorkspace, error)
 	CreateInvitation(workspaceId int, inviterId string, validAt time.Time, validUntil time.Time) (string, error)
 	GetInvitation(id string) (*WorkspaceInvitation, error)
 	GetInvitations(workspaceId int) ([]WorkspaceInvitation, error)
@@ -102,8 +113,10 @@ type WorkspaceUsecase interface {
 	GetRole(userId string, workspaceId int) (*WorkspaceRole, error)
 	GetScoreboard(workspaceId int) ([]WorkspaceRank, error)
 	CheckPerm(userId string, workspaceId int) (bool, error)
+	CheckPermRole(userId string, workspaceId int, roles []WorkspaceRole) (bool, error)
 	List(userId string) ([]Workspace, error)
 	ListParticipant(workspaceId int) ([]WorkspaceParticipant, error)
 	Update(userId string, workspaceId int, workspace *UpdateWorkspace) error
 	UpdateRole(updaterUserId string, targetUserId string, workspaceId int, role WorkspaceRole) error
+	Delete(userId string, workspaceId int) error
 }

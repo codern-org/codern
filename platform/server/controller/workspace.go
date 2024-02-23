@@ -25,6 +25,28 @@ func NewWorkspaceController(
 	}
 }
 
+func (c *WorkspaceController) Create(ctx *fiber.Ctx) error {
+	var pl payload.CreateWorkspacePayload
+	if ok, err := c.validator.Validate(&pl, ctx); !ok {
+		return err
+	}
+
+	user := middleware.GetUserFromCtx(ctx)
+
+	workspace, err := c.workspaceUsecase.Create(
+		user.Id,
+		&domain.CreateWorkspace{
+			Name:    pl.Name,
+			Profile: pl.Profile,
+		},
+	)
+	if err != nil {
+		return err
+	}
+
+	return response.NewSuccessResponse(ctx, fiber.StatusOK, workspace)
+}
+
 // List godoc
 //
 // @Summary 		List workspaces
@@ -185,8 +207,24 @@ func (c *WorkspaceController) Update(ctx *fiber.Ctx) error {
 		&domain.UpdateWorkspace{
 			Name:     pl.Name,
 			Favorite: pl.Favorite,
+			Profile:  pl.Profile,
 		},
 	); err != nil {
+		return err
+	}
+
+	return response.NewSuccessResponse(ctx, fiber.StatusOK, nil)
+}
+
+func (c *WorkspaceController) Delete(ctx *fiber.Ctx) error {
+	var pl payload.WorkspacePath
+	if ok, err := c.validator.Validate(&pl, ctx); !ok {
+		return err
+	}
+
+	user := middleware.GetUserFromCtx(ctx)
+
+	if err := c.workspaceUsecase.Delete(user.Id, pl.WorkspaceId); err != nil {
 		return err
 	}
 

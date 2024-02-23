@@ -18,4 +18,6 @@ var (
 	SeaweedFsChunkSize      = 1048576 // 1 MiB
 
 	MaxInvitationCodeChar = 6
+
+	DefaultProfileUrl = "/workspaces/1/profile"
 )

@@ -1,27 +1,75 @@
 package usecase
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/codern-org/codern/domain"
 	errs "github.com/codern-org/codern/domain/error"
 	"github.com/codern-org/codern/internal/constant"
 	"github.com/codern-org/codern/internal/generator"
+	"github.com/codern-org/codern/platform"
 )
 
 type workspaceUsecase struct {
+	seaweedfs           *platform.SeaweedFs
 	workspaceRepository domain.WorkspaceRepository
+	userRepository      domain.UserRepository
 	userUsecase         domain.UserUsecase
 }
 
 func NewWorkspaceUsecase(
+	seaweedfs *platform.SeaweedFs,
 	workspaceRepository domain.WorkspaceRepository,
+	userRepository domain.UserRepository,
 	userUsecase domain.UserUsecase,
 ) domain.WorkspaceUsecase {
 	return &workspaceUsecase{
+		seaweedfs:           seaweedfs,
 		workspaceRepository: workspaceRepository,
+		userRepository:      userRepository,
 		userUsecase:         userUsecase,
 	}
+}
+
+func (u *workspaceUsecase) Create(creatorId string, cw *domain.CreateWorkspace) (*domain.RawWorkspace, error) {
+	creator, err := u.userRepository.Get(creatorId)
+	if err != nil {
+		return nil, errs.New(errs.SameCode, "cannot get creator id %s role while creating workspace", creatorId, err)
+	} else if creator == nil {
+		return nil, errs.New(errs.ErrWorkspaceNoPerm, "cannot get role of creator id %s", creatorId)
+	} else if creator.Type != domain.ProAccount {
+		return nil, errs.New(errs.ErrWorkspaceNoPerm, "unable to create workspace since creator id %s has %s account", creatorId, creator.Type)
+	}
+
+	id := generator.GetId()
+
+	var profilePath string
+	if cw.Profile == nil {
+		profilePath = constant.DefaultProfileUrl
+	} else {
+		profilePath = fmt.Sprintf("/workspaces/%d/profile", id)
+		if err := u.seaweedfs.Upload(cw.Profile, 0, profilePath); err != nil {
+			return nil, errs.New(errs.ErrCreateWorkspace, "cannot upload profile of workspace id %d while creating workspace", id, err)
+		}
+	}
+
+	workspace := &domain.RawWorkspace{
+		Id:               id,
+		Name:             cw.Name,
+		ProfileUrl:       profilePath,
+		CreatedAt:        time.Now(),
+		OwnerName:        creator.DisplayName,
+		OwnerProfileUrl:  creator.ProfileUrl,
+		ParticipantCount: 0,
+		TotalAssignment:  0,
+		IsOpenScoreboard: false,
+	}
+
+	if err := u.workspaceRepository.Create(creator.Id, workspace); err != nil {
+		return nil, errs.New(errs.ErrCreateWorkspace, "cannot create workspace: ", workspace, err)
+	}
+	return workspace, nil
 }
 
 func (u *workspaceUsecase) CreateInvitation(
@@ -69,6 +117,34 @@ func (u *workspaceUsecase) CreateInvitation(
 	return id, nil
 }
 
+func (u *workspaceUsecase) CreateParticipant(workspaceId int, userId string, role domain.WorkspaceRole) error {
+	user, err := u.userUsecase.Get(userId)
+	if err != nil {
+		return errs.New(errs.SameCode, "cannot get user id %s while creating participant", userId, err)
+	} else if user == nil {
+		return errs.New(errs.ErrUserNotFound, "user id %s not found while creating participant", userId)
+	}
+
+	isUserAlreadyJoined, err := u.workspaceRepository.HasUser(userId, workspaceId)
+	if err != nil {
+		return errs.New(errs.SameCode, "cannot validate if user id %s already exist in workspace", userId, err)
+	} else if isUserAlreadyJoined {
+		return errs.New(errs.ErrWorkspaceAlreadyJoin, "user id %s is already in workspace", userId)
+	}
+
+	participant := &domain.WorkspaceParticipant{
+		WorkspaceId: workspaceId,
+		UserId:      userId,
+		Role:        role,
+		Favorite:    false,
+	}
+
+	if err := u.workspaceRepository.CreateParticipant(participant); err != nil {
+		return errs.New(errs.ErrCreateWorkspaceParticipant, "cannot create participant", err)
+	}
+	return nil
+}
+
 func (u *workspaceUsecase) GetInvitation(id string) (*domain.WorkspaceInvitation, error) {
 	invitation, err := u.workspaceRepository.GetInvitation(id)
 	if err != nil {
@@ -106,34 +182,6 @@ func (u *workspaceUsecase) DeleteInvitation(invitationId string, userId string) 
 
 	if err := u.workspaceRepository.DeleteInvitation(invitationId); err != nil {
 		return errs.New(errs.ErrDeleteInvitation, "cannot delete invitation id %s", invitationId, err)
-	}
-	return nil
-}
-
-func (u *workspaceUsecase) CreateParticipant(workspaceId int, userId string, role domain.WorkspaceRole) error {
-	user, err := u.userUsecase.Get(userId)
-	if err != nil {
-		return errs.New(errs.SameCode, "cannot get user id %s while creating participant", userId, err)
-	} else if user == nil {
-		return errs.New(errs.ErrUserNotFound, "user id %s not found while creating participant", userId)
-	}
-
-	isUserAlreadyJoined, err := u.workspaceRepository.HasUser(userId, workspaceId)
-	if err != nil {
-		return errs.New(errs.SameCode, "cannot validate if user id %s already exist in workspace", userId, err)
-	} else if isUserAlreadyJoined {
-		return errs.New(errs.ErrWorkspaceAlreadyJoin, "user id %s is already in workspace", userId)
-	}
-
-	participant := &domain.WorkspaceParticipant{
-		WorkspaceId: workspaceId,
-		UserId:      userId,
-		Role:        role,
-		Favorite:    false,
-	}
-
-	if err := u.workspaceRepository.CreateParticipant(participant); err != nil {
-		return errs.New(errs.ErrCreateWorkspaceParticipant, "cannot create participant", err)
 	}
 	return nil
 }
@@ -231,9 +279,23 @@ func (u *workspaceUsecase) GetScoreboard(workspaceId int) ([]domain.WorkspaceRan
 func (u *workspaceUsecase) CheckPerm(userId string, workspaceId int) (bool, error) {
 	userRole, err := u.GetRole(userId, workspaceId)
 	if err != nil {
-		return false, errs.New(errs.SameCode, "cannot get workspace role", err)
+		return false, errs.New(errs.SameCode, "cannot get workspace role for checking perms", err)
 	}
 	return ((userRole != nil) && (*userRole == domain.AdminRole || *userRole == domain.OwnerRole)), nil
+}
+
+func (u *workspaceUsecase) CheckPermRole(userId string, workspaceId int, roles []domain.WorkspaceRole) (bool, error) {
+	userRole, err := u.GetRole(userId, workspaceId)
+	if err != nil {
+		return false, errs.New(errs.SameCode, "cannot get workspace role for checking perms", err)
+	}
+
+	roleMap := make(map[domain.WorkspaceRole]bool)
+	for _, role := range roles {
+		roleMap[role] = true
+	}
+
+	return ((userRole != nil) && (roleMap[*userRole])), nil
 }
 
 func (u *workspaceUsecase) List(userId string) ([]domain.Workspace, error) {
@@ -253,7 +315,7 @@ func (u *workspaceUsecase) ListParticipant(workspaceId int) ([]domain.WorkspaceP
 }
 
 func (u *workspaceUsecase) Update(userId string, workspaceId int, uw *domain.UpdateWorkspace) error {
-	isAuthorized, err := u.CheckPerm(userId, workspaceId)
+	isAuthorized, err := u.CheckPermRole(userId, workspaceId, []domain.WorkspaceRole{domain.OwnerRole, domain.AdminRole})
 	if err != nil {
 		return errs.New(errs.SameCode, "cannot get workspace role while updating workspace", err)
 	}
@@ -272,8 +334,16 @@ func (u *workspaceUsecase) Update(userId string, workspaceId int, uw *domain.Upd
 	if uw.Favorite != nil {
 		workspace.Favorite = *uw.Favorite
 	}
+	if uw.Profile != nil {
+		if workspace.ProfileUrl == constant.DefaultProfileUrl {
+			workspace.ProfileUrl = fmt.Sprintf("/workspaces/%d/profile", workspaceId)
+		}
+		if err := u.seaweedfs.Upload(uw.Profile, 0, workspace.ProfileUrl); err != nil {
+			return errs.New(errs.ErrUpdateWorkspace, "cannot upload profile of workspace id %d while updating workspace", workspaceId, err)
+		}
+	}
 
-	if err := u.workspaceRepository.Update(workspace); err != nil {
+	if err := u.workspaceRepository.Update(userId, workspace); err != nil {
 		return errs.New(errs.ErrUpdateWorkspace, "cannot update workspace id %d", workspaceId, err)
 	}
 
@@ -295,6 +365,22 @@ func (u *workspaceUsecase) UpdateRole(
 
 	if err := u.workspaceRepository.UpdateRole(targetUserId, workspaceId, role); err != nil {
 		return errs.New(errs.ErrWorkspaceUpdateRole, "cannot update role", err)
+	}
+	return nil
+}
+
+func (u *workspaceUsecase) Delete(userId string, workspaceId int) error {
+	isAuthorized, err := u.CheckPermRole(userId, workspaceId, []domain.WorkspaceRole{domain.OwnerRole})
+	if err != nil {
+		return errs.New(errs.SameCode, "cannot get workspace role while deleting workspace", err)
+	}
+
+	if !isAuthorized {
+		return errs.New(errs.ErrWorkspaceNoPerm, "permission denied")
+	}
+
+	if err := u.workspaceRepository.Delete(workspaceId); err != nil {
+		return errs.New(errs.ErrDeleteWorkspace, "cannot delete workspace id %d", workspaceId, err)
 	}
 	return nil
 }
