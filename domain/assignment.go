@@ -52,13 +52,13 @@ func (a *Assignment) GetMaxScore() float64 {
 }
 
 type CreateAssignment struct {
-	Name          string          `validate:"required"`
-	Description   string          `validate:"required"`
-	MemoryLimit   int             `validate:"required"`
-	TimeLimit     int             `validate:"required"`
-	Level         AssignmentLevel `validate:"required"`
-	DetailFile    io.Reader       `validate:"required"`
-	TestcaseFiles []TestcaseFile  `validate:"required"`
+	Name          string
+	Description   string
+	MemoryLimit   int
+	TimeLimit     int
+	Level         AssignmentLevel
+	DetailFile    io.Reader
+	TestcaseFiles []TestcaseFile
 }
 
 type UpdateAssignment struct {
