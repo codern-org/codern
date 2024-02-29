@@ -4,14 +4,14 @@ import (
 	"fmt"
 
 	"github.com/codern-org/codern/domain"
-	"github.com/jmoiron/sqlx"
+	"github.com/codern-org/codern/platform"
 )
 
 type surveyRepository struct {
-	db *sqlx.DB
+	db *platform.MySql
 }
 
-func NewSurveyRepository(db *sqlx.DB) domain.SurveyRepository {
+func NewSurveyRepository(db *platform.MySql) domain.SurveyRepository {
 	return &surveyRepository{db: db}
 }
 

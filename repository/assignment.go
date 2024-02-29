@@ -6,14 +6,15 @@ import (
 	"strings"
 
 	"github.com/codern-org/codern/domain"
+	"github.com/codern-org/codern/platform"
 	"github.com/jmoiron/sqlx"
 )
 
 type assignmentRepository struct {
-	db *sqlx.DB
+	db *platform.MySql
 }
 
-func NewAssignmentRepository(db *sqlx.DB) domain.AssignmentRepository {
+func NewAssignmentRepository(db *platform.MySql) domain.AssignmentRepository {
 	return &assignmentRepository{db: db}
 }
 
@@ -111,48 +112,31 @@ func (r *assignmentRepository) CreateSubmissionResults(
 	status domain.AssignmentStatus,
 	score float64,
 	results []domain.SubmissionResult,
-) (retErr error) {
-	tx, err := r.db.Beginx()
-	if err != nil {
-		return fmt.Errorf("cannot begin transaction to update submission result: %w", err)
-	}
-
-	defer func() {
-		if err := recover(); err != nil {
-			if rbErr := tx.Rollback(); rbErr != nil {
-				retErr = fmt.Errorf("cannot rollback transaction: %w", err.(error))
-			} else {
-				retErr = err.(error)
-			}
-		}
-	}()
-
-	_, err = tx.Exec(
-		"UPDATE submission SET compilation_log = ?, status = ?, score = ? WHERE id = ?",
-		compilationLog, status, score, submissionId,
-	)
-	if err != nil {
-		panic(fmt.Errorf("cannot query to update submission from submission result: %w", err))
-	}
-
-	query := "INSERT INTO submission_result (submission_id, testcase_id, is_passed, status, memory_usage, time_usage) VALUES "
-	for _, result := range results {
-		query += fmt.Sprintf(
-			"('%d', '%d', %t, '%s', '%d', '%d'),",
-			result.SubmissionId, result.TestcaseId, result.IsPassed, result.Status,
-			*result.MemoryUsage, *result.TimeUsage,
+) error {
+	return r.db.ExecuteTx(func(tx *sqlx.Tx) error {
+		_, err := tx.Exec(
+			"UPDATE submission SET compilation_log = ?, status = ?, score = ? WHERE id = ?",
+			compilationLog, status, score, submissionId,
 		)
-	}
-	query = query[:len(query)-1] // Remove trailing comma
-	if _, err := tx.Exec(query); err != nil {
-		panic(fmt.Errorf("cannot query to create submission result: %w", err))
-	}
+		if err != nil {
+			return fmt.Errorf("cannot query to update submission from submission result: %w", err)
+		}
 
-	if err = tx.Commit(); err != nil {
-		panic(fmt.Errorf("cannot commit transaction to update submission result: %w", err))
-	}
+		query := "INSERT INTO submission_result (submission_id, testcase_id, is_passed, status, memory_usage, time_usage) VALUES "
+		for _, result := range results {
+			query += fmt.Sprintf(
+				"('%d', '%d', %t, '%s', '%d', '%d'),",
+				result.SubmissionId, result.TestcaseId, result.IsPassed, result.Status,
+				*result.MemoryUsage, *result.TimeUsage,
+			)
+		}
+		query = query[:len(query)-1] // Remove trailing comma
+		if _, err := tx.Exec(query); err != nil {
+			return fmt.Errorf("cannot query to create submission result: %w", err)
+		}
 
-	return
+		return nil
+	})
 }
 
 func (r *assignmentRepository) GetWithStatus(id int, userId string) (*domain.AssignmentWithStatus, error) {

@@ -5,14 +5,14 @@ import (
 	"fmt"
 
 	"github.com/codern-org/codern/domain"
-	"github.com/jmoiron/sqlx"
+	"github.com/codern-org/codern/platform"
 )
 
 type sessionRepository struct {
-	db *sqlx.DB
+	db *platform.MySql
 }
 
-func NewSessionRepository(db *sqlx.DB) domain.SessionRepository {
+func NewSessionRepository(db *platform.MySql) domain.SessionRepository {
 	return &sessionRepository{db: db}
 }
 

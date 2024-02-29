@@ -6,55 +6,38 @@ import (
 	"time"
 
 	"github.com/codern-org/codern/domain"
+	"github.com/codern-org/codern/platform"
 	"github.com/jmoiron/sqlx"
 )
 
 type workspaceRepository struct {
-	db *sqlx.DB
+	db *platform.MySql
 }
 
-func NewWorkspaceRepository(db *sqlx.DB) domain.WorkspaceRepository {
+func NewWorkspaceRepository(db *platform.MySql) domain.WorkspaceRepository {
 	return &workspaceRepository{db: db}
 }
 
-func (r *workspaceRepository) Create(userId string, workspace *domain.RawWorkspace) (retErr error) {
-
-	tx, err := r.db.Beginx()
-	if err != nil {
-		return fmt.Errorf("cannot begin transaction to update workspace: %w", err)
-	}
-
-	defer func() {
-		if err := recover(); err != nil {
-			if rbErr := tx.Rollback(); rbErr != nil {
-				retErr = fmt.Errorf("cannot rollback transaction: %w", err.(error))
-			} else {
-				retErr = err.(error)
-			}
+func (r *workspaceRepository) Create(userId string, workspace *domain.RawWorkspace) error {
+	return r.db.ExecuteTx(func(tx *sqlx.Tx) error {
+		_, err := tx.NamedExec(`
+			INSERT INTO workspace (id, name, profile_url, created_at)
+			VALUES (:id, :name, :profile_url, :created_at)
+		`, workspace)
+		if err != nil {
+			return fmt.Errorf("cannot query to create workspace: %w", err)
 		}
-	}()
 
-	_, err = tx.NamedExec(`
-		INSERT INTO workspace (id, name, profile_url, created_at)
-		VALUES (:id, :name, :profile_url, :created_at)
-	`, workspace)
-	if err != nil {
-		return fmt.Errorf("cannot query to create workspace: %w", err)
-	}
+		_, err = tx.Exec(`
+			INSERT INTO workspace_participant (workspace_id, user_id, role, favorite, joined_at, recently_visited_at)
+			VALUES (?, ?, ?, ?, ?, ?)
+		`, workspace.Id, userId, domain.OwnerRole, false, time.Now(), time.Now())
+		if err != nil {
+			return fmt.Errorf("cannot query to insert owner into created workspace: %w", err)
+		}
 
-	_, err = tx.Exec(`
-		INSERT INTO workspace_participant (workspace_id, user_id, role, favorite, joined_at, recently_visited_at)
-		VALUES (?, ?, ?, ?, ?, ?)
-	`, workspace.Id, userId, domain.OwnerRole, false, time.Now(), time.Now())
-	if err != nil {
-		return fmt.Errorf("cannot query to insert owner into created workspace: %w", err)
-	}
-
-	if err := tx.Commit(); err != nil {
-		return fmt.Errorf("cannot commit transaction to create workspace: %w", err)
-	}
-
-	return nil
+		return nil
+	})
 }
 
 func (r *workspaceRepository) CreateInvitation(invitation *domain.WorkspaceInvitation) error {
@@ -323,48 +306,31 @@ func (r *workspaceRepository) ListParticipant(
 	return participants, nil
 }
 
-func (r *workspaceRepository) Update(userId string, workspace *domain.Workspace) (retErr error) {
-	tx, err := r.db.Beginx()
-	if err != nil {
-		return fmt.Errorf("cannot begin transaction to update workspace: %w", err)
-	}
-
-	defer func() {
-		if err := recover(); err != nil {
-			if rbErr := tx.Rollback(); rbErr != nil {
-				retErr = fmt.Errorf("cannot rollback transaction: %w", err.(error))
-			} else {
-				retErr = err.(error)
-			}
+func (r *workspaceRepository) Update(userId string, workspace *domain.Workspace) error {
+	return r.db.ExecuteTx(func(tx *sqlx.Tx) error {
+		_, err := tx.NamedExec(`
+			UPDATE workspace SET name = :name WHERE id = :id;
+		`, workspace.RawWorkspace)
+		if err != nil {
+			return fmt.Errorf("cannot query to update workspace: %w", err)
 		}
-	}()
 
-	_, err = tx.NamedExec(`
-		UPDATE workspace SET name = :name WHERE id = :id;
-	`, workspace.RawWorkspace)
-	if err != nil {
-		return fmt.Errorf("cannot query to update workspace: %w", err)
-	}
+		_, err = tx.NamedExec(`
+			UPDATE workspace SET profile_url = :profile_url WHERE id = :id;
+		`, workspace.RawWorkspace)
+		if err != nil {
+			return fmt.Errorf("cannot query to update workspace profile: %w", err)
+		}
 
-	_, err = tx.NamedExec(`
-		UPDATE workspace SET profile_url = :profile_url WHERE id = :id;
-	`, workspace.RawWorkspace)
-	if err != nil {
-		return fmt.Errorf("cannot query to update workspace profile: %w", err)
-	}
+		_, err = tx.Exec(`
+			UPDATE workspace_participant SET favorite = ? WHERE workspace_id = ? AND user_id = ?;
+		`, workspace.Favorite, workspace.Id, userId)
+		if err != nil {
+			return fmt.Errorf("cannot query to update favorite flag of workspace: %w", err)
+		}
 
-	_, err = tx.Exec(`
-		UPDATE workspace_participant SET favorite = ? WHERE workspace_id = ? AND user_id = ?;
-	`, workspace.Favorite, workspace.Id, userId)
-	if err != nil {
-		return fmt.Errorf("cannot query to update favorite flag of workspace: %w", err)
-	}
-
-	if err := tx.Commit(); err != nil {
-		return fmt.Errorf("cannot commit transaction to update workspace: %w", err)
-	}
-
-	return nil
+		return nil
+	})
 }
 
 func (r *workspaceRepository) UpdateRecent(userId string, workspaceId int) error {

@@ -2,13 +2,12 @@ package domain
 
 import (
 	"github.com/codern-org/codern/platform"
-	"github.com/jmoiron/sqlx"
 )
 
 type Platform struct {
 	Prometheus   *platform.Prometheus
 	InfluxDb     *platform.InfluxDb
-	MySql        *sqlx.DB
+	MySql        *platform.MySql
 	SeaweedFs    *platform.SeaweedFs
 	RabbitMq     *platform.RabbitMq
 	WebSocketHub *platform.WebSocketHub

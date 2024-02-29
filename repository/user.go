@@ -5,14 +5,14 @@ import (
 	"fmt"
 
 	"github.com/codern-org/codern/domain"
-	"github.com/jmoiron/sqlx"
+	"github.com/codern-org/codern/platform"
 )
 
 type userRepository struct {
-	db *sqlx.DB
+	db *platform.MySql
 }
 
-func NewUserRepository(db *sqlx.DB) domain.UserRepository {
+func NewUserRepository(db *platform.MySql) domain.UserRepository {
 	return &userRepository{db: db}
 }
 

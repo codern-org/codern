@@ -17,7 +17,6 @@ import (
 	"github.com/codern-org/codern/platform/server"
 	"github.com/codern-org/codern/repository"
 	"github.com/codern-org/codern/usecase"
-	"github.com/jmoiron/sqlx"
 	"go.uber.org/zap"
 )
 
@@ -136,7 +135,7 @@ func initPlatform(cfg *config.Config, logger *zap.Logger) *domain.Platform {
 	}
 }
 
-func initRepository(mysql *sqlx.DB) *domain.Repository {
+func initRepository(mysql *platform.MySql) *domain.Repository {
 	return &domain.Repository{
 		Session:    repository.NewSessionRepository(mysql),
 		User:       repository.NewUserRepository(mysql),
