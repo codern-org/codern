@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/go-playground/validator/v10"
 	"gopkg.in/yaml.v3"
@@ -90,7 +91,7 @@ func Load(path string) (*Config, error) {
 		return nil, err
 	}
 
-	file, err := os.Open(path)
+	file, err := os.Open(filepath.Clean(path))
 	if err != nil {
 		return nil, err
 	}
