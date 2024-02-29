@@ -90,7 +90,7 @@ func (s *FiberServer) Close() error {
 
 func (s *FiberServer) applyRoutes() {
 	// Initialize Dependencies
-	validator := validator.NewPayloadValidator(s.platform.InfluxDb)
+	validator := validator.NewPayloadValidator()
 
 	// Initialize Middlewares
 	fileMiddleware := middleware.NewFileMiddleware()

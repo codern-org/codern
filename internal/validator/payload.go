@@ -9,20 +9,17 @@ import (
 	"github.com/codern-org/codern/domain"
 	errs "github.com/codern-org/codern/domain/error"
 	"github.com/codern-org/codern/internal/constant"
-	"github.com/codern-org/codern/platform"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 )
 
 type payloadValidator struct {
 	validator *validator.Validate
-	influxdb  *platform.InfluxDb
 }
 
-func NewPayloadValidator(influxdb *platform.InfluxDb) domain.PayloadValidator {
+func NewPayloadValidator() domain.PayloadValidator {
 	return &payloadValidator{
 		validator: validator.New(),
-		influxdb:  influxdb,
 	}
 }
 
