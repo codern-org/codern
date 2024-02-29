@@ -53,7 +53,7 @@ func main() {
 	// Initialize dependencies
 	platform := initPlatform(cfg, logger)
 	repository := initRepository(platform.MySql)
-	publisher := initPublisher(cfg, logger, platform)
+	publisher := initPublisher(cfg, platform)
 	usecase := initUsecase(cfg, logger, platform, repository, publisher)
 
 	startConsumer(logger, platform, usecase)
@@ -173,13 +173,10 @@ func initUsecase(
 
 func initPublisher(
 	cfg *config.Config,
-	logger *zap.Logger,
 	platform *domain.Platform,
 ) *domain.Publisher {
-	gradingPublisher := publisher.NewGradingPublisher(cfg, platform.RabbitMq)
-
 	return &domain.Publisher{
-		Grading: gradingPublisher,
+		Grading: publisher.NewGradingPublisher(cfg, platform.RabbitMq),
 	}
 }
 

@@ -100,6 +100,7 @@ func (c *gradingConsumer) readSubmssionResult(delivery amqp.Delivery) {
 			"userId":       submission.SubmitterId,
 			"assignmentId": submission.AssignmentId,
 			"latency":      time.Since(message.Metadata.StartTime).Nanoseconds(),
+			"status":       submission.Status,
 		},
 	)
 
