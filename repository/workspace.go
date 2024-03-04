@@ -367,3 +367,13 @@ func (r *workspaceRepository) DeleteInvitation(invitationId string) error {
 	}
 	return nil
 }
+
+func (r *workspaceRepository) DeleteParticipant(workspaceId int, userId string) error {
+	_, err := r.db.Exec(`
+		DELETE FROM workspace_participant WHERE workspace_id = ? AND user_id = ?
+	`, workspaceId, userId)
+	if err != nil {
+		return fmt.Errorf("cannot query to delete workspace participant: %w", err)
+	}
+	return nil
+}

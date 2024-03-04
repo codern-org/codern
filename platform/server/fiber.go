@@ -138,6 +138,7 @@ func (s *FiberServer) applyRoutes() {
 	workspace.Delete("/:workspaceId", authMiddleware, workspaceMiddleware, workspaceController.Delete)
 	workspace.Get("/:workspaceId", publishableWorkspaceMiddleware, workspaceController.Get)
 	workspace.Get("/:workspaceId/participants", authMiddleware, workspaceMiddleware, workspaceController.ListParticipant)
+	workspace.Delete("/:workspaceId/participants/:userId", authMiddleware, workspaceMiddleware, workspaceController.DeleteParticipant)
 	workspace.Get("/:workspaceId/scoreboard", scoreboardMiddleware, cache.New(), workspaceController.GetScoreboard)
 
 	assignment := workspace.Group("/:workspaceId/assignments")

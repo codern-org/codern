@@ -9,6 +9,11 @@ type WorkspacePath struct {
 	WorkspaceId int `params:"workspaceId" validate:"required" json:"-"`
 }
 
+type WorkspaceParticipantPath struct {
+	WorkspacePath
+	UserId string `params:"userId" validate:"required" json:"-"`
+}
+
 type AssignmentPath struct {
 	WorkspacePath
 	AssignmentId int `params:"assignmentId" validate:"required" json:"-"`

@@ -384,3 +384,29 @@ func (u *workspaceUsecase) DeleteInvitation(invitationId string, userId string) 
 	}
 	return nil
 }
+
+func (u *workspaceUsecase) DeleteParticipant(workspaceId int, removerUserId string, targetUserId string) error {
+	if removerUserId == targetUserId {
+		return errs.New(errs.ErrDeleteWorkspaceParticipant, "cannot delete yourself from workspace")
+	}
+
+	isUserInWorkspace, err := u.HasUser(targetUserId, workspaceId)
+	if err != nil {
+		return errs.New(errs.SameCode, "cannot check if user id %s is in workspace while deleting participant", targetUserId, err)
+	} else if !isUserInWorkspace {
+		return errs.New(errs.ErrDeleteWorkspaceParticipant, "user id %s is not in workspace", targetUserId)
+	}
+
+	isAuthorized, err := u.CheckPermRole(removerUserId, workspaceId, []domain.WorkspaceRole{domain.OwnerRole})
+	if err != nil {
+		return errs.New(errs.SameCode, "cannot get workspace role while deleting participant", err)
+	}
+	if !isAuthorized {
+		return errs.New(errs.ErrWorkspaceNoPerm, "permission denied")
+	}
+
+	if err := u.workspaceRepository.DeleteParticipant(workspaceId, targetUserId); err != nil {
+		return errs.New(errs.ErrDeleteWorkspaceParticipant, "cannot delete participant", err)
+	}
+	return nil
+}

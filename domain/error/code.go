@@ -51,7 +51,8 @@ const (
 	ErrUpdateWorkspace            = 30012
 	ErrDeleteWorkspace            = 30013
 	ErrCreateWorkspaceParticipant = 30014
-	ErrWorkspaceAlreadyJoin       = 30015
+	ErrDeleteWorkspaceParticipant = 30015
+	ErrWorkspaceAlreadyJoin       = 30016
 
 	ErrCreateInvitation      = 31000
 	ErrGetInvitation         = 31001
