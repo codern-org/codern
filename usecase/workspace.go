@@ -145,47 +145,6 @@ func (u *workspaceUsecase) CreateParticipant(workspaceId int, userId string, rol
 	return nil
 }
 
-func (u *workspaceUsecase) GetInvitation(id string) (*domain.WorkspaceInvitation, error) {
-	invitation, err := u.workspaceRepository.GetInvitation(id)
-	if err != nil {
-		return nil, errs.New(errs.ErrGetInvitation, "cannot get invitation id %s", id, err)
-	}
-	return invitation, nil
-}
-
-func (u *workspaceUsecase) GetInvitations(workspaceId int) ([]domain.WorkspaceInvitation, error) {
-	invitations, err := u.workspaceRepository.GetInvitations(workspaceId)
-	if err != nil {
-		return nil, errs.New(errs.ErrGetInvitation, "cannot get invitations in workspace id %d", workspaceId, err)
-	}
-	return invitations, nil
-}
-
-func (u *workspaceUsecase) DeleteInvitation(invitationId string, userId string) error {
-	invitation, err := u.GetInvitation(invitationId)
-	if err != nil {
-		return errs.New(errs.SameCode, "cannot get invitation id %s while deleting", invitationId, err)
-	} else if invitation == nil {
-		return errs.New(errs.ErrInvitationNotFound, "invitation id %s not found", invitationId)
-	}
-
-	userRole, err := u.workspaceRepository.GetRole(userId, invitation.WorkspaceId)
-	if err != nil {
-		return errs.New(errs.SameCode, "cannot get user id %s role while deleting", userId, err)
-	} else if userRole == nil {
-		return errs.New(errs.ErrInvitationNoPerm, "user id %s not found in workspace while deleting invitation", userId)
-	}
-
-	if *userRole != domain.OwnerRole && invitation.InviterId != userId {
-		return errs.New(errs.ErrInvitationNoPerm, "user id %s havs no permission to delete invitation %s", userId, invitationId)
-	}
-
-	if err := u.workspaceRepository.DeleteInvitation(invitationId); err != nil {
-		return errs.New(errs.ErrDeleteInvitation, "cannot delete invitation id %s", invitationId, err)
-	}
-	return nil
-}
-
 func (u *workspaceUsecase) JoinByInvitation(
 	userId string,
 	invitationCode string,
@@ -274,6 +233,22 @@ func (u *workspaceUsecase) GetScoreboard(workspaceId int) ([]domain.WorkspaceRan
 		return nil, errs.New(errs.ErrGetScoreboard, "cannot get scoreboard", err)
 	}
 	return scoreboard, nil
+}
+
+func (u *workspaceUsecase) GetInvitation(id string) (*domain.WorkspaceInvitation, error) {
+	invitation, err := u.workspaceRepository.GetInvitation(id)
+	if err != nil {
+		return nil, errs.New(errs.ErrGetInvitation, "cannot get invitation id %s", id, err)
+	}
+	return invitation, nil
+}
+
+func (u *workspaceUsecase) GetInvitations(workspaceId int) ([]domain.WorkspaceInvitation, error) {
+	invitations, err := u.workspaceRepository.GetInvitations(workspaceId)
+	if err != nil {
+		return nil, errs.New(errs.ErrGetInvitation, "cannot get invitations in workspace id %d", workspaceId, err)
+	}
+	return invitations, nil
 }
 
 func (u *workspaceUsecase) CheckPerm(userId string, workspaceId int) (bool, error) {
@@ -381,6 +356,31 @@ func (u *workspaceUsecase) Delete(userId string, workspaceId int) error {
 
 	if err := u.workspaceRepository.Delete(workspaceId); err != nil {
 		return errs.New(errs.ErrDeleteWorkspace, "cannot delete workspace id %d", workspaceId, err)
+	}
+	return nil
+}
+
+func (u *workspaceUsecase) DeleteInvitation(invitationId string, userId string) error {
+	invitation, err := u.GetInvitation(invitationId)
+	if err != nil {
+		return errs.New(errs.SameCode, "cannot get invitation id %s while deleting", invitationId, err)
+	} else if invitation == nil {
+		return errs.New(errs.ErrInvitationNotFound, "invitation id %s not found", invitationId)
+	}
+
+	userRole, err := u.workspaceRepository.GetRole(userId, invitation.WorkspaceId)
+	if err != nil {
+		return errs.New(errs.SameCode, "cannot get user id %s role while deleting", userId, err)
+	} else if userRole == nil {
+		return errs.New(errs.ErrInvitationNoPerm, "user id %s not found in workspace while deleting invitation", userId)
+	}
+
+	if *userRole != domain.OwnerRole && invitation.InviterId != userId {
+		return errs.New(errs.ErrInvitationNoPerm, "user id %s havs no permission to delete invitation %s", userId, invitationId)
+	}
+
+	if err := u.workspaceRepository.DeleteInvitation(invitationId); err != nil {
+		return errs.New(errs.ErrDeleteInvitation, "cannot delete invitation id %s", invitationId, err)
 	}
 	return nil
 }

@@ -80,13 +80,12 @@ type WorkspaceRank struct {
 type WorkspaceRepository interface {
 	Create(userId string, workspace *RawWorkspace) error
 	CreateInvitation(invitation *WorkspaceInvitation) error
-	GetInvitation(id string) (*WorkspaceInvitation, error)
-	GetInvitations(workspaceId int) ([]WorkspaceInvitation, error)
-	DeleteInvitation(invitationId string) error
 	CreateParticipant(participant *WorkspaceParticipant) error
 	HasUser(userId string, workspaceId int) (bool, error)
 	HasAssignment(assignmentId int, workspaceId int) (bool, error)
 	Get(id int, userId string) (*Workspace, error)
+	GetInvitation(id string) (*WorkspaceInvitation, error)
+	GetInvitations(workspaceId int) ([]WorkspaceInvitation, error)
 	GetRaw(id int) (*RawWorkspace, error)
 	GetRole(userId string, workspaceId int) (*WorkspaceRole, error)
 	GetScoreboard(workspaceId int) ([]WorkspaceRank, error)
@@ -96,19 +95,20 @@ type WorkspaceRepository interface {
 	UpdateRecent(userId string, workspaceId int) error
 	UpdateRole(userId string, workspaceId int, role WorkspaceRole) error
 	Delete(workspaceId int) error
+	DeleteInvitation(invitationId string) error
+	DeleteParticipant(workspaceId int, userId string) error
 }
 
 type WorkspaceUsecase interface {
 	Create(userId string, workspace *CreateWorkspace) (*RawWorkspace, error)
 	CreateInvitation(workspaceId int, inviterId string, validAt time.Time, validUntil time.Time) (string, error)
-	GetInvitation(id string) (*WorkspaceInvitation, error)
-	GetInvitations(workspaceId int) ([]WorkspaceInvitation, error)
-	DeleteInvitation(invitationId string, userId string) error
 	CreateParticipant(workspaceId int, userId string, role WorkspaceRole) error
 	JoinByInvitation(userId string, invitationCode string) (*Workspace, error)
 	HasUser(userId string, workspaceId int) (bool, error)
 	HasAssignment(assignmentId int, workspaceId int) (bool, error)
 	Get(id int, userId string) (*Workspace, error)
+	GetInvitation(id string) (*WorkspaceInvitation, error)
+	GetInvitations(workspaceId int) ([]WorkspaceInvitation, error)
 	GetRaw(id int) (*RawWorkspace, error)
 	GetRole(userId string, workspaceId int) (*WorkspaceRole, error)
 	GetScoreboard(workspaceId int) ([]WorkspaceRank, error)
@@ -119,4 +119,6 @@ type WorkspaceUsecase interface {
 	Update(userId string, workspaceId int, workspace *UpdateWorkspace) error
 	UpdateRole(updaterUserId string, targetUserId string, workspaceId int, role WorkspaceRole) error
 	Delete(userId string, workspaceId int) error
+	DeleteInvitation(invitationId string, userId string) error
+	DeleteParticipant(workspaceId int, removerUserId, targetUserId string) error
 }
