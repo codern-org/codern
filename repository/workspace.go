@@ -322,6 +322,13 @@ func (r *workspaceRepository) Update(userId string, workspace *domain.Workspace)
 			return fmt.Errorf("cannot query to update workspace profile: %w", err)
 		}
 
+		_, err = tx.NamedExec(`
+			UPDATE workspace SET is_archived = :is_archived WHERE id = :id;
+		`, workspace.RawWorkspace)
+		if err != nil {
+			return fmt.Errorf("cannot query to update archive flag of workspace: %w", err)
+		}
+
 		_, err = tx.Exec(`
 			UPDATE workspace_participant SET favorite = ? WHERE workspace_id = ? AND user_id = ?;
 		`, workspace.Favorite, workspace.Id, userId)

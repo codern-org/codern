@@ -342,6 +342,17 @@ func (u *workspaceUsecase) Update(userId string, workspaceId int, uw *domain.Upd
 			return errs.New(errs.ErrUpdateWorkspace, "cannot upload profile of workspace id %d while updating workspace", workspaceId, err)
 		}
 	}
+	if uw.Archive != nil {
+		isAuthorized, err = u.CheckPermRole(userId, workspaceId, []domain.WorkspaceRole{domain.OwnerRole})
+		if err != nil {
+			return errs.New(errs.SameCode, "cannot get workspace role while updating workspace archive flag", err)
+		}
+
+		if !isAuthorized {
+			return errs.New(errs.ErrWorkspaceNoPerm, "permission denied")
+		}
+		workspace.IsArchived = *uw.Archive
+	}
 
 	if err := u.workspaceRepository.Update(userId, workspace); err != nil {
 		return errs.New(errs.ErrUpdateWorkspace, "cannot update workspace id %d", workspaceId, err)

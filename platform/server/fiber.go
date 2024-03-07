@@ -129,7 +129,6 @@ func (s *FiberServer) applyRoutes() {
 	user.Patch("/", authMiddleware, userController.Update)
 	user.Patch("/password", authMiddleware, userController.UpdatePassword)
 
-	// TODO: Add delete workspace endpoint
 	workspace := api.Group("/workspaces", middleware.PathType("workspace"))
 	workspace.Get("/join/:invitationId", authMiddleware, workspaceController.JoinByInvitationCode)
 	workspace.Get("/", authMiddleware, workspaceMiddleware, workspaceController.List)

@@ -14,6 +14,7 @@ type RawWorkspace struct {
 	OwnerProfileUrl  string    `json:"ownerProfileUrl" db:"owner_profile_url"`
 	ParticipantCount int       `json:"participantCount" db:"participant_count"`
 	TotalAssignment  int       `json:"totalAssignment" db:"total_assignment"`
+	IsArchived       bool      `json:"isArchived" db:"is_archived"`
 	IsOpenScoreboard bool      `json:"-" db:"is_open_scoreboard"`
 	IsDeleted        bool      `json:"-" db:"is_deleted"`
 }
@@ -37,6 +38,7 @@ type UpdateWorkspace struct {
 	Name     *string
 	Profile  io.Reader
 	Favorite *bool
+	Archive  *bool
 }
 
 type WorkspaceRole string
