@@ -331,11 +331,12 @@ func (u *workspaceUsecase) UpdateRole(
 	workspaceId int,
 	role domain.WorkspaceRole,
 ) error {
-	updaterRole, err := u.workspaceRepository.GetRole(updaterUserId, workspaceId)
-	if err != nil || updaterRole == nil {
-		return errs.New(errs.ErrWorkspaceUpdateRole, "cannot get updater id %s role", updaterUserId, err)
-	} else if *updaterRole == domain.OwnerRole {
-		return errs.New(errs.ErrWorkspaceUpdateRolePerm, "no permission to update user role in workspace", err)
+	isAuthorized, err := u.CheckPermRole(updaterUserId, workspaceId, []domain.WorkspaceRole{domain.OwnerRole})
+	if err != nil {
+		return errs.New(errs.SameCode, "cannot get workspace role while updating role", err)
+	}
+	if !isAuthorized {
+		return errs.New(errs.ErrWorkspaceNoPerm, "permission denied")
 	}
 
 	if err := u.workspaceRepository.UpdateRole(targetUserId, workspaceId, role); err != nil {
