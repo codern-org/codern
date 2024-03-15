@@ -39,6 +39,10 @@ type UpdateWorkspace struct {
 	Favorite *bool
 }
 
+type UpdateParticipant struct {
+	Role WorkspaceRole
+}
+
 type WorkspaceRole string
 
 const (
@@ -46,6 +50,12 @@ const (
 	AdminRole  WorkspaceRole = "ADMIN"
 	OwnerRole  WorkspaceRole = "OWNER"
 )
+
+var WorkspaceRoleMap = map[WorkspaceRole]bool{
+	MemberRole: true,
+	AdminRole:  true,
+	OwnerRole:  true,
+}
 
 type WorkspaceParticipant struct {
 	WorkspaceId       int           `json:"-" db:"workspace_id"`
@@ -93,7 +103,7 @@ type WorkspaceRepository interface {
 	ListParticipant(workspaceId int) ([]WorkspaceParticipant, error)
 	Update(userId string, workspace *Workspace) error
 	UpdateRecent(userId string, workspaceId int) error
-	UpdateRole(userId string, workspaceId int, role WorkspaceRole) error
+	UpdateParticipant(userId string, workspaceId int, participant *WorkspaceParticipant) error
 	Delete(workspaceId int) error
 	DeleteInvitation(invitationId string) error
 	DeleteParticipant(workspaceId int, userId string) error
@@ -117,7 +127,7 @@ type WorkspaceUsecase interface {
 	List(userId string) ([]Workspace, error)
 	ListParticipant(workspaceId int) ([]WorkspaceParticipant, error)
 	Update(userId string, workspaceId int, workspace *UpdateWorkspace) error
-	UpdateRole(updaterUserId string, targetUserId string, workspaceId int, role WorkspaceRole) error
+	UpdateParticipant(updaterUserId string, targetUserId string, workspaceId int, role *UpdateParticipant) error
 	Delete(userId string, workspaceId int) error
 	DeleteInvitation(invitationId string, userId string) error
 	DeleteParticipant(workspaceId int, removerUserId, targetUserId string) error

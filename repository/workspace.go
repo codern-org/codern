@@ -335,14 +335,14 @@ func (r *workspaceRepository) UpdateRecent(userId string, workspaceId int) error
 	return nil
 }
 
-func (r *workspaceRepository) UpdateRole(
+func (r *workspaceRepository) UpdateParticipant(
 	userId string,
 	workspaceId int,
-	role domain.WorkspaceRole,
+	participant *domain.WorkspaceParticipant,
 ) error {
 	_, err := r.db.Exec(
 		"UPDATE workspace_participant SET role = ? WHERE user_id = ? AND workspace_id = ?",
-		role, userId, workspaceId,
+		participant.Role, userId, workspaceId,
 	)
 	if err != nil {
 		return fmt.Errorf("cannot query to update role: %w", err)

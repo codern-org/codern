@@ -325,12 +325,16 @@ func (u *workspaceUsecase) Update(userId string, workspaceId int, uw *domain.Upd
 	return nil
 }
 
-func (u *workspaceUsecase) UpdateRole(
+func (u *workspaceUsecase) UpdateParticipant(
 	updaterUserId string,
 	targetUserId string,
 	workspaceId int,
-	role domain.WorkspaceRole,
+	up *domain.UpdateParticipant,
 ) error {
+	if updaterUserId == targetUserId {
+		return errs.New(errs.ErrUpdateWorkspaceParticipant, "cannot update yourself")
+	}
+
 	isAuthorized, err := u.CheckPermRole(updaterUserId, workspaceId, []domain.WorkspaceRole{domain.OwnerRole})
 	if err != nil {
 		return errs.New(errs.SameCode, "cannot get workspace role while updating role", err)
@@ -339,8 +343,30 @@ func (u *workspaceUsecase) UpdateRole(
 		return errs.New(errs.ErrWorkspaceNoPerm, "permission denied")
 	}
 
-	if err := u.workspaceRepository.UpdateRole(targetUserId, workspaceId, role); err != nil {
-		return errs.New(errs.ErrWorkspaceUpdateRole, "cannot update role", err)
+	targetUserInWorkspace, err := u.HasUser(targetUserId, workspaceId)
+	if err != nil {
+		return errs.New(errs.SameCode, "cannot check if target id %s is in workspace while updating participant", targetUserId, err)
+	} else if !targetUserInWorkspace {
+		return errs.New(errs.ErrUpdateWorkspaceParticipant, "target id %s is not in workspace", targetUserId)
+	}
+
+	if up.Role != domain.WorkspaceRole("") {
+		if _, ok := domain.WorkspaceRoleMap[up.Role]; !ok {
+			return errs.New(errs.ErrInvalidRole, "invalid role")
+		}
+		if up.Role == domain.OwnerRole {
+			return errs.New(errs.ErrInvalidRole, "cannot update role to owner")
+		}
+	}
+
+	if err := u.workspaceRepository.UpdateParticipant(
+		targetUserId,
+		workspaceId,
+		&domain.WorkspaceParticipant{
+			Role: up.Role,
+		},
+	); err != nil {
+		return errs.New(errs.ErrUpdateWorkspaceParticipant, "cannot update participant %s", targetUserId, err)
 	}
 	return nil
 }

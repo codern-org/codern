@@ -129,7 +129,6 @@ func (s *FiberServer) applyRoutes() {
 	user.Patch("/", authMiddleware, userController.Update)
 	user.Patch("/password", authMiddleware, userController.UpdatePassword)
 
-	// TODO: Add delete workspace endpoint
 	workspace := api.Group("/workspaces", middleware.PathType("workspace"))
 	workspace.Get("/join/:invitationId", authMiddleware, workspaceController.JoinByInvitationCode)
 	workspace.Get("/", authMiddleware, workspaceMiddleware, workspaceController.List)
@@ -138,6 +137,7 @@ func (s *FiberServer) applyRoutes() {
 	workspace.Delete("/:workspaceId", authMiddleware, workspaceMiddleware, workspaceController.Delete)
 	workspace.Get("/:workspaceId", publishableWorkspaceMiddleware, workspaceController.Get)
 	workspace.Get("/:workspaceId/participants", authMiddleware, workspaceMiddleware, workspaceController.ListParticipant)
+	workspace.Patch("/:workspaceId/participants/:userId", authMiddleware, workspaceMiddleware, workspaceController.UpdateParticipant)
 	workspace.Delete("/:workspaceId/participants/:userId", authMiddleware, workspaceMiddleware, workspaceController.DeleteParticipant)
 	workspace.Get("/:workspaceId/scoreboard", scoreboardMiddleware, cache.New(), workspaceController.GetScoreboard)
 
