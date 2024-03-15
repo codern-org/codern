@@ -309,24 +309,14 @@ func (r *workspaceRepository) ListParticipant(
 func (r *workspaceRepository) Update(userId string, workspace *domain.Workspace) error {
 	return r.db.ExecuteTx(func(tx *sqlx.Tx) error {
 		_, err := tx.NamedExec(`
-			UPDATE workspace SET name = :name WHERE id = :id;
+			UPDATE workspace SET 
+				name = :name,
+				profile_url = :profile_url,
+				is_archived = :is_archived
+			WHERE id = :id;
 		`, workspace.RawWorkspace)
 		if err != nil {
 			return fmt.Errorf("cannot query to update workspace: %w", err)
-		}
-
-		_, err = tx.NamedExec(`
-			UPDATE workspace SET profile_url = :profile_url WHERE id = :id;
-		`, workspace.RawWorkspace)
-		if err != nil {
-			return fmt.Errorf("cannot query to update workspace profile: %w", err)
-		}
-
-		_, err = tx.NamedExec(`
-			UPDATE workspace SET is_archived = :is_archived WHERE id = :id;
-		`, workspace.RawWorkspace)
-		if err != nil {
-			return fmt.Errorf("cannot query to update archive flag of workspace: %w", err)
 		}
 
 		_, err = tx.Exec(`
