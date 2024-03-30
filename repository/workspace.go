@@ -311,7 +311,8 @@ func (r *workspaceRepository) Update(userId string, workspace *domain.Workspace)
 		_, err := tx.NamedExec(`
 			UPDATE workspace SET 
 				name = :name,
-				profile_url = :profile_url
+				profile_url = :profile_url,
+				is_archived = :is_archived
 			WHERE id = :id;
 		`, workspace.RawWorkspace)
 		if err != nil {

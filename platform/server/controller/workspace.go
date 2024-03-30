@@ -208,6 +208,7 @@ func (c *WorkspaceController) Update(ctx *fiber.Ctx) error {
 			Name:     pl.Name,
 			Favorite: pl.Favorite,
 			Profile:  pl.Profile,
+			Archive:  pl.Archive,
 		},
 	); err != nil {
 		return err

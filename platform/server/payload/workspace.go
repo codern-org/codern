@@ -23,6 +23,7 @@ type UpdateWorkspacePayload struct {
 	WorkspacePath
 	Name     *string        `json:"name"`
 	Favorite *bool          `json:"favorite"`
+	Archive  *bool          `json:"archive"`
 	Profile  multipart.File `file:"profile"`
 }
 
