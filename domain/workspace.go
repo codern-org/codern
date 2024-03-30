@@ -35,10 +35,9 @@ type CreateWorkspace struct {
 }
 
 type UpdateWorkspace struct {
-	Name     *string
-	Profile  io.Reader
-	Favorite *bool
-	Archive  *bool
+	Name    *string
+	Profile io.Reader
+	Archive *bool
 }
 
 type UpdateParticipant struct {
@@ -129,6 +128,7 @@ type WorkspaceUsecase interface {
 	List(userId string) ([]Workspace, error)
 	ListParticipant(workspaceId int) ([]WorkspaceParticipant, error)
 	Update(userId string, workspaceId int, workspace *UpdateWorkspace) error
+	Favorite(userId string, workspaceId int, favorite bool) error
 	UpdateParticipant(updaterUserId string, targetUserId string, workspaceId int, role *UpdateParticipant) error
 	Delete(userId string, workspaceId int) error
 	DeleteInvitation(invitationId string, userId string) error

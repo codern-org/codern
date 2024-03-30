@@ -242,14 +242,19 @@ func (c *WorkspaceController) Update(ctx *fiber.Ctx) error {
 
 	user := middleware.GetUserFromCtx(ctx)
 
+	if pl.Favorite != nil {
+		if err := c.workspaceUsecase.Favorite(user.Id, pl.WorkspaceId, *pl.Favorite); err != nil {
+			return err
+		}
+	}
+
 	if err := c.workspaceUsecase.Update(
 		user.Id,
 		pl.WorkspaceId,
 		&domain.UpdateWorkspace{
-			Name:     pl.Name,
-			Favorite: pl.Favorite,
-			Profile:  pl.Profile,
-			Archive:  pl.Archive,
+			Name:    pl.Name,
+			Profile: pl.Profile,
+			Archive: pl.Archive,
 		},
 	); err != nil {
 		return err

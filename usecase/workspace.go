@@ -306,9 +306,7 @@ func (u *workspaceUsecase) Update(userId string, workspaceId int, uw *domain.Upd
 	if uw.Name != nil {
 		workspace.Name = *uw.Name
 	}
-	if uw.Favorite != nil {
-		workspace.Favorite = *uw.Favorite
-	}
+
 	if uw.Profile != nil {
 		if workspace.ProfileUrl == constant.DefaultProfileUrl {
 			workspace.ProfileUrl = fmt.Sprintf("/workspaces/%d/profile", workspaceId)
@@ -333,6 +331,20 @@ func (u *workspaceUsecase) Update(userId string, workspaceId int, uw *domain.Upd
 		return errs.New(errs.ErrUpdateWorkspace, "cannot update workspace id %d", workspaceId, err)
 	}
 
+	return nil
+}
+
+func (u *workspaceUsecase) Favorite(userId string, workspaceId int, favorite bool) error {
+	workspace, err := u.Get(workspaceId, userId)
+	if err != nil {
+		return errs.New(errs.SameCode, "cannot get workspace id %d while updating workspace", workspaceId, err)
+	}
+
+	workspace.Favorite = favorite
+
+	if err := u.workspaceRepository.Update(userId, workspace); err != nil {
+		return errs.New(errs.ErrUpdateWorkspace, "cannot favorite workspace id %d", workspaceId, err)
+	}
 	return nil
 }
 
