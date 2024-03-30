@@ -42,16 +42,17 @@ const (
 	ErrListWorkspace              = 30003
 	ErrWorkspaceHasUser           = 30004
 	ErrWorkspaceHasAssignment     = 30005
-	ErrWorkspaceUpdateRole        = 30006
-	ErrWorkspaceUpdateRolePerm    = 30007
-	ErrGetRole                    = 30008
-	ErrListWorkspaceParticipant   = 30009
-	ErrGetScoreboard              = 30010
-	ErrCreateWorkspace            = 30011
-	ErrUpdateWorkspace            = 30012
-	ErrDeleteWorkspace            = 30013
-	ErrCreateWorkspaceParticipant = 30014
-	ErrWorkspaceAlreadyJoin       = 30015
+	ErrCreateWorkspaceParticipant = 30006
+	ErrUpdateWorkspaceParticipant = 30007
+	ErrDeleteWorkspaceParticipant = 30008
+	ErrGetRole                    = 30009
+	ErrInvalidRole                = 30010
+	ErrListWorkspaceParticipant   = 30011
+	ErrGetScoreboard              = 30012
+	ErrCreateWorkspace            = 30013
+	ErrUpdateWorkspace            = 30014
+	ErrDeleteWorkspace            = 30015
+	ErrWorkspaceAlreadyJoin       = 30016
 
 	ErrCreateInvitation      = 31000
 	ErrGetInvitation         = 31001

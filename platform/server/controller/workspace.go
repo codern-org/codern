@@ -1,6 +1,8 @@
 package controller
 
 import (
+	"strings"
+
 	"github.com/codern-org/codern/domain"
 	errs "github.com/codern-org/codern/domain/error"
 	"github.com/codern-org/codern/platform/server/middleware"
@@ -81,6 +83,45 @@ func (c *WorkspaceController) ListParticipant(ctx *fiber.Ctx) error {
 	}
 
 	return response.NewSuccessResponse(ctx, fiber.StatusOK, participants)
+}
+
+func (c *WorkspaceController) UpdateParticipant(ctx *fiber.Ctx) error {
+	var pl payload.UpdateParticipantPayload
+	if ok, err := c.validator.Validate(&pl, ctx); !ok {
+		return err
+	}
+
+	user := middleware.GetUserFromCtx(ctx)
+
+	if err := c.workspaceUsecase.UpdateParticipant(
+		user.Id,
+		pl.UserId,
+		pl.WorkspaceId,
+		&domain.UpdateParticipant{
+			Role: domain.WorkspaceRole(
+				strings.ToUpper(pl.Role),
+			),
+		},
+	); err != nil {
+		return err
+	}
+
+	return response.NewSuccessResponse(ctx, fiber.StatusOK, nil)
+}
+
+func (c *WorkspaceController) DeleteParticipant(ctx *fiber.Ctx) error {
+	var pl payload.WorkspaceParticipantPath
+	if ok, err := c.validator.Validate(&pl, ctx); !ok {
+		return err
+	}
+
+	user := middleware.GetUserFromCtx(ctx)
+
+	if err := c.workspaceUsecase.DeleteParticipant(pl.WorkspaceId, user.Id, pl.UserId); err != nil {
+		return err
+	}
+
+	return response.NewSuccessResponse(ctx, fiber.StatusOK, nil)
 }
 
 // Get godoc

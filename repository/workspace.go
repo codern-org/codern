@@ -51,42 +51,6 @@ func (r *workspaceRepository) CreateInvitation(invitation *domain.WorkspaceInvit
 	return nil
 }
 
-func (r *workspaceRepository) GetInvitation(id string) (*domain.WorkspaceInvitation, error) {
-	var invitation domain.WorkspaceInvitation
-	err := r.db.Get(
-		&invitation,
-		"SELECT * FROM workspace_invitation WHERE id = ?",
-		id,
-	)
-	if err == sql.ErrNoRows {
-		return nil, nil
-	} else if err != nil {
-		return nil, fmt.Errorf("cannot query to get workspace invitation: %w", err)
-	}
-	return &invitation, nil
-}
-
-func (r *workspaceRepository) GetInvitations(workspaceId int) ([]domain.WorkspaceInvitation, error) {
-	invitations := make([]domain.WorkspaceInvitation, 0)
-	err := r.db.Select(
-		&invitations,
-		"SELECT * FROM workspace_invitation WHERE workspace_id = ?",
-		workspaceId,
-	)
-	if err != nil {
-		return nil, fmt.Errorf("cannot query to get workspace invitations: %w", err)
-	}
-	return invitations, nil
-}
-
-func (r *workspaceRepository) DeleteInvitation(invitationId string) error {
-	_, err := r.db.Exec("DELETE FROM workspace_invitation WHERE id = ?", invitationId)
-	if err != nil {
-		return fmt.Errorf("cannot query to delete workspace invitation: %w", err)
-	}
-	return nil
-}
-
 func (r *workspaceRepository) CreateParticipant(participant *domain.WorkspaceParticipant) error {
 	_, err := r.db.Exec(
 		"INSERT INTO workspace_participant (workspace_id, user_id, role, favorite) VALUES (?, ?, ?, ?)",
@@ -174,6 +138,34 @@ func (r *workspaceRepository) GetRole(userId string, workspaceId int) (*domain.W
 		return nil, fmt.Errorf("cannot query to get workspace role: %w", err)
 	}
 	return &role, nil
+}
+
+func (r *workspaceRepository) GetInvitation(id string) (*domain.WorkspaceInvitation, error) {
+	var invitation domain.WorkspaceInvitation
+	err := r.db.Get(
+		&invitation,
+		"SELECT * FROM workspace_invitation WHERE id = ?",
+		id,
+	)
+	if err == sql.ErrNoRows {
+		return nil, nil
+	} else if err != nil {
+		return nil, fmt.Errorf("cannot query to get workspace invitation: %w", err)
+	}
+	return &invitation, nil
+}
+
+func (r *workspaceRepository) GetInvitations(workspaceId int) ([]domain.WorkspaceInvitation, error) {
+	invitations := make([]domain.WorkspaceInvitation, 0)
+	err := r.db.Select(
+		&invitations,
+		"SELECT * FROM workspace_invitation WHERE workspace_id = ?",
+		workspaceId,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("cannot query to get workspace invitations: %w", err)
+	}
+	return invitations, nil
 }
 
 func (r *workspaceRepository) GetScoreboard(workspaceId int) ([]domain.WorkspaceRank, error) {
@@ -340,14 +332,14 @@ func (r *workspaceRepository) UpdateRecent(userId string, workspaceId int) error
 	return nil
 }
 
-func (r *workspaceRepository) UpdateRole(
+func (r *workspaceRepository) UpdateParticipant(
 	userId string,
 	workspaceId int,
-	role domain.WorkspaceRole,
+	participant *domain.WorkspaceParticipant,
 ) error {
 	_, err := r.db.Exec(
 		"UPDATE workspace_participant SET role = ? WHERE user_id = ? AND workspace_id = ?",
-		role, userId, workspaceId,
+		participant.Role, userId, workspaceId,
 	)
 	if err != nil {
 		return fmt.Errorf("cannot query to update role: %w", err)
@@ -361,6 +353,24 @@ func (r *workspaceRepository) Delete(workspaceId int) error {
 	`, workspaceId)
 	if err != nil {
 		return fmt.Errorf("cannot query to soft delete workspace: %w", err)
+	}
+	return nil
+}
+
+func (r *workspaceRepository) DeleteInvitation(invitationId string) error {
+	_, err := r.db.Exec("DELETE FROM workspace_invitation WHERE id = ?", invitationId)
+	if err != nil {
+		return fmt.Errorf("cannot query to delete workspace invitation: %w", err)
+	}
+	return nil
+}
+
+func (r *workspaceRepository) DeleteParticipant(workspaceId int, userId string) error {
+	_, err := r.db.Exec(`
+		DELETE FROM workspace_participant WHERE workspace_id = ? AND user_id = ?
+	`, workspaceId, userId)
+	if err != nil {
+		return fmt.Errorf("cannot query to delete workspace participant: %w", err)
 	}
 	return nil
 }
