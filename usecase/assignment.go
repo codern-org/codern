@@ -60,6 +60,7 @@ func (u *assignmentUsecase) Create(
 		MemoryLimit: ca.MemoryLimit,
 		TimeLimit:   ca.TimeLimit,
 		Level:       ca.Level,
+		DueDate:     ca.DueDate,
 	}
 
 	if err := u.assignmentRepository.Create(assignment); err != nil {
@@ -114,6 +115,8 @@ func (u *assignmentUsecase) Update(
 	if ua.Level != nil {
 		assignment.Level = *ua.Level
 	}
+
+	assignment.DueDate = ua.DueDate
 
 	if err := u.assignmentRepository.Update(assignment); err != nil {
 		return errs.New(errs.ErrUpdateAssignment, "cannot update assignment id %d", assignmentId, err)

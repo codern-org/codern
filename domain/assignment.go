@@ -57,6 +57,7 @@ type CreateAssignment struct {
 	MemoryLimit   int
 	TimeLimit     int
 	Level         AssignmentLevel
+	DueDate       *time.Time
 	DetailFile    io.Reader
 	TestcaseFiles []TestcaseFile
 }
@@ -67,6 +68,7 @@ type UpdateAssignment struct {
 	MemoryLimit   *int
 	TimeLimit     *int
 	Level         *AssignmentLevel
+	DueDate       *time.Time
 	DetailFile    io.Reader
 	TestcaseFiles *[]TestcaseFile
 }

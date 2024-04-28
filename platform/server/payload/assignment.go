@@ -2,6 +2,7 @@ package payload
 
 import (
 	"mime/multipart"
+	"time"
 
 	"github.com/codern-org/codern/domain"
 	errs "github.com/codern-org/codern/domain/error"
@@ -25,6 +26,7 @@ type CreateAssignmentPayload struct {
 	MemoryLimit         int                    `json:"memoryLimit" validate:"required"`
 	TimeLimit           int                    `json:"timeLimit" validate:"required"`
 	Level               domain.AssignmentLevel `json:"level" validate:"required"`
+	DueDate             *time.Time             `json:"dueDate"`
 	DetailFile          multipart.File         `file:"detail" validate:"required"`
 	TestcaseInputFiles  []multipart.File       `file:"testcaseInput" validate:"required"`
 	TestcaseOutputFiles []multipart.File       `file:"testcaseOutput" validate:"required"`
@@ -37,6 +39,7 @@ type UpdateAssignment struct {
 	MemoryLimit         *int                    `json:"memoryLimit"`
 	TimeLimit           *int                    `json:"timeLimit"`
 	Level               *domain.AssignmentLevel `json:"level"`
+	DueDate             *time.Time              `json:"dueDate"`
 	DetailFile          multipart.File          `file:"detail"`
 	TestcaseInputFiles  []multipart.File        `file:"testcaseInput"`
 	TestcaseOutputFiles []multipart.File        `file:"testcaseOutput"`
