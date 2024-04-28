@@ -31,15 +31,16 @@ func NewInfluxDb(
 		return true
 	})
 
+	var retErr error
 	if ok, err := client.Ping(context.Background()); !ok {
-		return nil, err
+		retErr = err
 	}
 
 	return &InfluxDb{
 		client:   client,
 		writeApi: writeApi,
 		queryApi: client.QueryAPI(org),
-	}, nil
+	}, retErr
 }
 
 func (db *InfluxDb) WritePoint(
