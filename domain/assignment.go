@@ -40,6 +40,7 @@ type Assignment struct {
 	Level       AssignmentLevel `json:"level" db:"level"`
 	CreatedAt   time.Time       `json:"createdAt" db:"created_at"`
 	UpdatedAt   time.Time       `json:"updatedAt" db:"updated_at"`
+	PublishDate time.Time       `json:"publishDate" db:"publish_date"`
 	DueDate     *time.Time      `json:"dueDate" db:"due_date"`
 	IsDeleted   bool            `json:"-" db:"is_deleted"`
 
@@ -57,6 +58,7 @@ type CreateAssignment struct {
 	MemoryLimit   int
 	TimeLimit     int
 	Level         AssignmentLevel
+	PublishDate   time.Time
 	DueDate       *time.Time
 	DetailFile    io.Reader
 	TestcaseFiles []TestcaseFile
@@ -68,6 +70,7 @@ type UpdateAssignment struct {
 	MemoryLimit   *int
 	TimeLimit     *int
 	Level         *AssignmentLevel
+	PublishDate   *time.Time
 	DueDate       *time.Time
 	DetailFile    io.Reader
 	TestcaseFiles *[]TestcaseFile
@@ -158,7 +161,6 @@ type AssignmentUsecase interface {
 	CreateSubmissionResults(assignment *Assignment, sumbissionId int, compilationLog string, results []SubmissionResult) error
 	Get(id int) (*Assignment, error)
 	GetWithStatus(id int, userId string) (*AssignmentWithStatus, error)
-	CheckPerm(userId string, workspaceId int) (bool, error)
 	GetSubmission(id int) (*Submission, error)
 	List(userId string, workspaceId int) ([]AssignmentWithStatus, error)
 	ListSubmission(userId string, assignmentId int) ([]Submission, error)

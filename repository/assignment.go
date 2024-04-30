@@ -21,9 +21,9 @@ func NewAssignmentRepository(db *platform.MySql) domain.AssignmentRepository {
 func (r *assignmentRepository) Create(assignment *domain.Assignment) error {
 	_, err := r.db.NamedExec(`
 		INSERT INTO assignment
-			(id, workspace_id, name, description, detail_url, memory_limit, time_limit, level, due_date)
+			(id, workspace_id, name, description, detail_url, memory_limit, time_limit, level, publish_date, due_date)
 		VALUES
-			(:id, :workspace_id, :name, :description, :detail_url, :memory_limit, :time_limit, :level, :due_date)
+			(:id, :workspace_id, :name, :description, :detail_url, :memory_limit, :time_limit, :level, :publish_date, :due_date)
 		`, assignment)
 	if err != nil {
 		return fmt.Errorf("cannot query to insert assignment: %w", err)
@@ -33,10 +33,18 @@ func (r *assignmentRepository) Create(assignment *domain.Assignment) error {
 }
 
 func (r *assignmentRepository) Update(assignment *domain.Assignment) error {
-	_, err := r.db.Exec(
-		`UPDATE assignment SET name = ?, description = ?, detail_url = ?, memory_limit = ?, time_limit = ?, level = ?, due_date = ? WHERE id = ?`,
-		assignment.Name, assignment.Description, assignment.DetailUrl, assignment.MemoryLimit, assignment.TimeLimit, assignment.Level, assignment.DueDate, assignment.Id,
-	)
+	_, err := r.db.NamedExec(`
+		UPDATE assignment SET
+			name = :name,
+			description = :description,
+			detail_url = :detail_url,
+			memory_limit = :memory_limit,
+			time_limit = :time_limit,
+			level = :level,
+			publish_date = :publish_date,
+			due_date = :due_date
+		WHERE id = :id
+	`, assignment)
 
 	if err != nil {
 		return fmt.Errorf("cannot query to update assignment: %w", err)

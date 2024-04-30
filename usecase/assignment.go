@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"math"
+	"time"
 
 	"github.com/codern-org/codern/domain"
 	errs "github.com/codern-org/codern/domain/error"
@@ -37,7 +38,7 @@ func (u *assignmentUsecase) Create(
 	workspaceId int,
 	ca *domain.CreateAssignment,
 ) error {
-	isAuthorized, err := u.CheckPerm(userId, workspaceId)
+	isAuthorized, err := u.workspaceUsecase.CheckPerm(userId, workspaceId)
 	if err != nil {
 		return errs.New(errs.SameCode, "cannot get workspace role while creating assignment", err)
 	}
@@ -60,6 +61,7 @@ func (u *assignmentUsecase) Create(
 		MemoryLimit: ca.MemoryLimit,
 		TimeLimit:   ca.TimeLimit,
 		Level:       ca.Level,
+		PublishDate: ca.PublishDate,
 		DueDate:     ca.DueDate,
 	}
 
@@ -92,7 +94,7 @@ func (u *assignmentUsecase) Update(
 		return errs.New(errs.ErrAssignmentNotFound, "assignment id %d not found", assignmentId)
 	}
 
-	isAuthorized, err := u.CheckPerm(userId, assignment.WorkspaceId)
+	isAuthorized, err := u.workspaceUsecase.CheckPerm(userId, assignment.WorkspaceId)
 	if err != nil {
 		return errs.New(errs.SameCode, "cannot get workspace role while updating assignment", err)
 	}
@@ -114,6 +116,9 @@ func (u *assignmentUsecase) Update(
 	}
 	if ua.Level != nil {
 		assignment.Level = *ua.Level
+	}
+	if ua.PublishDate != nil {
+		assignment.PublishDate = *ua.PublishDate
 	}
 
 	assignment.DueDate = ua.DueDate
@@ -145,7 +150,7 @@ func (u *assignmentUsecase) Delete(userId string, id int) error {
 		return errs.New(errs.ErrAssignmentNotFound, "assignment id %d not found", id)
 	}
 
-	isAuthorized, err := u.CheckPerm(userId, assignment.WorkspaceId)
+	isAuthorized, err := u.workspaceUsecase.CheckPerm(userId, assignment.WorkspaceId)
 	if err != nil {
 		return errs.New(errs.SameCode, "cannot get workspace role while deleting assignment", err)
 	}
@@ -320,15 +325,17 @@ func (u *assignmentUsecase) GetWithStatus(id int, userId string) (*domain.Assign
 		return nil, errs.New(errs.ErrGetAssignment, "cannot get assignment id %d", id, err)
 	}
 	assignment.MaxScore = assignment.GetMaxScore()
-	return assignment, nil
-}
 
-func (u *assignmentUsecase) CheckPerm(userId string, workspaceId int) (bool, error) {
-	userRole, err := u.workspaceUsecase.GetRole(userId, workspaceId)
+	isAuthorized, err := u.workspaceUsecase.CheckPerm(userId, assignment.WorkspaceId)
 	if err != nil {
-		return false, errs.New(errs.SameCode, "cannot get workspace role", err)
+		return nil, errs.New(errs.SameCode, "cannot get workspace role while get assignment with status", err)
 	}
-	return ((userRole != nil) && (*userRole == domain.AdminRole || *userRole == domain.OwnerRole)), nil
+
+	if !isAuthorized && time.Now().Before(assignment.PublishDate) {
+		return nil, errs.New(errs.ErrGetAssignment, "invalid assignment id %d", id, err)
+	}
+
+	return assignment, nil
 }
 
 func (u *assignmentUsecase) GetSubmission(id int) (*domain.Submission, error) {
@@ -347,7 +354,23 @@ func (u *assignmentUsecase) List(userId string, workspaceId int) ([]domain.Assig
 	for i := range assignments {
 		assignments[i].MaxScore = assignments[i].GetMaxScore()
 	}
-	return assignments, nil
+
+	isAuthorized, err := u.workspaceUsecase.CheckPerm(userId, workspaceId)
+	if err != nil {
+		return nil, errs.New(errs.SameCode, "cannot get workspace role while list assignment with status", err)
+	}
+
+	if isAuthorized {
+		return assignments, nil
+	}
+
+	filteredAssignments := make([]domain.AssignmentWithStatus, 0, len(assignments))
+	for _, assignment := range assignments {
+		if time.Now().After(assignment.PublishDate) {
+			filteredAssignments = append(filteredAssignments, assignment)
+		}
+	}
+	return filteredAssignments, nil
 }
 
 func (u *assignmentUsecase) ListSubmission(userId string, assignmentId int) ([]domain.Submission, error) {
@@ -363,7 +386,7 @@ func (u *assignmentUsecase) ListAllSubmission(
 	workspaceId int,
 	assignmentId int,
 ) ([]domain.Submission, error) {
-	isAuthorized, err := u.CheckPerm(userId, workspaceId)
+	isAuthorized, err := u.workspaceUsecase.CheckPerm(userId, workspaceId)
 	if err != nil {
 		return nil, errs.New(errs.SameCode, "cannot get workspace role while list all submission", err)
 	}

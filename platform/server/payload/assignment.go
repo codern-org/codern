@@ -26,6 +26,7 @@ type CreateAssignmentPayload struct {
 	MemoryLimit         int                    `json:"memoryLimit" validate:"required"`
 	TimeLimit           int                    `json:"timeLimit" validate:"required"`
 	Level               domain.AssignmentLevel `json:"level" validate:"required"`
+	PublishDate         time.Time              `json:"publishDate" validate:"required"`
 	DueDate             *time.Time             `json:"dueDate"`
 	DetailFile          multipart.File         `file:"detail" validate:"required"`
 	TestcaseInputFiles  []multipart.File       `file:"testcaseInput" validate:"required"`
@@ -39,6 +40,7 @@ type UpdateAssignment struct {
 	MemoryLimit         *int                    `json:"memoryLimit"`
 	TimeLimit           *int                    `json:"timeLimit"`
 	Level               *domain.AssignmentLevel `json:"level"`
+	PublishDate         *time.Time              `json:"publishDate"`
 	DueDate             *time.Time              `json:"dueDate"`
 	DetailFile          multipart.File          `file:"detail"`
 	TestcaseInputFiles  []multipart.File        `file:"testcaseInput"`
