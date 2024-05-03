@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"math"
+	"strings"
 	"time"
 
 	"github.com/codern-org/codern/domain"
@@ -46,10 +47,15 @@ func (u *assignmentUsecase) Create(
 		return errs.New(errs.ErrWorkspaceNoPerm, "permission denied")
 	}
 
+	fileExt := "md"
+	if ca.DetailFile.MimeType == "application/pdf" {
+		fileExt = "pdf"
+	}
+
 	id := generator.GetId()
 	filePath := fmt.Sprintf(
-		"/workspaces/%d/assignments/%d/detail/problem.md",
-		workspaceId, id,
+		"/workspaces/%d/assignments/%d/detail/problem.%s",
+		workspaceId, id, fileExt,
 	)
 
 	assignment := &domain.Assignment{
@@ -70,7 +76,7 @@ func (u *assignmentUsecase) Create(
 	}
 
 	// TODO: retry strategy, error
-	if err := u.seaweedfs.Upload(ca.DetailFile, 0, filePath); err != nil {
+	if err := u.seaweedfs.Upload(ca.DetailFile.Reader, 0, filePath); err != nil {
 		return errs.New(errs.ErrFileSystem, "cannot upload file", err)
 	}
 
@@ -123,12 +129,21 @@ func (u *assignmentUsecase) Update(
 
 	assignment.DueDate = ua.DueDate
 
+	fileExt := "md"
+	if ua.DetailFile.MimeType == "application/pdf" {
+		fileExt = "pdf"
+	}
+	fileNameTokens := strings.Split(assignment.DetailUrl, "/")
+	fileName := fileNameTokens[len(fileNameTokens)-1]
+	fileName, _, _ = strings.Cut(fileName, ".")
+	assignment.DetailUrl = strings.Join(fileNameTokens[:len(fileNameTokens)-1], "/") + fmt.Sprintf("/%s.%s", fileName, fileExt)
+
 	if err := u.assignmentRepository.Update(assignment); err != nil {
 		return errs.New(errs.ErrUpdateAssignment, "cannot update assignment id %d", assignmentId, err)
 	}
 
 	// TODO: retry strategy, error
-	if err := u.seaweedfs.Upload(ua.DetailFile, 0, assignment.DetailUrl); err != nil {
+	if err := u.seaweedfs.Upload(ua.DetailFile.Reader, 0, assignment.DetailUrl); err != nil {
 		return errs.New(errs.ErrFileSystem, "cannot upload detail file while updating assignment id %d", assignmentId, err)
 	}
 

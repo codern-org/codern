@@ -3,8 +3,11 @@ package validator
 import (
 	"errors"
 	"fmt"
+	"io"
 	"mime/multipart"
+	"net/http"
 	"reflect"
+	"strings"
 
 	"github.com/codern-org/codern/domain"
 	errs "github.com/codern-org/codern/domain/error"
@@ -122,4 +125,36 @@ func fileParser(payload interface{}, ctx *fiber.Ctx) error {
 	}
 
 	return nil
+}
+
+func GetMimeType(seeker io.ReadSeeker) (string, error) {
+	if seeker == nil {
+		return "", nil
+	}
+
+	// https://golang.org/src/net/http/sniff.go?s=646:688#L11
+	buf := make([]byte, 512)
+
+	_, err := seeker.Seek(0, io.SeekStart)
+	if err != nil {
+		return "", err
+	}
+
+	bytesRead, err := seeker.Read(buf)
+	if err != nil && err != io.EOF {
+		return "", err
+	}
+
+	_, err = seeker.Seek(0, 0)
+	if err != nil {
+		return "", err
+	}
+
+	// Slice buf to remove fill-up zero values which cause a wrong content type detection
+	mimeType := http.DetectContentType(buf[:bytesRead])
+
+	mimeType, _, _ = strings.Cut(mimeType, ";")
+	mimeType = strings.TrimSpace(mimeType)
+
+	return mimeType, nil
 }

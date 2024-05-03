@@ -5,6 +5,7 @@ import (
 
 	"github.com/codern-org/codern/domain"
 	errs "github.com/codern-org/codern/domain/error"
+	"github.com/codern-org/codern/internal/validator"
 	"github.com/codern-org/codern/platform/server/middleware"
 	"github.com/codern-org/codern/platform/server/payload"
 	"github.com/codern-org/codern/platform/server/response"
@@ -39,18 +40,29 @@ func (c *AssignmentController) Create(ctx *fiber.Ctx) error {
 	user := middleware.GetUserFromCtx(ctx)
 	testcaseFiles := domain.CreateTestcaseFiles(pl.TestcaseInputFiles, pl.TestcaseOutputFiles)
 
+	fileMimeType, err := validator.GetMimeType(pl.DetailFile)
+	if err != nil {
+		return err
+	}
+	if fileMimeType != "text/plain" && fileMimeType != "application/pdf" {
+		return errs.New(errs.ErrBodyParser, "unsupported file type")
+	}
+
 	if err := c.assignmentUsecase.Create(
 		user.Id,
 		pl.WorkspaceId,
 		&domain.CreateAssignment{
-			Name:          pl.Name,
-			Description:   pl.Description,
-			MemoryLimit:   pl.MemoryLimit,
-			TimeLimit:     pl.TimeLimit,
-			Level:         pl.Level,
-			PublishDate:   pl.PublishDate,
-			DueDate:       pl.DueDate,
-			DetailFile:    pl.DetailFile,
+			Name:        pl.Name,
+			Description: pl.Description,
+			MemoryLimit: pl.MemoryLimit,
+			TimeLimit:   pl.TimeLimit,
+			Level:       pl.Level,
+			PublishDate: pl.PublishDate,
+			DueDate:     pl.DueDate,
+			DetailFile: &domain.File{
+				Reader:   pl.DetailFile,
+				MimeType: fileMimeType,
+			},
 			TestcaseFiles: testcaseFiles,
 		},
 	); err != nil {
@@ -202,18 +214,29 @@ func (c *AssignmentController) Update(ctx *fiber.Ctx) error {
 	user := middleware.GetUserFromCtx(ctx)
 	testcaseFiles := domain.CreateTestcaseFiles(pl.TestcaseInputFiles, pl.TestcaseOutputFiles)
 
+	fileMimeType, err := validator.GetMimeType(pl.DetailFile)
+	if err != nil {
+		return err
+	}
+	if fileMimeType != "text/plain" && fileMimeType != "application/pdf" {
+		return errs.New(errs.ErrBodyParser, "unsupported file type")
+	}
+
 	if err := c.assignmentUsecase.Update(
 		user.Id,
 		pl.AssignmentId,
 		&domain.UpdateAssignment{
-			Name:          pl.Name,
-			Description:   pl.Description,
-			MemoryLimit:   pl.MemoryLimit,
-			TimeLimit:     pl.TimeLimit,
-			Level:         pl.Level,
-			PublishDate:   pl.PublishDate,
-			DueDate:       pl.DueDate,
-			DetailFile:    pl.DetailFile,
+			Name:        pl.Name,
+			Description: pl.Description,
+			MemoryLimit: pl.MemoryLimit,
+			TimeLimit:   pl.TimeLimit,
+			Level:       pl.Level,
+			PublishDate: pl.PublishDate,
+			DueDate:     pl.DueDate,
+			DetailFile: &domain.File{
+				Reader:   pl.DetailFile,
+				MimeType: fileMimeType,
+			},
 			TestcaseFiles: &testcaseFiles,
 		},
 	); err != nil {

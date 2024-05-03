@@ -1,6 +1,8 @@
 package domain
 
 import (
+	"io"
+
 	"github.com/codern-org/codern/platform"
 )
 
@@ -33,4 +35,9 @@ type Usecase struct {
 
 type Publisher struct {
 	Grading GradingPublisher
+}
+
+type File struct {
+	Reader   io.Reader
+	MimeType string
 }

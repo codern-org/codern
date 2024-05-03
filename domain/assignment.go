@@ -60,7 +60,7 @@ type CreateAssignment struct {
 	Level         AssignmentLevel
 	PublishDate   time.Time
 	DueDate       *time.Time
-	DetailFile    io.Reader
+	DetailFile    *File
 	TestcaseFiles []TestcaseFile
 }
 
@@ -72,7 +72,7 @@ type UpdateAssignment struct {
 	Level         *AssignmentLevel
 	PublishDate   *time.Time
 	DueDate       *time.Time
-	DetailFile    io.Reader
+	DetailFile    *File
 	TestcaseFiles *[]TestcaseFile
 }
 
