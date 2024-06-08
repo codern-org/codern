@@ -30,19 +30,20 @@ const (
 )
 
 type Assignment struct {
-	Id          int             `json:"id" db:"id"`
-	WorkspaceId int             `json:"-" db:"workspace_id"`
-	Name        string          `json:"name" db:"name"`
-	Description string          `json:"description" db:"description"`
-	DetailUrl   string          `json:"detailUrl" db:"detail_url"`
-	MemoryLimit int             `json:"memoryLimit" db:"memory_limit"`
-	TimeLimit   int             `json:"timeLimit" db:"time_limit"`
-	Level       AssignmentLevel `json:"level" db:"level"`
-	CreatedAt   time.Time       `json:"createdAt" db:"created_at"`
-	UpdatedAt   time.Time       `json:"updatedAt" db:"updated_at"`
-	PublishDate time.Time       `json:"publishDate" db:"publish_date"`
-	DueDate     *time.Time      `json:"dueDate" db:"due_date"`
-	IsDeleted   bool            `json:"-" db:"is_deleted"`
+	Id                int             `json:"id" db:"id"`
+	WorkspaceId       int             `json:"-" db:"workspace_id"`
+	Name              string          `json:"name" db:"name"`
+	Description       string          `json:"description" db:"description"`
+	DetailUrl         string          `json:"detailUrl" db:"detail_url"`
+	MemoryLimit       int             `json:"memoryLimit" db:"memory_limit"`
+	TimeLimit         int             `json:"timeLimit" db:"time_limit"`
+	Level             AssignmentLevel `json:"level" db:"level"`
+	CreatedAt         time.Time       `json:"createdAt" db:"created_at"`
+	UpdatedAt         time.Time       `json:"updatedAt" db:"updated_at"`
+	PublishDate       time.Time       `json:"publishDate" db:"publish_date"`
+	IsAutoTrimEnabled bool            `json:"isAutoTrimEnabled" db:"is_auto_trim_enabled"`
+	DueDate           *time.Time      `json:"dueDate" db:"due_date"`
+	IsDeleted         bool            `json:"-" db:"is_deleted"`
 
 	// Always aggregation
 	Testcases []Testcase `json:"testcases"`
