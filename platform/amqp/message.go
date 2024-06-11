@@ -13,7 +13,7 @@ type GradeRequestMessage struct {
 type GradeSettingsMessage struct {
 	TimeLimit         int  `json:"timeLimit"`
 	MemoryLimit       int  `json:"memoryLimit"`
-	IsAutoTrimEnabled bool `josn:"isAutoTrimEnabled"`
+	IsAutoTrimEnabled bool `json:"isAutoTrimEnabled"`
 }
 
 type GradeTestMessage struct {
