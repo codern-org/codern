@@ -51,7 +51,7 @@ func (s *FiberServer) Start() {
 		DisableStartupMessage: true,
 		ErrorHandler:          errorHandler(s.logger),
 
-		BodyLimit:    25 * 1024 * 1024, // 25 MB
+		BodyLimit:    100 * 1024 * 1024, // 100 MB
 		ServerHeader: "codern",
 
 		TrustedProxies:          s.cfg.Client.Fiber.TrustedProxies,
