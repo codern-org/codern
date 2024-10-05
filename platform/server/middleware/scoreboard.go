@@ -11,8 +11,17 @@ func NewScoreboardMiddleware(
 	validator domain.PayloadValidator,
 	authUsecase domain.AuthUsecase,
 	workspaceUsecase domain.WorkspaceUsecase,
+	miscUsecase domain.MiscUsecase,
 ) fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
+		enabled, err := miscUsecase.GetFeatureFlag("scoreboard")
+		if err != nil {
+			return errs.New(errs.ErrGetScoreboard, "error get scoreboard ff", err)
+		}
+		if !enabled {
+			return errs.New(errs.ErrGetScoreboard, "scoreboard feature is disabled")
+		}
+
 		var pl payload.WorkspacePath
 		if ok, err := validator.Validate(&pl, ctx); !ok {
 			return err

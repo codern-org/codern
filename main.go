@@ -142,6 +142,7 @@ func initRepository(mysql *platform.MySql) *domain.Repository {
 		Workspace:  repository.NewWorkspaceRepository(mysql),
 		Assignment: repository.NewAssignmentRepository(mysql),
 		Survey:     repository.NewSurveyRepository(mysql),
+		Misc:       repository.NewMiscRepsitory(mysql),
 	}
 }
 
@@ -152,6 +153,7 @@ func initUsecase(
 	repository *domain.Repository,
 	publisher *domain.Publisher,
 ) *domain.Usecase {
+	miscUsecase := usecase.NewMiscUsecase(repository.Misc)
 	googleUsecase := usecase.NewGoogleUsecase(cfg)
 	sessionUsecase := usecase.NewSessionUsecase(cfg, repository.Session)
 	userUsecase := usecase.NewUserUsecase(platform.SeaweedFs, repository.User, sessionUsecase)
@@ -168,6 +170,7 @@ func initUsecase(
 		Workspace:  workspaceUsecase,
 		Assignment: assignmentUsecase,
 		Survey:     surveyUsecase,
+		Misc:       miscUsecase,
 	}
 }
 

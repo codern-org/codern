@@ -21,6 +21,7 @@ type Repository struct {
 	Workspace  WorkspaceRepository
 	Assignment AssignmentRepository
 	Survey     SurveyRepository
+	Misc       MiscRepository
 }
 
 type Usecase struct {
@@ -31,6 +32,7 @@ type Usecase struct {
 	Workspace  WorkspaceUsecase
 	Assignment AssignmentUsecase
 	Survey     SurveyUsecase
+	Misc       MiscUsecase
 }
 
 type Publisher struct {

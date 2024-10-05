@@ -97,7 +97,7 @@ func (s *FiberServer) applyRoutes() {
 	authMiddleware := middleware.NewAuthMiddleware(validator, s.usecase.Auth)
 	publishableWorkspaceMiddleware := middleware.NewPublishableWorkspaceMiddleware(validator, s.usecase.Auth, s.usecase.Workspace)
 	workspaceMiddleware := middleware.NewWorkspaceMiddleware(validator, s.usecase.Workspace)
-	scoreboardMiddleware := middleware.NewScoreboardMiddleware(validator, s.usecase.Auth, s.usecase.Workspace)
+	scoreboardMiddleware := middleware.NewScoreboardMiddleware(validator, s.usecase.Auth, s.usecase.Workspace, s.usecase.Misc)
 
 	// Initialize Controllers
 	healtController := controller.NewHealthController(s.cfg)
