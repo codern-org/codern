@@ -4,6 +4,8 @@ import (
 	"time"
 
 	"github.com/codern-org/codern/domain"
+	errs "github.com/codern-org/codern/domain/error"
+	"github.com/codern-org/codern/internal/validator"
 	"github.com/codern-org/codern/platform/server/middleware"
 	"github.com/codern-org/codern/platform/server/payload"
 	"github.com/codern-org/codern/platform/server/response"
@@ -33,6 +35,14 @@ func (c *UserController) Update(ctx *fiber.Ctx) error {
 	}
 
 	user := middleware.GetUserFromCtx(ctx)
+
+	fileMimeType, err := validator.GetMimeType(pl.Profile)
+	if err != nil {
+		return err
+	}
+	if fileMimeType != "image/png" && fileMimeType != "image/jpeg" && fileMimeType != "image/jpg" && fileMimeType != "image/gif" {
+		return errs.New(errs.ErrBodyParser, "unsupported file type")
+	}
 
 	if err := c.userUsecase.Update(
 		user.Id,
