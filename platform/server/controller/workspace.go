@@ -252,9 +252,10 @@ func (c *WorkspaceController) Update(ctx *fiber.Ctx) error {
 		user.Id,
 		pl.WorkspaceId,
 		&domain.UpdateWorkspace{
-			Name:    pl.Name,
-			Profile: pl.Profile,
-			Archive: pl.Archive,
+			Name:                pl.Name,
+			Profile:             pl.Profile,
+			Archive:             pl.Archive,
+			IsScoreboardEnabled: pl.IsScoreboardEnabled,
 		},
 	); err != nil {
 		return err

@@ -6,17 +6,18 @@ import (
 )
 
 type RawWorkspace struct {
-	Id               int       `json:"id" db:"id"`
-	Name             string    `json:"name" db:"name"`
-	ProfileUrl       string    `json:"profileUrl" db:"profile_url"`
-	CreatedAt        time.Time `json:"createdAt" db:"created_at"`
-	OwnerName        string    `json:"ownerName" db:"owner_name"`
-	OwnerProfileUrl  string    `json:"ownerProfileUrl" db:"owner_profile_url"`
-	ParticipantCount int       `json:"participantCount" db:"participant_count"`
-	TotalAssignment  int       `json:"totalAssignment" db:"total_assignment"`
-	IsArchived       bool      `json:"isArchived" db:"is_archived"`
-	IsOpenScoreboard bool      `json:"-" db:"is_open_scoreboard"`
-	IsDeleted        bool      `json:"-" db:"is_deleted"`
+	Id                  int       `json:"id" db:"id"`
+	Name                string    `json:"name" db:"name"`
+	ProfileUrl          string    `json:"profileUrl" db:"profile_url"`
+	CreatedAt           time.Time `json:"createdAt" db:"created_at"`
+	OwnerName           string    `json:"ownerName" db:"owner_name"`
+	OwnerProfileUrl     string    `json:"ownerProfileUrl" db:"owner_profile_url"`
+	ParticipantCount    int       `json:"participantCount" db:"participant_count"`
+	TotalAssignment     int       `json:"totalAssignment" db:"total_assignment"`
+	IsArchived          bool      `json:"isArchived" db:"is_archived"`
+	IsScoreboardEnabled bool      `json:"isScoreboardEnabled" db:"is_scoreboard_enabled"`
+	IsOpenScoreboard    bool      `json:"-" db:"is_open_scoreboard"`
+	IsDeleted           bool      `json:"-" db:"is_deleted"`
 }
 
 type Workspace struct {
@@ -35,9 +36,10 @@ type CreateWorkspace struct {
 }
 
 type UpdateWorkspace struct {
-	Name    *string
-	Profile io.Reader
-	Archive *bool
+	Name                *string
+	Profile             io.Reader
+	Archive             *bool
+	IsScoreboardEnabled *bool
 }
 
 type UpdateParticipant struct {

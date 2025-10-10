@@ -26,10 +26,11 @@ type CreateWorkspacePayload struct {
 
 type UpdateWorkspacePayload struct {
 	WorkspacePath
-	Name     *string        `json:"name"`
-	Favorite *bool          `json:"favorite"`
-	Archive  *bool          `json:"archive"`
-	Profile  multipart.File `file:"profile"`
+	Name                *string        `json:"name"`
+	Favorite            *bool          `json:"favorite"`
+	Archive             *bool          `json:"archive"`
+	Profile             multipart.File `file:"profile"`
+	IsScoreboardEnabled *bool          `json:"isScoreboardEnabled"`
 }
 
 type CreateInvitationPayload struct {

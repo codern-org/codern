@@ -327,6 +327,18 @@ func (u *workspaceUsecase) Update(userId string, workspaceId int, uw *domain.Upd
 		workspace.IsArchived = *uw.Archive
 	}
 
+	if uw.IsScoreboardEnabled != nil {
+		isAuthorized, err = u.CheckPermRole(userId, workspaceId, []domain.WorkspaceRole{domain.OwnerRole, domain.AdminRole})
+		if err != nil {
+			return errs.New(errs.SameCode, "cannot get workspace role while updating workspace scoreboard", err)
+		}
+
+		if !isAuthorized {
+			return errs.New(errs.ErrWorkspaceNoPerm, "permission denied")
+		}
+		workspace.IsScoreboardEnabled = *uw.IsScoreboardEnabled
+	}
+
 	if err := u.workspaceRepository.Update(userId, workspace); err != nil {
 		return errs.New(errs.ErrUpdateWorkspace, "cannot update workspace id %d", workspaceId, err)
 	}

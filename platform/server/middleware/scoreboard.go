@@ -34,6 +34,27 @@ func NewScoreboardMiddleware(
 			return errs.New(errs.SameCode, "workspace id %d not found", pl.WorkspaceId)
 		}
 
+		if !workspace.IsScoreboardEnabled {
+			// Bypass for workspace owner and admin
+			sid, _ := validator.ValidateAuth(ctx)
+			if sid != "" {
+				user, err := authUsecase.Authenticate(sid)
+				if err != nil {
+					return errs.New(errs.SameCode, "cannot get user to get scoreboard", err)
+				}
+				role, err := workspaceUsecase.GetRole(user.Id, workspace.Id)
+				if err != nil {
+					return errs.New(errs.SameCode, "cannot get user role to get scoreboard", err)
+				}
+
+				if *role == domain.OwnerRole || *role == domain.AdminRole {
+					return ctx.Next()
+				}
+			}
+
+			return errs.New(errs.ErrGetScoreboard, "scoreboard is disabled")
+		}
+
 		if !workspace.IsOpenScoreboard {
 			sid, err := validator.ValidateAuth(ctx)
 			if sid == "" {
