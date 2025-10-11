@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"slices"
 	"time"
 
 	"github.com/codern-org/codern/domain"
@@ -40,7 +41,10 @@ func (c *UserController) Update(ctx *fiber.Ctx) error {
 	if err != nil {
 		return err
 	}
-	if fileMimeType != "image/png" && fileMimeType != "image/jpeg" && fileMimeType != "image/jpg" && fileMimeType != "image/gif" {
+
+	supportedMime := []string{"image/png", "image/jpeg", "image/jpg", "image/gif"}
+
+	if fileMimeType != "" && !slices.Contains(supportedMime, fileMimeType) {
 		return errs.New(errs.ErrBodyParser, "unsupported file type")
 	}
 
