@@ -1,6 +1,6 @@
 module github.com/codern-org/codern
 
-go 1.21
+go 1.25
 
 require (
 	github.com/go-playground/validator/v10 v10.15.4
