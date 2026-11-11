@@ -101,6 +101,7 @@ During the 3-hour event, we encountered a high traffic load on our system, with 
 >We are proud to share that our system demonstrated an impressive success rate of **`99.99%`** on API requests during the Bangmod Hackathon 2024, showcasing the robustness and reliability of our platform even under high traffic conditions.
 
 <img src="https://i.imgur.com/OFHvqW5.png" width="650" />
+(The CPU spikes when we access Grafana and query metrics because we have only one VM, with all services running on the same server)
 
 ## Contribution
 
